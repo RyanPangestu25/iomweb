@@ -13,11 +13,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  ValueNotifier<double> animationDurationNotifier = ValueNotifier(1);
-  bool loading = false;
-  String appName = 'IOMCharter';
-  String appVer = '1.0';
-
   @override
   void initState() {
     super.initState();

@@ -1009,28 +1009,25 @@ class _VerificationState extends State<Verification> {
                                 ),
                                 const Text("Payment Date"),
                                 SizedBox(height: size.height * 0.005),
-                                SizedBox(
-                                  width: size.width * 0.75,
-                                  child: TextFormField(
-                                    controller: date,
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    readOnly: true,
-                                    decoration: InputDecoration(
-                                      enabledBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(width: 1),
-                                      ),
-                                      focusedBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(width: 1),
-                                      ),
-                                      suffixIcon: IconButton(
-                                        onPressed: () async {
-                                          await pickDate();
-                                        },
-                                        icon: const Icon(
-                                          Icons.calendar_month_outlined,
-                                          color: Colors.green,
-                                        ),
+                                TextFormField(
+                                  controller: date,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      onPressed: () async {
+                                        await pickDate();
+                                      },
+                                      icon: const Icon(
+                                        Icons.calendar_month_outlined,
+                                        color: Colors.green,
                                       ),
                                     ),
                                   ),
@@ -1038,31 +1035,27 @@ class _VerificationState extends State<Verification> {
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Bank Name"),
                                 SizedBox(height: size.height * 0.005),
-                                SizedBox(
-                                  width: size.width * 0.75,
-                                  child: DropdownButtonFormField(
-                                    value: namaBank,
-                                    itemHeight: null,
-                                    isExpanded: true,
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    items: listNamaBank
-                                        .map(buildmenuItem)
-                                        .toList(),
-                                    onChanged: (value) => setState(() {
-                                      namaBank = value!;
-                                    }),
-                                    validator: (value) {
-                                      if (value == "Select") {
-                                        return "Choose Bank Name";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
+                                DropdownButtonFormField(
+                                  value: namaBank,
+                                  itemHeight: null,
+                                  isExpanded: true,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
                                   ),
+                                  items:
+                                      listNamaBank.map(buildmenuItem).toList(),
+                                  onChanged: (value) => setState(() {
+                                    namaBank = value!;
+                                  }),
+                                  validator: (value) {
+                                    if (value == "Select") {
+                                      return "Choose Bank Name";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
                                 ),
                                 namaBank == 'OTHER'
                                     ? TextFormField(
@@ -1096,29 +1089,26 @@ class _VerificationState extends State<Verification> {
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Currency"),
                                 SizedBox(height: size.height * 0.005),
-                                SizedBox(
-                                  width: size.width * 0.75,
-                                  child: DropdownButtonFormField(
-                                    value: curr,
-                                    itemHeight: null,
-                                    isExpanded: true,
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    items: listCurr.map(buildmenuItem).toList(),
-                                    onChanged: (value) => setState(() {
-                                      curr = value!;
-                                    }),
-                                    validator: (value) {
-                                      if (value == "Select") {
-                                        return "Choose Currency";
-                                      } else {
-                                        return null;
-                                      }
-                                    },
+                                DropdownButtonFormField(
+                                  value: curr,
+                                  itemHeight: null,
+                                  isExpanded: true,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
                                   ),
+                                  items: listCurr.map(buildmenuItem).toList(),
+                                  onChanged: (value) => setState(() {
+                                    curr = value!;
+                                  }),
+                                  validator: (value) {
+                                    if (value == "Select") {
+                                      return "Choose Currency";
+                                    } else {
+                                      return null;
+                                    }
+                                  },
                                 ),
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Amount"),
@@ -1165,7 +1155,6 @@ class _VerificationState extends State<Verification> {
                                     }
                                   },
                                 ),
-                                SizedBox(height: size.height * 0.03),
                                 SizedBox(height: size.height * 0.03),
                                 Container(
                                   width: size.width,

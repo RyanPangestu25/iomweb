@@ -84,7 +84,15 @@ class _ViewIOMState extends State<ViewIOM> {
       dateRange = newDateRange;
       date.text =
           '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+      isPeriod = true;
     }); //for button SAVE
+
+    iom.clear();
+    await getIOM();
+
+    Future.delayed(const Duration(seconds: 1), () async {
+      await filterDate(dateRange.start, dateRange.end);
+    });
   }
 
   Future<void> getIOM() async {
@@ -567,6 +575,8 @@ class _ViewIOMState extends State<ViewIOM> {
                         date.text =
                             '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
                         isPeriod = false;
+                        searchController.clear();
+                        filteredStatus.value = status;
                       });
                       iom.clear();
                       await getIOM();
@@ -647,73 +657,37 @@ class _ViewIOMState extends State<ViewIOM> {
                           },
                         ),
                       ),
-                      Divider(
+                      const Divider(
                         thickness: 2,
-                        indent: size.width * 0.01,
-                        endIndent: size.width * 0.01,
                       ),
-                      Row(
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            width: size.width * 0.75,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Period From - Period To'),
-                                SizedBox(height: size.height * 0.01),
-                                TextFormField(
-                                  controller: date,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  readOnly: true,
-                                  decoration: InputDecoration(
-                                    enabledBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(width: 1),
-                                    ),
-                                    focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(width: 1),
-                                    ),
-                                    suffixIcon: IconButton(
-                                      onPressed: () async {
+                          const Text('Period From - Period To'),
+                          SizedBox(height: size.height * 0.01),
+                          TextFormField(
+                            controller: date,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1),
+                              ),
+                              suffixIcon: IconButton(
+                                onPressed: loading
+                                    ? null
+                                    : () async {
                                         await pickDateRange();
                                       },
-                                      icon: const Icon(
-                                        Icons.calendar_month_outlined,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ),
+                                icon: Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: loading ? null : Colors.green,
                                 ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: size.width * 0.017),
-                          Padding(
-                            padding: EdgeInsets.only(top: size.height * 0.035),
-                            child: IconButton(
-                              onPressed: loading
-                                  ? null
-                                  : () async {
-                                      setState(() {
-                                        isPeriod = true;
-                                      });
-
-                                      iom.clear();
-                                      await getIOM();
-
-                                      Future.delayed(const Duration(seconds: 1),
-                                          () async {
-                                        await filterDate(
-                                            dateRange.start, dateRange.end);
-                                      });
-                                    },
-                              icon: Icon(
-                                isPeriod
-                                    ? Icons.filter_alt
-                                    : Icons.filter_alt_off,
-                                color: loading ? null : Colors.grey,
-                                size: size.height * 0.04,
                               ),
                             ),
                           ),
@@ -724,78 +698,75 @@ class _ViewIOMState extends State<ViewIOM> {
                       const SizedBox(height: 5),
                       Form(
                         key: _formKey,
-                        child: SizedBox(
-                          width: size.width * 0.75,
-                          child: TextField(
-                            readOnly: loading,
-                            focusNode: _focusNode,
-                            selectionHeightStyle: BoxHeightStyle.tight,
-                            controller: searchController,
-                            autocorrect: false,
-                            decoration: InputDecoration(
-                              enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(width: 2),
-                              ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  width: 2,
-                                  color: Color.fromARGB(255, 4, 88, 156),
-                                ),
-                              ),
-                              suffixIcon: searchController.text.isEmpty
-                                  ? const Icon(
-                                      Icons.search,
-                                      color: Colors.grey,
-                                    )
-                                  : IconButton(
-                                      onPressed: () async {
-                                        searchController.clear();
-
-                                        if (!isPeriod) {
-                                          filterStatus(
-                                              dateRange.start, dateRange.end);
-                                        } else {
-                                          filterDate(
-                                              dateRange.start, dateRange.end);
-                                        }
-                                      },
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
+                        child: TextField(
+                          readOnly: loading,
+                          focusNode: _focusNode,
+                          selectionHeightStyle: BoxHeightStyle.tight,
+                          controller: searchController,
+                          autocorrect: false,
+                          decoration: InputDecoration(
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(width: 2),
                             ),
-                            onChanged: (value) {
-                              if (value.isEmpty) {
-                                if (!isPeriod) {
-                                  filterStatus(dateRange.start, dateRange.end);
-                                } else {
-                                  filterDate(dateRange.start, dateRange.end);
-                                }
-                              } else {
-                                if (isPeriod) {
-                                  filterDate(dateRange.start, dateRange.end);
-                                } else {
-                                  filterSearch(value);
-                                }
-                              }
-                            },
-                            onEditingComplete: () {
-                              if (searchController.text.isEmpty) {
-                                if (!isPeriod) {
-                                  filterStatus(dateRange.start, dateRange.end);
-                                } else {
-                                  filterDate(dateRange.start, dateRange.end);
-                                }
-                              } else {
-                                if (isPeriod) {
-                                  filterDate(dateRange.start, dateRange.end);
-                                } else {
-                                  filterSearch(searchController.text);
-                                }
-                              }
-                            },
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: Color.fromARGB(255, 4, 88, 156),
+                              ),
+                            ),
+                            suffixIcon: searchController.text.isEmpty
+                                ? const Icon(
+                                    Icons.search,
+                                    color: Colors.grey,
+                                  )
+                                : IconButton(
+                                    onPressed: () async {
+                                      searchController.clear();
+
+                                      if (!isPeriod) {
+                                        filterStatus(
+                                            dateRange.start, dateRange.end);
+                                      } else {
+                                        filterDate(
+                                            dateRange.start, dateRange.end);
+                                      }
+                                    },
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                           ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              if (!isPeriod) {
+                                filterStatus(dateRange.start, dateRange.end);
+                              } else {
+                                filterDate(dateRange.start, dateRange.end);
+                              }
+                            } else {
+                              if (isPeriod) {
+                                filterDate(dateRange.start, dateRange.end);
+                              } else {
+                                filterSearch(value);
+                              }
+                            }
+                          },
+                          onEditingComplete: () {
+                            if (searchController.text.isEmpty) {
+                              if (!isPeriod) {
+                                filterStatus(dateRange.start, dateRange.end);
+                              } else {
+                                filterDate(dateRange.start, dateRange.end);
+                              }
+                            } else {
+                              if (isPeriod) {
+                                filterDate(dateRange.start, dateRange.end);
+                              } else {
+                                filterSearch(searchController.text);
+                              }
+                            }
+                          },
                         ),
                       ),
                       SizedBox(height: size.height * 0.02),

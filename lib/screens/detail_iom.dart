@@ -471,20 +471,17 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['noIOM'],
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['noIOM'],
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -496,21 +493,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['charter'],
-                    autocorrect: false,
-                    readOnly: true,
-                    maxLines: 2,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['charter'],
+                  autocorrect: false,
+                  readOnly: true,
+                  maxLines: 2,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -522,21 +516,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: DateFormat('dd-MMM-yyyy').format(
-                        DateTime.parse(widget.iom.last['tanggal']).toLocal()),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: DateFormat('dd-MMM-yyyy').format(
+                      DateTime.parse(widget.iom.last['tanggal']).toLocal()),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -548,20 +539,17 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['perihal'],
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['perihal'],
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -573,27 +561,24 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['curr'] +
-                        ' ' +
-                        NumberFormat.currency(locale: 'id_ID', symbol: '')
-                            .format(
-                              double.parse(widget.iom.last['biaya']
-                                  .replaceAll(',', '.')),
-                            )
-                            .toString(),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['curr'] +
+                      ' ' +
+                      NumberFormat.currency(locale: 'id_ID', symbol: '')
+                          .format(
+                            double.parse(
+                                widget.iom.last['biaya'].replaceAll(',', '.')),
+                          )
+                          .toString(),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -605,21 +590,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['pembayaran'],
-                    autocorrect: false,
-                    readOnly: true,
-                    maxLines: 2,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['pembayaran'],
+                  autocorrect: false,
+                  readOnly: true,
+                  maxLines: 2,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -631,21 +613,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['note'],
-                    autocorrect: false,
-                    readOnly: true,
-                    maxLines: 2,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['note'],
+                  autocorrect: false,
+                  readOnly: true,
+                  maxLines: 2,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -657,43 +636,38 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['status'],
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: widget.iom.last['status'] ==
-                                      'VERIFIED PENDING PAYMENT' ||
-                                  widget.iom.last['status'] ==
-                                      'VERIFIED PAYMENT'
-                              ? Colors.blue
-                              : widget.iom.last['status'] == 'APPROVED'
-                                  ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED'
-                                      ? Colors.red
-                                      : Colors.black,
-                        ),
+                TextFormField(
+                  initialValue: widget.iom.last['status'],
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: widget.iom.last['status'] ==
+                                    'VERIFIED PENDING PAYMENT' ||
+                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
+                            ? Colors.blue
+                            : widget.iom.last['status'] == 'APPROVED'
+                                ? Colors.green
+                                : widget.iom.last['status'] == 'REJECTED'
+                                    ? Colors.red
+                                    : Colors.black,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 2,
-                          color: widget.iom.last['status'] ==
-                                      'VERIFIED PENDING PAYMENT' ||
-                                  widget.iom.last['status'] ==
-                                      'VERIFIED PAYMENT'
-                              ? Colors.blue
-                              : widget.iom.last['status'] == 'APPROVED'
-                                  ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED'
-                                      ? Colors.red
-                                      : Colors.black,
-                        ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: widget.iom.last['status'] ==
+                                    'VERIFIED PENDING PAYMENT' ||
+                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
+                            ? Colors.blue
+                            : widget.iom.last['status'] == 'APPROVED'
+                                ? Colors.green
+                                : widget.iom.last['status'] == 'REJECTED'
+                                    ? Colors.red
+                                    : Colors.black,
                       ),
                     ),
                   ),
@@ -706,25 +680,21 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['verifNoPayStatus'] ==
-                            'No Data'
-                        ? widget.iom.last['verifNoPayStatus']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['verifNoPayStatus'])
-                                .toLocal()),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['verifNoPayStatus'] == 'No Data'
+                      ? widget.iom.last['verifNoPayStatus']
+                      : DateFormat('dd-MMM-yyyy').format(
+                          DateTime.parse(widget.iom.last['verifNoPayStatus'])
+                              .toLocal()),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -736,24 +706,21 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['verifPayStatus'] == 'No Data'
-                        ? widget.iom.last['verifPayStatus']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['verifPayStatus'])
-                                .toLocal()),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['verifPayStatus'] == 'No Data'
+                      ? widget.iom.last['verifPayStatus']
+                      : DateFormat('dd-MMM-yyyy').format(
+                          DateTime.parse(widget.iom.last['verifPayStatus'])
+                              .toLocal()),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -765,24 +732,21 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['approveDate'] == 'No Data'
-                        ? widget.iom.last['approveDate']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['approveDate'])
-                                .toLocal()),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['approveDate'] == 'No Data'
+                      ? widget.iom.last['approveDate']
+                      : DateFormat('dd-MMM-yyyy').format(
+                          DateTime.parse(widget.iom.last['approveDate'])
+                              .toLocal()),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -794,37 +758,29 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: size.width * 0.75,
-                      child: TextFormField(
-                        initialValue: widget.iom.last['payStatus'],
-                        autocorrect: false,
-                        readOnly: true,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: widget.iom.last['payStatus'] == 'PAID'
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              width: 2,
-                              color: widget.iom.last['payStatus'] == 'PAID'
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                        ),
+                TextFormField(
+                  initialValue: widget.iom.last['payStatus'],
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: widget.iom.last['payStatus'] == 'PAID'
+                            ? Colors.green
+                            : Colors.red,
                       ),
                     ),
-                    SizedBox(width: size.width * 0.02),
-                    IconButton(
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: widget.iom.last['payStatus'] == 'PAID'
+                            ? Colors.green
+                            : Colors.red,
+                      ),
+                    ),
+                    suffixIcon: IconButton(
                       onPressed: loading
                           ? null
                           : () async {
@@ -841,8 +797,8 @@ class _DetailIOMState extends State<DetailIOM> {
                         color: Colors.green,
                         size: size.height * 0.05,
                       ),
-                    )
-                  ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: size.height * 0.015),
                 const Text(
@@ -852,24 +808,20 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['payDate'] == 'No Data'
-                        ? widget.iom.last['payDate']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['payDate'])
-                                .toLocal()),
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['payDate'] == 'No Data'
+                      ? widget.iom.last['payDate']
+                      : DateFormat('dd-MMM-yyyy').format(
+                          DateTime.parse(widget.iom.last['payDate']).toLocal()),
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -881,20 +833,17 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  width: size.width * 0.75,
-                  child: TextFormField(
-                    initialValue: widget.iom.last['payBank'],
-                    autocorrect: false,
-                    readOnly: true,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: const InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 2),
-                      ),
+                TextFormField(
+                  initialValue: widget.iom.last['payBank'],
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
