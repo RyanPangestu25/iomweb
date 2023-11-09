@@ -13,19 +13,19 @@ import 'package:xml/xml.dart' as xml;
 import 'display/img.dart';
 import 'display/pdf.dart';
 
-class Payment extends StatefulWidget {
+class IOMAttachment extends StatefulWidget {
   final List iom;
 
-  const Payment({
+  const IOMAttachment({
     super.key,
     required this.iom,
   });
 
   @override
-  State<Payment> createState() => _PaymentState();
+  State<IOMAttachment> createState() => _IOMAttachmentState();
 }
 
-class _PaymentState extends State<Payment> {
+class _IOMAttachmentState extends State<IOMAttachment> {
   bool _isConnected = false;
   bool visible = true;
   bool loading = false;
@@ -33,10 +33,10 @@ class _PaymentState extends State<Payment> {
   int _sortColumnIndex = 0;
   int currentPage = 1;
   int rowPerPages = PaginatedDataTable.defaultRowsPerPage;
-  List payment = [];
   List att = [];
+  List attFile = [];
 
-  Future<void> getIOMPayment() async {
+  Future<void> getAttName() async {
     try {
       setState(() {
         loading = true;
@@ -45,17 +45,17 @@ class _PaymentState extends State<Payment> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMPayment xmlns="http://tempuri.org/">' +
+          '<GetAttachmentName xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<server>${widget.iom.last['server']}</server>' +
-          '</GetIOMPayment>' +
+          '</GetAttachmentName>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMPayment),
+      final response = await http.post(Uri.parse(url_GetAttachmentName),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMPayment',
+            'SOAPAction': 'http://tempuri.org/GetAttachmentName',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -88,42 +88,34 @@ class _PaymentState extends State<Payment> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final fileName = listResult.findElements('Filename').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+                : listResult.findElements('Filename').first.text;
+            final uploadedDate = listResult.findElements('UploadedDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('UploadedDate').first.text;
+            final ext = listResult.findElements('Ext').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Ext').first.text;
+            final attachmentType =
+                listResult.findElements('attachmentType').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('attachmentType').first.text;
             final item = listResult.findElements('Item').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Item').first.text;
-            final tglTerimaPembayaran = listResult
-                    .findElements('Tgl_TerimaPembayaran')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tgl_TerimaPembayaran').first.text;
-            final namaBankPenerima =
-                listResult.findElements('NamaBankPenerima').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('NamaBankPenerima').first.text;
-            final amountPembayaran =
-                listResult.findElements('AmountPembayaran').isEmpty
-                    ? '0'
-                    : listResult.findElements('AmountPembayaran').first.text;
-            final currPembayaran =
-                listResult.findElements('CurrPembayaran').isEmpty
-                    ? '0'
-                    : listResult.findElements('CurrPembayaran').first.text;
 
             setState(() {
-              payment.add({
-                'noIOM': noIOM,
+              att.add({
                 'item': item,
-                'tanggal': tglTerimaPembayaran,
-                'bank': namaBankPenerima,
-                'amount': amountPembayaran,
-                'curr': currPembayaran,
+                'fileName': fileName,
+                'date': uploadedDate,
+                'ext': ext,
+                'attachmentType': attachmentType,
               });
             });
 
-            var hasilJson = jsonEncode(payment);
+            var hasilJson = jsonEncode(att);
             debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
@@ -144,7 +136,7 @@ class _PaymentState extends State<Payment> {
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
           title: "${response.statusCode}",
-          subtitle: "Error Get IOM Payment",
+          subtitle: "Error Get Attachment Name",
           backgroundColor: Colors.grey[300],
         );
         if (mounted) {
@@ -160,7 +152,7 @@ class _PaymentState extends State<Payment> {
         duration: const Duration(seconds: 2),
         configuration:
             const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM Payment",
+        title: "Error Get Attachment Name",
         subtitle: "$e",
         subtitleOptions: StatusAlertTextConfiguration(
           overflow: TextOverflow.visible,
@@ -186,8 +178,8 @@ class _PaymentState extends State<Payment> {
           '<soap:Body>' +
           '<GetIOMAttachment xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<Item>${payment[index]['item']}</Item>' +
-          '<attachmentType>BUKTI TERIMA PEMBAYARAN</attachmentType>' +
+          '<Item>${att[index]['item']}</Item>' +
+          '<attachmentType>${att[index]['attachmentType']}</attachmentType>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</GetIOMAttachment>' +
           '</soap:Body>' +
@@ -247,7 +239,7 @@ class _PaymentState extends State<Payment> {
                     : listResult.findElements('attachmentType').first.text;
 
             setState(() {
-              att.add({
+              attFile.add({
                 'noIOM': noIOM,
                 'filename': filename,
                 'pdf': pdfFile,
@@ -256,7 +248,7 @@ class _PaymentState extends State<Payment> {
               });
             });
 
-            var hasilJson = jsonEncode(att);
+            var hasilJson = jsonEncode(attFile);
             debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
@@ -354,7 +346,7 @@ class _PaymentState extends State<Payment> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
-      await getIOMPayment();
+      await getAttName();
     });
   }
 
@@ -366,10 +358,6 @@ class _PaymentState extends State<Payment> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    double totalAmount = 0.0;
-    for (int i = 0; i < payment.length; i++) {
-      totalAmount += double.parse(payment[i]['amount']);
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -377,7 +365,7 @@ class _PaymentState extends State<Payment> {
         backgroundColor: Colors.redAccent,
         foregroundColor: Colors.white,
         title: const Text(
-          "Detail Payment",
+          "Detail Attachment",
         ),
         elevation: 3,
         actions: [
@@ -388,8 +376,8 @@ class _PaymentState extends State<Payment> {
                     setState(() {
                       loading = true;
                     });
-                    payment.clear();
-                    await getIOMPayment();
+                    att.clear();
+                    await getAttName();
                   },
             icon: const Icon(Icons.refresh),
           ),
@@ -403,36 +391,18 @@ class _PaymentState extends State<Payment> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text.rich(
-                  TextSpan(
-                    text: 'Total Amount = ',
-                    children: [
-                      TextSpan(
-                        text: NumberFormat.currency(locale: 'id_ID', symbol: '')
-                            .format(totalAmount)
-                            .toString(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                          fontSize: size.height * 0.023,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
                 SizedBox(
-                  height: payment.isEmpty
+                  height: att.isEmpty
                       ? size.height * 0.25
-                      : payment.length < 5
+                      : att.length < 5
                           ? ((MediaQuery.of(context).textScaleFactor * 14 +
                                       2 * 18) *
-                                  payment.length) +
+                                  att.length) +
                               2 * size.height * 0.085
                           : size.height * 0.4,
                   child: PaginatedDataTable2(
                     border: TableBorder.all(width: 1),
-                    minWidth: 600,
+                    minWidth: 500,
                     sortColumnIndex: _sortColumnIndex,
                     sortAscending: _sortAscending,
                     rowsPerPage: rowPerPages,
@@ -464,18 +434,9 @@ class _PaymentState extends State<Payment> {
                       DataColumn2(
                         size: ColumnSize.M,
                         label: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Payment',
-                                textAlign: TextAlign.center,
-                              ),
-                              Text(
-                                'Date',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                          child: Text(
+                            'Filename',
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         onSort: (columnIndex, ascending) {
@@ -483,10 +444,35 @@ class _PaymentState extends State<Payment> {
                             _sortColumnIndex = columnIndex;
                             _sortAscending = ascending;
                             if (ascending) {
-                              payment.sort((a, b) {
+                              att.sort(
+                                (a, b) {
+                                  return a['fileName'].compareTo(b['fileName']);
+                                },
+                              );
+                            } else {
+                              att.sort((a, b) =>
+                                  b['fileName'].compareTo(a['fileName']));
+                            }
+                          });
+                        },
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.M,
+                        label: const Center(
+                          child: Text(
+                            'Date',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        onSort: (columnIndex, ascending) {
+                          setState(() {
+                            _sortColumnIndex = columnIndex;
+                            _sortAscending = ascending;
+                            if (ascending) {
+                              att.sort((a, b) {
                                 // Mendapatkan tanggal dari data a dan b dalam format DateTime
-                                DateTime dateA = DateTime.parse(a['tanggal']);
-                                DateTime dateB = DateTime.parse(b['tanggal']);
+                                DateTime dateA = DateTime.parse(a['date']);
+                                DateTime dateB = DateTime.parse(b['date']);
 
                                 // Membandingkan berdasarkan tahun dan bulan
                                 int yearComparison =
@@ -502,9 +488,9 @@ class _PaymentState extends State<Payment> {
                                 }
                               });
                             } else {
-                              payment.sort((a, b) {
-                                DateTime dateA = DateTime.parse(a['tanggal']);
-                                DateTime dateB = DateTime.parse(b['tanggal']);
+                              att.sort((a, b) {
+                                DateTime dateA = DateTime.parse(a['date']);
+                                DateTime dateB = DateTime.parse(b['date']);
 
                                 int yearComparison =
                                     dateB.year.compareTo(dateA.year);
@@ -521,39 +507,21 @@ class _PaymentState extends State<Payment> {
                           });
                         },
                       ),
-                      const DataColumn2(
+                      DataColumn2(
                         size: ColumnSize.L,
-                        label: Center(
+                        label: const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Bank',
+                                'Attachment',
                                 textAlign: TextAlign.center,
                               ),
                               Text(
-                                'Name',
+                                'Type',
                                 textAlign: TextAlign.center,
                               ),
                             ],
-                          ),
-                        ),
-                      ),
-                      const DataColumn2(
-                        size: ColumnSize.S,
-                        label: Center(
-                          child: Text(
-                            'Currency',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Amount',
-                            textAlign: TextAlign.center,
                           ),
                         ),
                         onSort: (columnIndex, ascending) {
@@ -561,21 +529,15 @@ class _PaymentState extends State<Payment> {
                             _sortColumnIndex = columnIndex;
                             _sortAscending = ascending;
                             if (ascending) {
-                              payment.sort(
+                              att.sort(
                                 (a, b) {
-                                  double balA = double.parse(a['amount']);
-                                  double balB = double.parse(b['amount']);
-
-                                  return balA.compareTo(balB);
+                                  return a['attachmentType']
+                                      .compareTo(b['attachmentType']);
                                 },
                               );
                             } else {
-                              payment.sort((a, b) {
-                                double balA = double.parse(a['amount']);
-                                double balB = double.parse(b['amount']);
-
-                                return balB.compareTo(balA);
-                              });
+                              att.sort((a, b) => b['attachmentType']
+                                  .compareTo(a['attachmentType']));
                             }
                           });
                         },
@@ -591,36 +553,42 @@ class _PaymentState extends State<Payment> {
                       ),
                     ],
                     source: TableData(
-                      payment: payment,
+                      att: att,
                       currentPage: currentPage,
                       rowsPerPage: rowPerPages,
                       action: (index) async {
                         setState(() {
-                          att.clear();
+                          attFile.clear();
                           loading = true;
                         });
 
                         await getIOMAttachment(index);
 
                         Future.delayed(const Duration(seconds: 1), () async {
-                          if (att.isNotEmpty) {
-                            if (att.last['ext'].toString().contains('pdf')) {
+                          if (attFile.isNotEmpty) {
+                            if (attFile.last['ext']
+                                .toString()
+                                .contains('pdf')) {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) {
                                   return DisplayPDF(
-                                    pdf: att,
+                                    pdf: attFile,
                                   );
                                 },
                               ));
-                            } else if (att.last['ext']
+                            } else if (attFile.last['ext']
                                     .toString()
                                     .contains('jpg') ||
-                                att.last['ext'].toString().contains('jpeg') ||
-                                att.last['ext'].toString().contains('png')) {
+                                attFile.last['ext']
+                                    .toString()
+                                    .contains('jpeg') ||
+                                attFile.last['ext']
+                                    .toString()
+                                    .contains('png')) {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) {
                                   return DisplayIMG(
-                                    image: att,
+                                    image: attFile,
                                   );
                                 },
                               ));
@@ -680,13 +648,13 @@ class _PaymentState extends State<Payment> {
 }
 
 class TableData extends DataTableSource {
-  final List payment;
+  final List att;
   final int currentPage;
   final int rowsPerPage;
   final Function(int) action;
 
   TableData({
-    required this.payment,
+    required this.att,
     required this.currentPage,
     required this.rowsPerPage,
     required this.action,
@@ -696,11 +664,11 @@ class TableData extends DataTableSource {
   DataRow? getRow(int index) {
     assert(index >= 0);
 
-    if (index >= payment.length) throw 'index > ${payment.length}';
+    if (index >= att.length) throw 'index > ${att.length}';
 
     final dataIndex =
-        (index + (currentPage - 1) * rowsPerPage).clamp(0, payment.length - 1);
-    final data = payment[dataIndex];
+        (index + (currentPage - 1) * rowsPerPage).clamp(0, att.length - 1);
+    final data = att[dataIndex];
 
     return DataRow2(
       color: MaterialStateProperty.resolveWith<Color?>(
@@ -722,7 +690,15 @@ class TableData extends DataTableSource {
         ),
         DataCell(
           Center(
-            child: data['tanggal'] == 'No Data'
+            child: Text(
+              data['fileName'],
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: data['date'] == 'No Data'
                 ? const Text(
                     'No Data',
                     textAlign: TextAlign.center,
@@ -730,7 +706,7 @@ class TableData extends DataTableSource {
                 : Text(
                     DateFormat('dd-MMM-yyyy').format(
                       DateTime.parse(
-                        data['tanggal'],
+                        data['date'],
                       ).toLocal(),
                     ),
                     textAlign: TextAlign.center,
@@ -740,25 +716,7 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: Text(
-              data['bank'],
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        DataCell(
-          Center(
-            child: Text(
-              data['curr'],
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        DataCell(
-          Center(
-            child: Text(
-              NumberFormat.currency(locale: 'id_ID', symbol: '')
-                  .format(double.parse(data['amount']))
-                  .toString(),
+              data['attachmentType'],
               textAlign: TextAlign.center,
             ),
           ),
@@ -784,7 +742,7 @@ class TableData extends DataTableSource {
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => payment.length;
+  int get rowCount => att.length;
 
   @override
   int get selectedRowCount => 0;

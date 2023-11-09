@@ -41,3 +41,9 @@ const url_VerificationAttach =
 
 const url_CekSaldoIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoIOM';
+
+const url_GetAttachmentName =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAttachmentName';
+
+const url_CekAttachment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAttachment';

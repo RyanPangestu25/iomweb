@@ -56,6 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
             style: TextStyle(
               inherit: false,
               fontSize: MediaQuery.of(context).textScaleFactor * 40,
+              color: Colors.white,
               shadows: const [
                 Shadow(
                   color: Colors.black,

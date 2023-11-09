@@ -34,6 +34,7 @@ class _ViewIOMState extends State<ViewIOM> {
   bool isClick = false;
   bool isHelp = false;
   bool isPeriod = false;
+  bool isAttach = false;
   List iom = [];
   List status = [
     'NONE',
@@ -187,15 +188,6 @@ class _ViewIOMState extends State<ViewIOM> {
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .first
                     .text;
-            final tglTerimapembayaran = listResult
-                    .findElements('Tgl_TerimaPembayaran')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tgl_TerimaPembayaran').first.text;
-            final namaBankPenerima =
-                listResult.findElements('NamaBankPenerima').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('NamaBankPenerima').first.text;
             final tglKonfirmasiDireksi = listResult
                     .findElements('Tgl_konfirmasi_direksi')
                     .isEmpty
@@ -208,6 +200,12 @@ class _ViewIOMState extends State<ViewIOM> {
                         .findElements('Status_konfirmasi_direksi')
                         .first
                         .text;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.text;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.text;
             final server = listResult.findElements('Server').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Server').first.text;
@@ -243,11 +241,18 @@ class _ViewIOMState extends State<ViewIOM> {
                   'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
                   'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
                   'approveDate': tglKonfirmasiDireksi,
-                  'payStatus':
-                      tglTerimapembayaran != 'No Data' ? 'PAID' : 'PENDING',
-                  'payDate': tglTerimapembayaran,
-                  'payBank': namaBankPenerima,
+                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
+                          'No Data'
+                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID'
+                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID',
+                  'rute': rute,
+                  'tanggalRute': tanggal,
                   'server': server,
+                  'isAttach': '',
                 });
               }
             });
@@ -554,7 +559,20 @@ class _ViewIOMState extends State<ViewIOM> {
         _focusNode.unfocus();
       },
       child: Scaffold(
-        drawer: const Sidebar(),
+        drawer: loading
+            ? SizedBox(
+                child: Center(
+                  child: Text(
+                    'Please wait till the loading done',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context).textScaleFactor * 20,
+                    ),
+                  ),
+                ),
+              )
+            : const Sidebar(),
         appBar: AppBar(
           centerTitle: true,
           backgroundColor: Colors.redAccent,
@@ -619,6 +637,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         child: ListView.separated(
                           itemCount: filteredStatus.value.length,
                           scrollDirection: Axis.horizontal,
+                          clipBehavior: Clip.antiAlias,
                           separatorBuilder: (BuildContext context, int index) {
                             return SizedBox(width: size.width * 0.02);
                           },
@@ -632,16 +651,19 @@ class _ViewIOMState extends State<ViewIOM> {
                                     foregroundColor:
                                         isClick ? Colors.white : null,
                                   ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      isClick = !isClick;
-                                      filteredStatus.value =
-                                          isClick ? [status[index]] : status;
-                                    });
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            isClick = !isClick;
+                                            filteredStatus.value = isClick
+                                                ? [status[index]]
+                                                : status;
+                                          });
 
-                                    await filterStatus(
-                                        dateRange.start, dateRange.end);
-                                  },
+                                          await filterStatus(
+                                              dateRange.start, dateRange.end);
+                                        },
                                   child: isClick
                                       ? Row(
                                           children: [
@@ -856,36 +878,101 @@ class _ViewIOMState extends State<ViewIOM> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            subtitle: Text(
-                                              'Date: ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
-                                              textAlign: TextAlign.right,
+                                            subtitle: Row(
+                                              children: [
+                                                const Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'IOM Date ',
+                                                    ),
+                                                    Text('Charter '),
+                                                    Text('Route '),
+                                                    Text('Route Date '),
+                                                    Text('Status '),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
+                                                    ),
+                                                    SizedBox(
+                                                      width: size.width * 0.5,
+                                                      child: Text(
+                                                        ': ${filteredIOM.value[index]['charter']}',
+                                                        style: const TextStyle(
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                        ': ${filteredIOM.value[index]['rute']}'),
+                                                    Text(
+                                                        ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
+                                                    Text.rich(
+                                                      TextSpan(
+                                                        text: ': ',
+                                                        children: [
+                                                          TextSpan(
+                                                            text: filteredIOM
+                                                                .value[index]
+                                                                    ['status']
+                                                                .toString()
+                                                                .toUpperCase(),
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: filteredIOM.value[index]
+                                                                              [
+                                                                              'status'] ==
+                                                                          'VERIFIED PENDING PAYMENT' ||
+                                                                      filteredIOM.value[index]
+                                                                              [
+                                                                              'status'] ==
+                                                                          'VERIFIED PAYMENT'
+                                                                  ? Colors.blue
+                                                                  : filteredIOM.value[index]
+                                                                              [
+                                                                              'status'] ==
+                                                                          'APPROVED'
+                                                                      ? Colors
+                                                                          .green
+                                                                      : filteredIOM.value[index]['status'] ==
+                                                                              'REJECTED'
+                                                                          ? Colors
+                                                                              .red
+                                                                          : Colors
+                                                                              .black,
+                                                            ),
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
                                             ),
-                                            trailing: Text(
-                                              filteredIOM.value[index]['status']
-                                                  .toString()
-                                                  .toUpperCase(),
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: filteredIOM.value[index]
-                                                                ['status'] ==
-                                                            'VERIFIED PENDING PAYMENT' ||
-                                                        filteredIOM.value[index]
-                                                                ['status'] ==
-                                                            'VERIFIED PAYMENT'
-                                                    ? Colors.blue
-                                                    : filteredIOM.value[index]
-                                                                ['status'] ==
-                                                            'APPROVED'
-                                                        ? Colors.green
-                                                        : filteredIOM.value[
-                                                                        index][
-                                                                    'status'] ==
-                                                                'REJECTED'
-                                                            ? Colors.red
-                                                            : Colors.black,
-                                              ),
-                                            ),
+                                            trailing: filteredIOM.value[index]
+                                                            ['status'] ==
+                                                        'VERIFIED PAYMENT' ||
+                                                    filteredIOM.value[index]
+                                                            ['status'] ==
+                                                        'APPROVED' ||
+                                                    filteredIOM.value[index]
+                                                            ['status'] ==
+                                                        'REJECTED'
+                                                ? const Icon(Icons.attach_file)
+                                                : null,
                                             padding: const EdgeInsets.all(10),
                                           ),
                                         ),

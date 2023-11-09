@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import '../backend/constants.dart';
+import '../screens/attachment.dart';
 import '../screens/payment.dart';
 import '../screens/view_iom.dart';
 import '../widgets/alertdialog/confirmation.dart';
@@ -801,50 +802,31 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                 ),
                 SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Payment Date",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['payDate'] == 'No Data'
-                      ? widget.iom.last['payDate']
-                      : DateFormat('dd-MMM-yyyy').format(
-                          DateTime.parse(widget.iom.last['payDate']).toLocal()),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Payment Bank",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['payBank'],
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return IOMAttachment(
+                          iom: widget.iom,
+                        );
+                      },
+                    ));
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'View Attachment',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).textScaleFactor * 16,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: size.height * 0.05,
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: size.height * 0.02),

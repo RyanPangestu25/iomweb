@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
-import 'package:path/path.dart' as path;
 import '../loading.dart';
 import 'try_again.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
@@ -40,7 +39,7 @@ class _VerificationState extends State<Verification> {
   bool isClick = false;
   bool isBalance = false;
   int item = 0;
-  File? _image;
+  Uint8List? _image;
   String titleFile = "No File Choosen";
   String fileName = '';
   String fileExt = '';
@@ -104,14 +103,13 @@ class _VerificationState extends State<Verification> {
 
     if (result != null) {
       PlatformFile file = result.files.first;
-      String filePath = file.path!;
-      String fileName = path.basenameWithoutExtension(filePath);
+      Uint8List? filePath = file.bytes;
       String ext = file.extension!;
       setState(() {
-        this.fileName = fileName;
+        fileName = 'WEB';
         fileExt = ext;
-        titleFile = filePath;
-        _image = File(filePath);
+        titleFile = 'File Picked';
+        _image = filePath;
       });
     } else {
       debugPrint("No File Choosen");
@@ -588,7 +586,7 @@ class _VerificationState extends State<Verification> {
           '<VerificationAttach xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Filename>$fileName</Filename>' +
-          '<PDFFile>${base64Encode(_image!.readAsBytesSync())}</PDFFile>' +
+          '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
           '<UploadDate>${DateTime.now().toLocal().toIso8601String()}</UploadDate>' +
           '<Ext>$fileExt</Ext>' +
