@@ -27,11 +27,14 @@ class ViewIOM extends StatefulWidget {
 
 class _ViewIOMState extends State<ViewIOM> {
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _scrollController1 = ScrollController();
 
   bool loading = false;
   bool _isConnected = false;
   bool visible = true;
-  bool isClick = false;
+  bool isStatus = false;
+  bool isCompany = false;
   bool isHelp = false;
   bool isPeriod = false;
   bool isAttach = false;
@@ -42,6 +45,8 @@ class _ViewIOMState extends State<ViewIOM> {
     'VERIFIED PAYMENT',
     'APPROVED',
     'REJECTED',
+  ];
+  List company = [
     'LION',
     'SAJ',
     'WINGS',
@@ -54,6 +59,8 @@ class _ViewIOMState extends State<ViewIOM> {
     'VERIFIED PAYMENT',
     'APPROVED',
     'REJECTED',
+  ]);
+  ValueNotifier<List<dynamic>> filteredCompany = ValueNotifier([
     'LION',
     'SAJ',
     'WINGS',
@@ -314,32 +321,74 @@ class _ViewIOMState extends State<ViewIOM> {
   }
 
   Future<void> filterStatus(DateTime startDate, DateTime endDate) async {
-    if (isClick && !isPeriod && searchController.text.isEmpty) {
-      if (filteredStatus.value.last == 'LION' ||
-          filteredStatus.value.last == 'SAJ' ||
-          filteredStatus.value.last == 'ANGKASA' ||
-          filteredStatus.value.last == 'BATIK' ||
-          filteredStatus.value.last == 'WINGS') {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            return data['server'] == filteredStatus.value.last;
-          }).toList();
-        });
-      } else {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            return data['status'] == filteredStatus.value.last;
-          }).toList();
-        });
-      }
-    } else if (isClick && isPeriod) {
+    if (isStatus && !isPeriod && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          return status;
+        }).toList();
+      });
+    } else if (isStatus && isPeriod) {
       filterDate(startDate, endDate);
-    } else if (!isClick && isPeriod) {
+    } else if (!isStatus && isPeriod) {
       filterDate(startDate, endDate);
-    } else if (isClick && searchController.text.isNotEmpty) {
+    } else if (isStatus && searchController.text.isNotEmpty) {
       filterSearch(searchController.text);
-    } else if (!isClick && searchController.text.isNotEmpty) {
+    } else if (!isStatus && searchController.text.isNotEmpty) {
       filterSearch(searchController.text);
+    } else if (isStatus && isCompany) {
+      filterCompany(startDate, endDate);
+    } else if (!isStatus && isCompany) {
+      filterCompany(startDate, endDate);
+    } else {
+      setState(() {
+        filteredIOM.value = iom;
+      });
+    }
+  }
+
+  Future<void> filterCompany(DateTime startDate, DateTime endDate) async {
+    if (!isStatus && isCompany && !isPeriod && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          return server;
+        }).toList();
+      });
+    } else if (!isStatus && isCompany && isPeriod) {
+      filterDate(startDate, endDate);
+    } else if (!isStatus && !isCompany && isPeriod) {
+      filterDate(startDate, endDate);
+    } else if (!isStatus &&
+        isCompany &&
+        !isPeriod &&
+        searchController.text.isNotEmpty) {
+      filterSearch(searchController.text);
+    } else if (!isStatus &&
+        !isCompany &&
+        !isPeriod &&
+        searchController.text.isNotEmpty) {
+      filterSearch(searchController.text);
+    } else if (isStatus &&
+        isCompany &&
+        !isPeriod &&
+        searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final server = data['server'] == filteredCompany.value.last;
+          return status && server;
+        }).toList();
+      });
+    } else if (isStatus &&
+        !isCompany &&
+        !isPeriod &&
+        searchController.text.isEmpty) {
+      filterStatus(startDate, endDate);
+    } else if (isStatus && !isCompany && isPeriod) {
+      filterDate(startDate, endDate);
+    } else if (isStatus && isCompany && isPeriod) {
+      filterDate(startDate, endDate);
     } else {
       setState(() {
         filteredIOM.value = iom;
@@ -348,19 +397,117 @@ class _ViewIOMState extends State<ViewIOM> {
   }
 
   Future<void> filterDate(DateTime startDate, DateTime endDate) async {
+    DateTime period = DateTime.now();
+
     setState(() {
       filteredIOM.value = iom.where((data) {
-        final period = DateTime.parse(data['tanggal']);
+        period = DateTime.parse(data['tanggal']);
         return period.isAfter(startDate) && period.isBefore(endDate) ||
             period.isAtSameMomentAs(startDate) ||
             period.isAtSameMomentAs(endDate);
       }).toList();
     });
 
-    if (searchController.text.isNotEmpty) {
-      final filteredMix = iom.where((data) {
+    if (isStatus && !isCompany && searchController.text.isNotEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          period = DateTime.parse(data['tanggal']);
+          return status &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              status &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (isStatus && !isCompany && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          period = DateTime.parse(data['tanggal']);
+          return status &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status && period.isAtSameMomentAs(startDate) ||
+              status && period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (isStatus && isCompany && searchController.text.isNotEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final server = data['server'] == filteredCompany.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          period = DateTime.parse(data['tanggal']);
+          return status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (isStatus && isCompany && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final server = data['server'] == filteredCompany.value.last;
+          period = DateTime.parse(data['tanggal']);
+          return status &&
+                  server &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status && server && period.isAtSameMomentAs(startDate) ||
+              status && server && period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (!isStatus && isCompany && searchController.text.isNotEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          period = DateTime.parse(data['tanggal']);
+          return server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (!isStatus && isCompany && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          period = DateTime.parse(data['tanggal']);
+          return server &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server && period.isAtSameMomentAs(startDate) ||
+              server && period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (!isStatus & !isCompany && searchController.text.isNotEmpty) {
+      filteredIOM.value = iom.where((data) {
         final noIOM = data['noIOM'].toLowerCase();
-        final period = DateTime.parse(data['tanggal']);
+        period = DateTime.parse(data['tanggal']);
         return noIOM.contains(searchController.text.toLowerCase()) &&
                 period.isAfter(startDate) &&
                 period.isBefore(endDate) ||
@@ -369,83 +516,6 @@ class _ViewIOMState extends State<ViewIOM> {
             noIOM.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(endDate);
       }).toList();
-      setState(() {
-        filteredIOM.value = filteredMix;
-      });
-    }
-
-    if (isClick && searchController.text.isNotEmpty) {
-      if (filteredStatus.value.last == 'LION' ||
-          filteredStatus.value.last == 'SAJ' ||
-          filteredStatus.value.last == 'ANGKASA' ||
-          filteredStatus.value.last == 'BATIK' ||
-          filteredStatus.value.last == 'WINGS') {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final noIOM = data['noIOM'].toLowerCase();
-            final period = DateTime.parse(data['tanggal']);
-            return data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAfter(startDate) &&
-                    period.isBefore(endDate) ||
-                data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAtSameMomentAs(startDate) ||
-                data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAtSameMomentAs(endDate);
-          }).toList();
-        });
-      } else {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final noIOM = data['noIOM'].toLowerCase();
-            final period = DateTime.parse(data['tanggal']);
-            return data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAfter(startDate) &&
-                    period.isBefore(endDate) ||
-                data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAtSameMomentAs(startDate) ||
-                data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) &&
-                    period.isAtSameMomentAs(endDate);
-          }).toList();
-        });
-      }
-    } else if (isClick && searchController.text.isEmpty) {
-      if (filteredStatus.value.last == 'LION' ||
-          filteredStatus.value.last == 'SAJ' ||
-          filteredStatus.value.last == 'ANGKASA' ||
-          filteredStatus.value.last == 'BATIK' ||
-          filteredStatus.value.last == 'WINGS') {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final period = DateTime.parse(data['tanggal']);
-            return data['server'] == filteredStatus.value.last &&
-                    period.isAfter(startDate) &&
-                    period.isBefore(endDate) ||
-                data['server'] == filteredStatus.value.last &&
-                    period.isAtSameMomentAs(startDate) ||
-                data['server'] == filteredStatus.value.last &&
-                    period.isAtSameMomentAs(endDate);
-          }).toList();
-        });
-      } else {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final period = DateTime.parse(data['tanggal']);
-            return data['status'] == filteredStatus.value.last &&
-                    period.isAfter(startDate) &&
-                    period.isBefore(endDate) ||
-                data['status'] == filteredStatus.value.last &&
-                    period.isAtSameMomentAs(startDate) ||
-                data['status'] == filteredStatus.value.last &&
-                    period.isAtSameMomentAs(endDate);
-          }).toList();
-        });
-      }
     }
   }
 
@@ -457,36 +527,45 @@ class _ViewIOMState extends State<ViewIOM> {
       }).toList();
     });
 
-    if (isClick) {
-      if (filteredStatus.value.last == 'LION' ||
-          filteredStatus.value.last == 'SAJ' ||
-          filteredStatus.value.last == 'ANGKASA' ||
-          filteredStatus.value.last == 'BATIK' ||
-          filteredStatus.value.last == 'WINGS') {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final noIOM = data['noIOM'].toLowerCase();
-            return data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) ||
-                data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) ||
-                data['server'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase());
-          }).toList();
-        });
-      } else {
-        setState(() {
-          filteredIOM.value = iom.where((data) {
-            final noIOM = data['noIOM'].toLowerCase();
-            return data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) ||
-                data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase()) ||
-                data['status'] == filteredStatus.value.last &&
-                    noIOM.contains(searchController.text.toLowerCase());
-          }).toList();
-        });
-      }
+    if (isStatus) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          return status &&
+                  noIOM.contains(searchController.text.toLowerCase()) ||
+              status && noIOM.contains(searchController.text.toLowerCase()) ||
+              status && noIOM.contains(searchController.text.toLowerCase());
+        }).toList();
+      });
+    } else if (isCompany) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          return server &&
+                  noIOM.contains(searchController.text.toLowerCase()) ||
+              server && noIOM.contains(searchController.text.toLowerCase()) ||
+              server && noIOM.contains(searchController.text.toLowerCase());
+        }).toList();
+      });
+    } else if (isStatus && isCompany) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final status = data['status'] == filteredStatus.value.last;
+          final server = data['server'] == filteredCompany.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          return status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase()) ||
+              status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase()) ||
+              status &&
+                  server &&
+                  noIOM.contains(searchController.text.toLowerCase());
+        }).toList();
+      });
     }
   }
 
@@ -592,9 +671,12 @@ class _ViewIOMState extends State<ViewIOM> {
                         );
                         date.text =
                             '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                        isStatus = false;
                         isPeriod = false;
+                        isCompany = false;
                         searchController.clear();
                         filteredStatus.value = status;
+                        filteredCompany.value = company;
                       });
                       iom.clear();
                       await getIOM();
@@ -630,53 +712,117 @@ class _ViewIOMState extends State<ViewIOM> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Filter by:'),
+                      const Text('Filter by Status:'),
                       SizedBox(
                         height: size.height * 0.1,
                         width: size.width,
-                        child: ListView.separated(
-                          itemCount: filteredStatus.value.length,
-                          scrollDirection: Axis.horizontal,
-                          clipBehavior: Clip.antiAlias,
-                          separatorBuilder: (BuildContext context, int index) {
-                            return SizedBox(width: size.width * 0.02);
-                          },
-                          itemBuilder: (BuildContext context, index) {
-                            return Row(
-                              children: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        isClick ? Colors.green : null,
-                                    foregroundColor:
-                                        isClick ? Colors.white : null,
-                                  ),
-                                  onPressed: loading
-                                      ? null
-                                      : () async {
-                                          setState(() {
-                                            isClick = !isClick;
-                                            filteredStatus.value = isClick
-                                                ? [status[index]]
-                                                : status;
-                                          });
+                        child: Scrollbar(
+                          controller: _scrollController,
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            itemCount: filteredStatus.value.length,
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.antiAlias,
+                            controller: _scrollController,
+                            separatorBuilder:
+                                (BuildContext context, int index) {
+                              return SizedBox(width: size.width * 0.02);
+                            },
+                            itemBuilder: (BuildContext context, index) {
+                              return Row(
+                                children: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          isStatus ? Colors.green : null,
+                                      foregroundColor:
+                                          isStatus ? Colors.white : null,
+                                    ),
+                                    onPressed: loading
+                                        ? null
+                                        : () async {
+                                            setState(() {
+                                              isStatus = !isStatus;
+                                              filteredStatus.value = isStatus
+                                                  ? [status[index]]
+                                                  : status;
+                                            });
 
-                                          await filterStatus(
-                                              dateRange.start, dateRange.end);
-                                        },
-                                  child: isClick
-                                      ? Row(
-                                          children: [
-                                            Text(filteredStatus.value[index]),
-                                            SizedBox(width: size.width * 0.01),
-                                            const Icon(Icons.done),
-                                          ],
-                                        )
-                                      : Text(filteredStatus.value[index]),
-                                ),
-                              ],
-                            );
-                          },
+                                            await filterStatus(
+                                                dateRange.start, dateRange.end);
+                                          },
+                                    child: isStatus
+                                        ? Row(
+                                            children: [
+                                              Text(filteredStatus.value[index]),
+                                              SizedBox(
+                                                  width: size.width * 0.01),
+                                              const Icon(Icons.done),
+                                            ],
+                                          )
+                                        : Text(filteredStatus.value[index]),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const Text('Filter by Company:'),
+                      SizedBox(
+                        height: size.height * 0.1,
+                        width: size.width,
+                        child: Scrollbar(
+                          controller: _scrollController1,
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            itemCount: filteredCompany.value.length,
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.antiAlias,
+                            controller: _scrollController1,
+                            separatorBuilder:
+                                (BuildContext context, int index) {
+                              return SizedBox(width: size.width * 0.02);
+                            },
+                            itemBuilder: (BuildContext context, index) {
+                              return Row(
+                                children: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          isCompany ? Colors.green : null,
+                                      foregroundColor:
+                                          isCompany ? Colors.white : null,
+                                    ),
+                                    onPressed: loading
+                                        ? null
+                                        : () async {
+                                            setState(() {
+                                              isCompany = !isCompany;
+                                              filteredCompany.value = isCompany
+                                                  ? [company[index]]
+                                                  : company;
+                                            });
+
+                                            await filterCompany(
+                                                dateRange.start, dateRange.end);
+                                          },
+                                    child: isCompany
+                                        ? Row(
+                                            children: [
+                                              Text(
+                                                  filteredCompany.value[index]),
+                                              SizedBox(
+                                                  width: size.width * 0.01),
+                                              const Icon(Icons.done),
+                                            ],
+                                          )
+                                        : Text(filteredCompany.value[index]),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                         ),
                       ),
                       const Divider(
