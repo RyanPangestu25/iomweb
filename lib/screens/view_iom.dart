@@ -413,6 +413,7 @@ class _ViewIOMState extends State<ViewIOM> {
         filteredIOM.value = iom.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           period = DateTime.parse(data['tanggal']);
           return status &&
                   noIOM.contains(searchController.text.toLowerCase()) &&
@@ -423,6 +424,16 @@ class _ViewIOMState extends State<ViewIOM> {
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate) ||
+              status &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              status &&
+                  charter.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -444,6 +455,7 @@ class _ViewIOMState extends State<ViewIOM> {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           period = DateTime.parse(data['tanggal']);
           return status &&
                   server &&
@@ -457,6 +469,19 @@ class _ViewIOMState extends State<ViewIOM> {
               status &&
                   server &&
                   noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate) ||
+              status &&
+                  server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              status &&
+                  server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              status &&
+                  server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -479,6 +504,7 @@ class _ViewIOMState extends State<ViewIOM> {
         filteredIOM.value = iom.where((data) {
           final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           period = DateTime.parse(data['tanggal']);
           return server &&
                   noIOM.contains(searchController.text.toLowerCase()) &&
@@ -489,6 +515,16 @@ class _ViewIOMState extends State<ViewIOM> {
                   period.isAtSameMomentAs(startDate) ||
               server &&
                   noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -507,6 +543,7 @@ class _ViewIOMState extends State<ViewIOM> {
     } else if (!isStatus & !isCompany && searchController.text.isNotEmpty) {
       filteredIOM.value = iom.where((data) {
         final noIOM = data['noIOM'].toLowerCase();
+        final charter = data['charter'].toLowerCase();
         period = DateTime.parse(data['tanggal']);
         return noIOM.contains(searchController.text.toLowerCase()) &&
                 period.isAfter(startDate) &&
@@ -514,6 +551,13 @@ class _ViewIOMState extends State<ViewIOM> {
             noIOM.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(startDate) ||
             noIOM.contains(searchController.text.toLowerCase()) &&
+                period.isAtSameMomentAs(endDate) ||
+            charter.contains(searchController.text.toLowerCase()) &&
+                period.isAfter(startDate) &&
+                period.isBefore(endDate) ||
+            charter.contains(searchController.text.toLowerCase()) &&
+                period.isAtSameMomentAs(startDate) ||
+            charter.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(endDate);
       }).toList();
     }
@@ -523,7 +567,9 @@ class _ViewIOMState extends State<ViewIOM> {
     setState(() {
       filteredIOM.value = iom.where((data) {
         final noIOM = data['noIOM'].toLowerCase();
-        return noIOM.contains(query.toLowerCase());
+        final charter = data['charter'].toLowerCase();
+        return noIOM.contains(query.toLowerCase()) ||
+            charter.contains(query.toLowerCase());
       }).toList();
     });
 
@@ -532,10 +578,10 @@ class _ViewIOMState extends State<ViewIOM> {
         filteredIOM.value = iom.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           return status &&
                   noIOM.contains(searchController.text.toLowerCase()) ||
-              status && noIOM.contains(searchController.text.toLowerCase()) ||
-              status && noIOM.contains(searchController.text.toLowerCase());
+              status && charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isCompany) {
@@ -543,10 +589,10 @@ class _ViewIOMState extends State<ViewIOM> {
         filteredIOM.value = iom.where((data) {
           final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           return server &&
                   noIOM.contains(searchController.text.toLowerCase()) ||
-              server && noIOM.contains(searchController.text.toLowerCase()) ||
-              server && noIOM.contains(searchController.text.toLowerCase());
+              server && charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isStatus && isCompany) {
@@ -555,15 +601,13 @@ class _ViewIOMState extends State<ViewIOM> {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
           return status &&
                   server &&
                   noIOM.contains(searchController.text.toLowerCase()) ||
               status &&
                   server &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
-              status &&
-                  server &&
-                  noIOM.contains(searchController.text.toLowerCase());
+                  charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
     }
@@ -832,7 +876,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Period From - Period To'),
+                          const Text('Period From - Period To (IOM Date)'),
                           SizedBox(height: size.height * 0.01),
                           TextFormField(
                             controller: date,
@@ -862,7 +906,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Text("Search"),
+                      const Text("Search (IOM No./Charter Name)"),
                       const SizedBox(height: 5),
                       Form(
                         key: _formKey,
@@ -1019,7 +1063,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                             : const Icon(Icons.business),
                                             title: Text(
                                               filteredIOM.value[index]['noIOM'],
-                                              textAlign: TextAlign.right,
+                                              textAlign: TextAlign.left,
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -1032,9 +1076,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(
-                                                      'IOM Date ',
-                                                    ),
+                                                    Text('IOM Date '),
                                                     Text('Charter '),
                                                     Text('Route '),
                                                     Text('Route Date '),
