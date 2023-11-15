@@ -815,16 +815,12 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: IconButton(
-              onPressed: status == 'APPROVED' || status == 'REJECTED'
-                  ? null
-                  : () async {
-                      edit(index);
-                    },
-              icon: Icon(
+              onPressed: () async {
+                edit(index);
+              },
+              icon: const Icon(
                 Icons.edit_square,
-                color: status == 'APPROVED' || status == 'REJECTED'
-                    ? null
-                    : Colors.green,
+                color: Colors.green,
                 size: 30,
               ),
             ),
