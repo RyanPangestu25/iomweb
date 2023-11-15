@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../../screens/view_iom.dart';
+import '../../widgets/alertdialog/list_bank.dart';
+import '../../widgets/alertdialog/list_curr.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
@@ -45,8 +47,6 @@ class _VerificationState extends State<Verification> {
   String fileExt = '';
   String userName = '';
   String level = '';
-  String namaBank = 'Select';
-  String curr = 'Select';
   double saldo = 0;
   List<String> listNamaBank = [
     'Select',
@@ -73,7 +73,9 @@ class _VerificationState extends State<Verification> {
       );
 
   TextEditingController date = TextEditingController();
+  TextEditingController namaBank = TextEditingController();
   TextEditingController bank = TextEditingController();
+  TextEditingController curr = TextEditingController();
   var amount = MoneyMaskedTextController();
 
   final FocusNode _focusNode = FocusNode();
@@ -113,219 +115,6 @@ class _VerificationState extends State<Verification> {
       });
     } else {
       debugPrint("No File Choosen");
-    }
-  }
-
-  Future<void> getBank() async {
-    try {
-      setState(() {
-        loading = true;
-      });
-
-      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<ListBank xmlns="http://tempuri.org/" />' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_ListBank),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/ListBank',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final listResultAll = document.findAllElements('Table');
-
-        for (final listResult in listResultAll) {
-          final statusData = listResult.findElements('StatusData').isEmpty
-              ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
-
-          if (statusData == "GAGAL") {
-            Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
-          } else {
-            final namaBank = listResult.findElements('NamaBank').first.text;
-
-            setState(() {
-              listNamaBank.add(namaBank);
-            });
-
-            hasilJson = jsonEncode(listNamaBank);
-            debugPrint(hasilJson);
-
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-          }
-        }
-
-        listNamaBank.add('OTHER');
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Bank",
-          backgroundColor: Colors.grey[300],
-        );
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Bank",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> getCurr() async {
-    try {
-      setState(() {
-        loading = true;
-      });
-
-      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<ListCurrency xmlns="http://tempuri.org/" />' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_ListCurrency),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/ListCurrency',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final listResultAll = document.findAllElements('Table');
-
-        for (final listResult in listResultAll) {
-          final statusData = listResult.findElements('StatusData').isEmpty
-              ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
-
-          if (statusData == "GAGAL") {
-            Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
-          } else {
-            final currCode = listResult.findElements('CurrCode').first.text;
-            final currName = listResult.findElements('CurrName').first.text;
-
-            setState(() {
-              listCurr.add('$currCode - $currName');
-            });
-
-            hasilJson = jsonEncode(listCurr);
-            debugPrint(hasilJson);
-
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-          }
-        }
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Currency",
-          backgroundColor: Colors.grey[300],
-        );
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Currency",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
     }
   }
 
@@ -474,7 +263,8 @@ class _VerificationState extends State<Verification> {
         loading = true;
       });
 
-      String namaBankPenerima = namaBank == 'OTHER' ? bank.text : namaBank;
+      String namaBankPenerima =
+          namaBank.text == 'OTHER' ? bank.text : namaBank.text;
 
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
@@ -485,7 +275,7 @@ class _VerificationState extends State<Verification> {
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.numberValue}</AmountPembayaran>' +
-          '<CurrPembayaran>${curr.substring(0, 3)}</CurrPembayaran>' +
+          '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</VerificationPayment>' +
           '</soap:Body>' +
@@ -648,8 +438,6 @@ class _VerificationState extends State<Verification> {
                 saldo = saldo + amount.numberValue;
                 loading = false;
                 item = item + 1;
-                namaBank = 'Select';
-                curr = 'Select';
                 amount.updateValue(0);
                 titleFile = 'No File Choosen';
 
@@ -803,7 +591,7 @@ class _VerificationState extends State<Verification> {
                 filteredPay.value = payType;
               } else {
                 filteredPay.value = ['Payment'];
-                isClick = !isClick;
+                isClick = true;
               }
             });
 
@@ -905,8 +693,6 @@ class _VerificationState extends State<Verification> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await getBank();
-      await getCurr();
       await getUser();
       await cekSaldoIOM();
     });
@@ -1035,29 +821,42 @@ class _VerificationState extends State<Verification> {
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Bank Name"),
                                 SizedBox(height: size.height * 0.005),
-                                DropdownButtonFormField(
-                                  value: namaBank,
-                                  itemHeight: null,
-                                  isExpanded: true,
+                                TextFormField(
+                                  controller: namaBank,
                                   autovalidateMode:
                                       AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      onPressed: () async {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return ListBank(
+                                              namaBank: (value) {
+                                                setState(() {
+                                                  namaBank.text = value;
+                                                });
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.list_alt,
+                                        color: Colors.green,
+                                      ),
+                                    ),
                                   ),
-                                  items:
-                                      listNamaBank.map(buildmenuItem).toList(),
-                                  onChanged: (value) => setState(() {
-                                    namaBank = value!;
-                                  }),
-                                  validator: (value) {
-                                    if (value == "Select") {
-                                      return "Choose Bank Name";
-                                    } else {
-                                      return null;
-                                    }
-                                  },
                                 ),
-                                namaBank == 'OTHER'
+                                namaBank.text == 'OTHER'
                                     ? TextFormField(
                                         focusNode: _focusNode,
                                         controller: bank,
@@ -1089,26 +888,40 @@ class _VerificationState extends State<Verification> {
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Currency"),
                                 SizedBox(height: size.height * 0.005),
-                                DropdownButtonFormField(
-                                  value: curr,
-                                  itemHeight: null,
-                                  isExpanded: true,
+                                TextFormField(
+                                  controller: curr,
                                   autovalidateMode:
                                       AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width: 1),
+                                    ),
+                                    suffixIcon: IconButton(
+                                      onPressed: () async {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return ListCurr(
+                                              curr: (value) {
+                                                setState(() {
+                                                  curr.text = value;
+                                                });
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.list_alt,
+                                        color: Colors.green,
+                                      ),
+                                    ),
                                   ),
-                                  items: listCurr.map(buildmenuItem).toList(),
-                                  onChanged: (value) => setState(() {
-                                    curr = value!;
-                                  }),
-                                  validator: (value) {
-                                    if (value == "Select") {
-                                      return "Choose Currency";
-                                    } else {
-                                      return null;
-                                    }
-                                  },
                                 ),
                                 SizedBox(height: size.height * 0.01),
                                 const Text("Amount"),
