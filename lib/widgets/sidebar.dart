@@ -5,6 +5,9 @@ import '../screens/home.dart';
 import '../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../screens/about.dart';
+import '../screens/login.dart';
+
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
 
@@ -130,6 +133,17 @@ class _SidebarState extends State<Sidebar> {
     await cekLevel();
   }
 
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+      builder: (BuildContext context) {
+        return const LoginScreen();
+      },
+    ), (route) => false);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -213,6 +227,40 @@ class _SidebarState extends State<Sidebar> {
               ),
             ),
             expan,
+            ListTile(
+              onTap: () async {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const About();
+                  },
+                ));
+              },
+              leading: const Icon(
+                Icons.info,
+                color: Colors.white,
+              ),
+              title: const Text(
+                'About',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            ListTile(
+              onTap: () async {
+                await logout();
+              },
+              leading: const Icon(
+                Icons.logout,
+                color: Colors.red,
+              ),
+              title: const Text(
+                'Logout',
+                style: TextStyle(
+                  color: Colors.red,
+                ),
+              ),
+            ),
           ],
         ),
       ),

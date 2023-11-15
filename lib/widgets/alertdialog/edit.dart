@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import '../../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
@@ -16,29 +15,29 @@ import '../loading.dart';
 import 'try_again.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
-class Verification extends StatefulWidget {
-  final Function(int) item;
-  final List iom;
-  final int lastItem;
+class Edit extends StatefulWidget {
+  final Function(bool) isUpdate;
+  final List editItem;
+  final String server;
 
-  const Verification({
+  const Edit({
     super.key,
-    required this.item,
-    required this.iom,
-    required this.lastItem,
+    required this.isUpdate,
+    required this.editItem,
+    required this.server,
   });
 
   @override
-  State<Verification> createState() => _VerificationState();
+  State<Edit> createState() => _EditState();
 }
 
-class _VerificationState extends State<Verification> {
+class _EditState extends State<Edit> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
   bool isClick = false;
   bool isBalance = false;
-  int item = 0;
+  bool isNew = false;
   Uint8List? _image;
   String titleFile = "No File Choosen";
   String fileName = '';
@@ -47,21 +46,13 @@ class _VerificationState extends State<Verification> {
   String level = '';
   String namaBank = 'Select';
   String curr = 'Select';
-  double saldo = 0;
+  List attFile = [];
   List<String> listNamaBank = [
     'Select',
   ];
   List<String> listCurr = [
     'Select',
   ];
-  List<String> payType = [
-    'Payment',
-    'Pending Payment',
-  ];
-  ValueNotifier<List<String>> filteredPay = ValueNotifier([
-    'Payment',
-    'Pending Payment',
-  ]);
   var hasilJson = '';
 
   DropdownMenuItem<String> buildmenuItem(String item) => DropdownMenuItem(
@@ -329,146 +320,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> verification(int isPayment) async {
-    try {
-      setState(() {
-        loading = true;
-      });
-
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<Verification xmlns="http://tempuri.org/">' +
-          '<isPayment>$isPayment</isPayment>' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '<VerifiedBy>$userName</VerifiedBy>' +
-          '</Verification>' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_Verification),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/Verification',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final statusData =
-            document.findAllElements('VerificationResult').isEmpty
-                ? 'GAGAL'
-                : document.findAllElements('VerificationResult').first.text;
-
-        if (statusData == "GAGAL") {
-          Future.delayed(const Duration(seconds: 1), () {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
-              backgroundColor: Colors.grey[300],
-            );
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-          });
-        } else {
-          Future.delayed(const Duration(seconds: 1), () async {
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            if (isPayment == 1) {
-              await verifPayment();
-            } else {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 2),
-                configuration: const IconConfiguration(
-                    icon: Icons.done, color: Colors.green),
-                title: "Success",
-                backgroundColor: Colors.grey[300],
-              );
-
-              if (level == '12') {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'IOM Verification',
-                    );
-                  },
-                ));
-              } else if (level == '10') {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'IOM Approval',
-                    );
-                  },
-                ));
-              } else {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'View IOM',
-                    );
-                  },
-                ));
-              }
-            }
-          });
-        }
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Verification",
-          backgroundColor: Colors.grey[300],
-        );
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Verification",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> verifPayment() async {
+  Future<void> updatePayment() async {
     try {
       setState(() {
         loading = true;
@@ -479,22 +331,22 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationPayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<Item>${(item + 1).toString()}</Item>' +
+          '<UpdatePayment xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<Item>${widget.editItem.last['item']}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.numberValue}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.substring(0, 3)}</CurrPembayaran>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</VerificationPayment>' +
+          '<server>${widget.server}</server>' +
+          '</UpdatePayment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_VerificationPayment),
+      final response = await http.post(Uri.parse(url_UpdatePayment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationPayment',
+            'SOAPAction': 'http://tempuri.org/UpdatePayment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -503,11 +355,10 @@ class _VerificationState extends State<Verification> {
       if (response.statusCode == 200) {
         final document = xml.XmlDocument.parse(response.body);
 
-        final statusData = document
-                .findAllElements('VerificationPaymentResult')
-                .isEmpty
-            ? 'GAGAL'
-            : document.findAllElements('VerificationPaymentResult').first.text;
+        final statusData =
+            document.findAllElements('UpdatePaymentResult').isEmpty
+                ? 'GAGAL'
+                : document.findAllElements('UpdatePaymentResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -533,7 +384,22 @@ class _VerificationState extends State<Verification> {
               });
             }
 
-            await verifAtt();
+            if (isNew) {
+              await updateAtt();
+            } else {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 2),
+                configuration: const IconConfiguration(
+                    icon: Icons.done, color: Colors.green),
+                title: "Success Update Item (${widget.editItem.last['item']})",
+                backgroundColor: Colors.grey[300],
+              );
+
+              Navigator.of(context).pop();
+
+              widget.isUpdate(true);
+            }
           });
         }
       } else {
@@ -576,7 +442,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> verifAtt() async {
+  Future<void> updateAtt() async {
     try {
       setState(() {
         loading = true;
@@ -585,23 +451,23 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<UpdateAttach xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
           '<UploadDate>${DateTime.now().toLocal().toIso8601String()}</UploadDate>' +
           '<Ext>$fileExt</Ext>' +
-          '<Item>${(item + 1).toString()}</Item>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</VerificationAttach>' +
+          '<Item>${widget.editItem.last['item']}</Item>' +
+          '<server>${widget.editItem.last['server']}</server>' +
+          '</UpdateAttach>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_VerificationAttach),
+      final response = await http.post(Uri.parse(url_UpdateAttach),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationAttach',
+            'SOAPAction': 'http://tempuri.org/UpdateAttach',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -610,11 +476,10 @@ class _VerificationState extends State<Verification> {
       if (response.statusCode == 200) {
         final document = xml.XmlDocument.parse(response.body);
 
-        final statusData = document
-                .findAllElements('VerificationAttachResult')
-                .isEmpty
-            ? 'GAGAL'
-            : document.findAllElements('VerificationAttachResult').first.text;
+        final statusData =
+            document.findAllElements('UpdateAttachResult').isEmpty
+                ? 'GAGAL'
+                : document.findAllElements('UpdateAttachResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -639,25 +504,19 @@ class _VerificationState extends State<Verification> {
               duration: const Duration(seconds: 2),
               configuration: const IconConfiguration(
                   icon: Icons.done, color: Colors.green),
-              title: "Success ($item)",
+              title: "Success Update Item (${widget.editItem.last['item']})",
               backgroundColor: Colors.grey[300],
             );
 
             if (mounted) {
               setState(() {
-                saldo = saldo + amount.numberValue;
                 loading = false;
-                item = item + 1;
-                namaBank = 'Select';
-                curr = 'Select';
-                amount.updateValue(0);
-                titleFile = 'No File Choosen';
-
-                widget.item(item);
               });
             }
 
-            await cekSaldoIOM();
+            Navigator.of(context).pop();
+
+            widget.isUpdate(true);
           });
         }
       } else {
@@ -687,7 +546,7 @@ class _VerificationState extends State<Verification> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await verifAtt();
+                      await updateAtt();
                     }
                   },
                 );
@@ -723,7 +582,7 @@ class _VerificationState extends State<Verification> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await verifAtt();
+                    await updateAtt();
                   }
                 },
               );
@@ -732,7 +591,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> cekSaldoIOM() async {
+  Future<void> getIOMAttachment() async {
     try {
       setState(() {
         loading = true;
@@ -741,17 +600,19 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<CekSaldoIOM xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</CekSaldoIOM>' +
+          '<GetIOMAttachment xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<Item>${widget.editItem.last['item']}</Item>' +
+          '<attachmentType>BUKTI TERIMA PEMBAYARAN</attachmentType>' +
+          '<server>${widget.server}</server>' +
+          '</GetIOMAttachment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_CekSaldoIOM),
+      final response = await http.post(Uri.parse(url_GetIOMAttachment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/CekSaldoIOM',
+            'SOAPAction': 'http://tempuri.org/GetIOMAttachment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -784,31 +645,35 @@ class _VerificationState extends State<Verification> {
               }
             });
           } else {
-            final lastItem = listResult.findElements('LastItem').isEmpty
-                ? '0'
-                : listResult.findElements('LastItem').first.text;
-            final total = listResult.findElements('Total').isEmpty
-                ? '0'
-                : listResult.findElements('Total').first.text;
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.text;
+            final filename = listResult.findElements('Filename').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Filename').first.text;
+            final pdfFile = listResult.findElements('PDFFile').isEmpty
+                ? 'No Data'
+                : listResult.findElements('PDFFile').first.text;
+            final ext = listResult.findElements('Ext').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Ext').first.text;
+            final attachmentType =
+                listResult.findElements('attachmentType').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('attachmentType').first.text;
 
             setState(() {
-              item = int.parse(lastItem);
-              saldo = double.parse(total);
-
-              double.parse(total) >= double.parse(widget.iom.last['biaya'])
-                  ? isBalance = true
-                  : false;
-
-              if (saldo == 0.0) {
-                filteredPay.value = payType;
-              } else {
-                filteredPay.value = ['Payment'];
-                isClick = !isClick;
-              }
+              attFile.add({
+                'noIOM': noIOM,
+                'filename': filename,
+                'pdf': pdfFile,
+                'ext': ext,
+                'attachmentType': attachmentType,
+              });
             });
 
-            debugPrint('$item');
-            debugPrint(total);
+            var hasilJson = jsonEncode(attFile);
+            debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -817,33 +682,7 @@ class _VerificationState extends State<Verification> {
                 });
               }
 
-              if (isBalance) {
-                if (level == '12') {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return const ViewIOM(
-                        title: 'IOM Verification',
-                      );
-                    },
-                  ));
-                } else if (level == '10') {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return const ViewIOM(
-                        title: 'IOM Approval',
-                      );
-                    },
-                  ));
-                } else {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return const ViewIOM(
-                        title: 'View IOM',
-                      );
-                    },
-                  ));
-                }
-              }
+              await editItem();
             });
           }
         }
@@ -856,7 +695,7 @@ class _VerificationState extends State<Verification> {
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
           title: "${response.statusCode}",
-          subtitle: "Error Check IOM Balance",
+          subtitle: "Error Get IOM Attachment",
           backgroundColor: Colors.grey[300],
         );
         if (mounted) {
@@ -872,7 +711,7 @@ class _VerificationState extends State<Verification> {
         duration: const Duration(seconds: 2),
         configuration:
             const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Check IOM Balance",
+        title: "Error Get IOM Attachment",
         subtitle: "$e",
         subtitleOptions: StatusAlertTextConfiguration(
           overflow: TextOverflow.visible,
@@ -901,6 +740,24 @@ class _VerificationState extends State<Verification> {
     });
   }
 
+  Future<void> editItem() async {
+    selectDate =
+        DateTime.parse(widget.editItem.last['tanggal'].toString()).toLocal();
+    date.text = DateFormat('dd-MMM-yyyy')
+        .format(DateTime.parse(selectDate.toString()).toLocal());
+    namaBank = widget.editItem.last['bank'];
+    List curr1 = listCurr
+        .where((data) => data.contains(widget.editItem.last['curr']))
+        .toList();
+    curr = curr1.last;
+    amount.updateValue(double.parse(widget.editItem.last['amount']));
+    fileName = attFile.last['filename'];
+
+    _image = base64Decode(attFile.last['pdf']);
+    fileExt = attFile.last['ext'];
+    titleFile = attFile.last['pdf'];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -908,13 +765,11 @@ class _VerificationState extends State<Verification> {
       await getBank();
       await getCurr();
       await getUser();
-      await cekSaldoIOM();
+      await getIOMAttachment();
     });
 
     date.text = DateFormat('dd-MMM-yyyy')
         .format(DateTime.parse(selectDate.toString()).toLocal());
-
-    item == 0 ? item = widget.lastItem : null;
   }
 
   @override
@@ -955,247 +810,204 @@ class _VerificationState extends State<Verification> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      const Text('Verification Type:'),
-                      SizedBox(
-                        height: size.height * 0.1,
-                        width: size.width,
-                        child: ListView.separated(
-                          itemCount: filteredPay.value.length,
-                          scrollDirection: Axis.horizontal,
-                          separatorBuilder: (BuildContext context, int index) {
-                            return SizedBox(width: size.width * 0.02);
-                          },
-                          itemBuilder: (BuildContext context, index) {
-                            return Row(
-                              children: [
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        isClick ? Colors.green : null,
-                                    foregroundColor:
-                                        isClick ? Colors.white : null,
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      isClick = !isClick;
-                                      filteredPay.value =
-                                          isClick ? [payType[index]] : payType;
-                                    });
-                                  },
-                                  child: isClick
-                                      ? Row(
-                                          children: [
-                                            Text(filteredPay.value[index]),
-                                            SizedBox(width: size.width * 0.01),
-                                            const Icon(Icons.done),
-                                          ],
-                                        )
-                                      : Text(filteredPay.value[index]),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Item: ${widget.editItem.last['item']}'),
+                          const Divider(
+                            thickness: 2,
+                          ),
+                          const Text("Payment Date"),
+                          SizedBox(height: size.height * 0.005),
+                          TextFormField(
+                            controller: date,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1),
+                              ),
+                              suffixIcon: IconButton(
+                                onPressed: () async {
+                                  await pickDate();
+                                },
+                                icon: const Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: Colors.green,
                                 ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                      filteredPay.value.last == 'Pending Payment'
-                          ? const SizedBox.shrink()
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Item: $item'),
-                                const Divider(
-                                  thickness: 2,
-                                ),
-                                const Text("Payment Date"),
-                                SizedBox(height: size.height * 0.005),
-                                TextFormField(
-                                  controller: date,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  readOnly: true,
-                                  decoration: InputDecoration(
-                                    enabledBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(width: 1),
-                                    ),
-                                    focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(width: 1),
-                                    ),
-                                    suffixIcon: IconButton(
-                                      onPressed: () async {
-                                        await pickDate();
-                                      },
-                                      icon: const Icon(
-                                        Icons.calendar_month_outlined,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                const Text("Bank Name"),
-                                SizedBox(height: size.height * 0.005),
-                                DropdownButtonFormField(
-                                  value: namaBank,
-                                  itemHeight: null,
-                                  isExpanded: true,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  items:
-                                      listNamaBank.map(buildmenuItem).toList(),
-                                  onChanged: (value) => setState(() {
-                                    namaBank = value!;
-                                  }),
-                                  validator: (value) {
-                                    if (value == "Select") {
-                                      return "Choose Bank Name";
-                                    } else {
-                                      return null;
-                                    }
-                                  },
-                                ),
-                                namaBank == 'OTHER'
-                                    ? TextFormField(
-                                        focusNode: _focusNode,
-                                        controller: bank,
-                                        autovalidateMode:
-                                            AutovalidateMode.onUserInteraction,
-                                        autocorrect: false,
-                                        decoration: const InputDecoration(
-                                          enabledBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.redAccent,
-                                                width: 2),
-                                          ),
-                                          focusedBorder: UnderlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.redAccent,
-                                                width: 2),
-                                          ),
-                                          hintText: 'B***',
-                                        ),
-                                        validator: (value) {
-                                          if (value!.isEmpty) {
-                                            return "Text can't be empty";
-                                          } else {
-                                            return null;
-                                          }
-                                        },
-                                      )
-                                    : const SizedBox.shrink(),
-                                SizedBox(height: size.height * 0.01),
-                                const Text("Currency"),
-                                SizedBox(height: size.height * 0.005),
-                                DropdownButtonFormField(
-                                  value: curr,
-                                  itemHeight: null,
-                                  isExpanded: true,
-                                  autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                  ),
-                                  items: listCurr.map(buildmenuItem).toList(),
-                                  onChanged: (value) => setState(() {
-                                    curr = value!;
-                                  }),
-                                  validator: (value) {
-                                    if (value == "Select") {
-                                      return "Choose Currency";
-                                    } else {
-                                      return null;
-                                    }
-                                  },
-                                ),
-                                SizedBox(height: size.height * 0.01),
-                                const Text("Amount"),
-                                SizedBox(height: size.height * 0.005),
-                                TextFormField(
-                                  focusNode: _focusNode1,
-                                  controller: amount,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                    signed: true,
-                                  ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: size.height * 0.01),
+                          const Text("Bank Name"),
+                          SizedBox(height: size.height * 0.005),
+                          DropdownButtonFormField(
+                            value: namaBank,
+                            itemHeight: null,
+                            isExpanded: true,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                            items: listNamaBank.map(buildmenuItem).toList(),
+                            onChanged: (value) => setState(() {
+                              namaBank = value!;
+                            }),
+                            validator: (value) {
+                              if (value == "Select") {
+                                return "Choose Bank Name";
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
+                          namaBank == 'OTHER'
+                              ? TextFormField(
+                                  focusNode: _focusNode,
+                                  controller: bank,
                                   autovalidateMode:
                                       AutovalidateMode.onUserInteraction,
                                   autocorrect: false,
                                   decoration: const InputDecoration(
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(width: 2),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
-                                        width: 2,
-                                        color: Color.fromARGB(255, 4, 88, 156),
-                                      ),
+                                          color: Colors.redAccent, width: 2),
                                     ),
-                                    errorBorder: OutlineInputBorder(
+                                    focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
-                                        width: 1,
-                                        color: Colors.red,
-                                      ),
+                                          color: Colors.redAccent, width: 2),
                                     ),
-                                    focusedErrorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        width: 1,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    hintText: '0.0',
+                                    hintText: 'B***',
                                   ),
                                   validator: (value) {
-                                    if (value == '0,00') {
-                                      return "Amount can't be 0,00";
+                                    if (value!.isEmpty) {
+                                      return "Text can't be empty";
                                     } else {
                                       return null;
                                     }
                                   },
+                                )
+                              : const SizedBox.shrink(),
+                          SizedBox(height: size.height * 0.01),
+                          const Text("Currency"),
+                          SizedBox(height: size.height * 0.005),
+                          DropdownButtonFormField(
+                            value: curr,
+                            itemHeight: null,
+                            isExpanded: true,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                            items: listCurr.map(buildmenuItem).toList(),
+                            onChanged: (value) => setState(() {
+                              curr = value!;
+                            }),
+                            validator: (value) {
+                              if (value == "Select") {
+                                return "Choose Currency";
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
+                          SizedBox(height: size.height * 0.01),
+                          const Text("Amount"),
+                          SizedBox(height: size.height * 0.005),
+                          TextFormField(
+                            focusNode: _focusNode1,
+                            controller: amount,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: true,
+                            ),
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            autocorrect: false,
+                            decoration: const InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(width: 2),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: Color.fromARGB(255, 4, 88, 156),
                                 ),
-                                SizedBox(height: size.height * 0.03),
-                                Container(
-                                  width: size.width,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 1, color: Colors.black),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const SizedBox(width: 5),
-                                      titleFile == 'No File Choosen'
-                                          ? ElevatedButton(
-                                              onPressed: () async {
-                                                await _getFile();
-                                              },
-                                              child: const Text("Choose File"),
-                                            )
-                                          : ElevatedButton(
-                                              onPressed: () async {
-                                                setState(() {
-                                                  _image = null;
-                                                  titleFile = 'No File Choosen';
-                                                });
-                                              },
-                                              child: const Text("Clear"),
-                                            ),
-                                      const SizedBox(width: 5),
-                                      SizedBox(
-                                        width: size.width > 400
-                                            ? size.width * 0.35
-                                            : size.width * 0.3,
-                                        child: Text(
-                                          titleFile,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              hintText: '0.0',
+                            ),
+                            validator: (value) {
+                              if (value == '0,00') {
+                                return "Amount can't be 0,00";
+                              } else {
+                                return null;
+                              }
+                            },
+                          ),
+                          Column(
+                            children: [
+                              SizedBox(height: size.height * 0.03),
+                              Container(
+                                width: size.width,
+                                decoration: BoxDecoration(
+                                  border:
+                                      Border.all(width: 1, color: Colors.black),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 5),
+                                    titleFile == 'No File Choosen'
+                                        ? ElevatedButton(
+                                            onPressed: () async {
+                                              await _getFile();
+                                            },
+                                            child: const Text("Choose File"),
+                                          )
+                                        : ElevatedButton(
+                                            onPressed: () async {
+                                              setState(() {
+                                                _image = null;
+                                                titleFile = 'No File Choosen';
+                                                isNew = true;
+                                              });
+                                            },
+                                            child: const Text("Clear"),
+                                          ),
+                                    const SizedBox(width: 5),
+                                    SizedBox(
+                                      width: size.width > 400
+                                          ? size.width * 0.35
+                                          : size.width * 0.3,
+                                      child: Text(
+                                        titleFile,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            )
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ),
@@ -1207,17 +1019,12 @@ class _VerificationState extends State<Verification> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            int isPayment = 0;
 
                             setState(() {
                               loading = true;
-                              isPayment =
-                                  filteredPay.value.last == 'Payment' ? 1 : 0;
-                              debugPrint('Payment Status: $isPayment');
                             });
 
-                            if (isPayment == 1 &&
-                                (titleFile == 'No File Choosen')) {
+                            if (titleFile == 'No File Choosen') {
                               StatusAlert.show(
                                 context,
                                 duration: const Duration(seconds: 2),
@@ -1231,7 +1038,7 @@ class _VerificationState extends State<Verification> {
                                 loading = false;
                               });
                             } else {
-                              await verification(isPayment);
+                              await updatePayment();
                             }
                           }
                         },

@@ -449,9 +449,11 @@ class _DetailIOMState extends State<DetailIOM> {
                 : () async {
                     setState(() {
                       loading = true;
+                      isBalance = false;
                     });
                     jadwal.clear();
                     await getIOMItem();
+                    await cekSaldoIOM();
                   },
             icon: const Icon(Icons.refresh),
           ),
@@ -784,18 +786,20 @@ class _DetailIOMState extends State<DetailIOM> {
                     suffixIcon: IconButton(
                       onPressed: loading
                           ? null
-                          : () async {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (BuildContext context) {
-                                  return Payment(
-                                    iom: widget.iom,
-                                  );
+                          : level == 19
+                              ? null
+                              : () async {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (BuildContext context) {
+                                      return Payment(
+                                        iom: widget.iom,
+                                      );
+                                    },
+                                  ));
                                 },
-                              ));
-                            },
                       icon: Icon(
                         Icons.arrow_circle_right,
-                        color: Colors.green,
+                        color: level == 19 ? null : Colors.green,
                         size: size.height * 0.05,
                       ),
                     ),
@@ -1183,19 +1187,36 @@ class _DetailIOMState extends State<DetailIOM> {
                             onPressed: loading
                                 ? null
                                 : () async {
-                                    setState(() {
-                                      status = 'APPROVE';
-                                    });
+                                    if (isBalance) {
+                                      setState(() {
+                                        status = 'APPROVE';
+                                      });
 
-                                    await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Confirmation(
-                                          text: status,
-                                          iom: widget.iom,
-                                        );
-                                      },
-                                    );
+                                      await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Confirmation(
+                                            text: status,
+                                            iom: widget.iom,
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      StatusAlert.show(
+                                        context,
+                                        duration: const Duration(seconds: 2),
+                                        configuration: const IconConfiguration(
+                                            icon: Icons.error,
+                                            color: Colors.red),
+                                        title:
+                                            "IOM Balance doesn't match with Payment Balance",
+                                        titleOptions:
+                                            StatusAlertTextConfiguration(
+                                          overflow: TextOverflow.visible,
+                                        ),
+                                        backgroundColor: Colors.grey[300],
+                                      );
+                                    }
                                   },
                             child: const Text('Approval'),
                           ),
@@ -1213,19 +1234,36 @@ class _DetailIOMState extends State<DetailIOM> {
                             onPressed: loading
                                 ? null
                                 : () async {
-                                    setState(() {
-                                      status = 'REJECT';
-                                    });
+                                    if (isBalance) {
+                                      setState(() {
+                                        status = 'REJECT';
+                                      });
 
-                                    await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Confirmation(
-                                          text: status,
-                                          iom: widget.iom,
-                                        );
-                                      },
-                                    );
+                                      await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Confirmation(
+                                            text: status,
+                                            iom: widget.iom,
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      StatusAlert.show(
+                                        context,
+                                        duration: const Duration(seconds: 2),
+                                        configuration: const IconConfiguration(
+                                            icon: Icons.error,
+                                            color: Colors.red),
+                                        title:
+                                            "IOM Balance doesn't match with Payment Balance",
+                                        titleOptions:
+                                            StatusAlertTextConfiguration(
+                                          overflow: TextOverflow.visible,
+                                        ),
+                                        backgroundColor: Colors.grey[300],
+                                      );
+                                    }
                                   },
                             child: const Text('Rejection'),
                           ),

@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/alertdialog/edit.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
@@ -432,7 +433,7 @@ class _PaymentState extends State<Payment> {
                           : size.height * 0.4,
                   child: PaginatedDataTable2(
                     border: TableBorder.all(width: 1),
-                    minWidth: 600,
+                    minWidth: 800,
                     sortColumnIndex: _sortColumnIndex,
                     sortAscending: _sortAscending,
                     rowsPerPage: rowPerPages,
@@ -543,7 +544,7 @@ class _PaymentState extends State<Payment> {
                         size: ColumnSize.S,
                         label: Center(
                           child: Text(
-                            'Currency',
+                            'Curr',
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -589,11 +590,41 @@ class _PaymentState extends State<Payment> {
                           ),
                         ),
                       ),
+                      const DataColumn2(
+                        size: ColumnSize.S,
+                        label: Center(
+                          child: Text(
+                            'Edit',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                     ],
                     source: TableData(
                       payment: payment,
                       currentPage: currentPage,
                       rowsPerPage: rowPerPages,
+                      status: widget.iom.last['status'],
+                      edit: (index) async {
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Edit(
+                              isUpdate: (value) async {
+                                if (value) {
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  payment.clear();
+                                  await getIOMPayment();
+                                }
+                              },
+                              editItem: [payment[index]],
+                              server: widget.iom.last['server'],
+                            );
+                          },
+                        );
+                      },
                       action: (index) async {
                         setState(() {
                           att.clear();
@@ -683,13 +714,17 @@ class TableData extends DataTableSource {
   final List payment;
   final int currentPage;
   final int rowsPerPage;
+  final String status;
   final Function(int) action;
+  final Function(int) edit;
 
   TableData({
     required this.payment,
     required this.currentPage,
     required this.rowsPerPage,
+    required this.status,
     required this.action,
+    required this.edit,
   });
 
   @override
@@ -772,6 +807,25 @@ class TableData extends DataTableSource {
               icon: const Icon(
                 Icons.photo_library,
                 color: Colors.blue,
+                size: 30,
+              ),
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: IconButton(
+              onPressed: status == 'APPROVED' || status == 'REJECTED'
+                  ? null
+                  : () async {
+                      edit(index);
+                    },
+              icon: Icon(
+                Icons.edit_square,
+                color: status == 'APPROVED' || status == 'REJECTED'
+                    ? null
+                    : Colors.green,
+                size: 30,
               ),
             ),
           ),

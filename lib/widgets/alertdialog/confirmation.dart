@@ -27,6 +27,7 @@ class _ConfirmationState extends State<Confirmation> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
+  String userName = '';
   String level = '';
 
   Future<void> approval() async {
@@ -44,6 +45,7 @@ class _ConfirmationState extends State<Confirmation> {
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Status_konfirmasi_direksi>$status</Status_konfirmasi_direksi>' +
           '<server>${widget.iom.last['server']}</server>' +
+          '<ConfirmedBy>$userName</ConfirmedBy>' +
           '</Approval>' +
           '</soap:Body>' +
           '</soap:Envelope>';
@@ -164,11 +166,15 @@ class _ConfirmationState extends State<Confirmation> {
     }
   }
 
-  Future<void> getLevel() async {
+  Future<void> getUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userName = prefs.getString('userName');
     String? userLevel = prefs.getString('userLevel');
 
     setState(() {
+      this.userName = userName ?? 'No Data';
+      debugPrint(userName);
+
       level = userLevel ?? 'No Data';
       debugPrint(level);
     });
@@ -178,7 +184,7 @@ class _ConfirmationState extends State<Confirmation> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await getLevel();
+      await getUser();
     });
   }
 

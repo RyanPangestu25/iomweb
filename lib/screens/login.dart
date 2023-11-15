@@ -91,9 +91,10 @@ class _LoginScreenState extends State<LoginScreen> {
             final userName = listResult.findElements('UserName').isEmpty
                 ? 'No Data'
                 : listResult.findElements('UserName').first.text;
-            final userLevel = listResult.findElements('UserLevel').isEmpty
-                ? 'No Data'
-                : listResult.findElements('UserLevel').first.text;
+            final iomCharterLevel =
+                listResult.findElements('IOMCharterLevel').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('IOMCharterLevel').first.text;
             final userEmail = listResult.findElements('UserEmail').isEmpty
                 ? 'No Data'
                 : listResult.findElements('UserEmail').first.text;
@@ -102,7 +103,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 : listResult.findElements('NIK').first.text;
             temporaryList.add({
               'userName': userName,
-              'userLevel': userLevel,
+              'userLevel': iomCharterLevel.toUpperCase() == 'VIEW'
+                  ? '17'
+                  : iomCharterLevel.toUpperCase() == 'CREATOR'
+                      ? '19'
+                      : iomCharterLevel.toUpperCase() == 'FINANCE'
+                          ? '12'
+                          : '10',
               'userEmail': userEmail,
               'nik': nik,
             });
@@ -132,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
               } else {
                 await saveData(
                   userName,
-                  userLevel,
+                  temporaryList.last['userLevel'],
                   userEmail,
                   nik,
                 );

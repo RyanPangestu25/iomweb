@@ -321,7 +321,7 @@ class _ViewIOMState extends State<ViewIOM> {
   }
 
   Future<void> filterStatus(DateTime startDate, DateTime endDate) async {
-    if (isStatus && !isPeriod && searchController.text.isEmpty) {
+    if (isStatus && !isCompany && !isPeriod && searchController.text.isEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
           final status = data['status'] == filteredStatus.value.last;
@@ -1176,11 +1176,11 @@ class _ViewIOMState extends State<ViewIOM> {
                 ),
                 Visibility(
                   visible: isHelp,
-                  child: Positioned(
-                    right: size.width * 0.3,
-                    top: size.height * 0.02,
+                  child: Align(
+                    alignment: Alignment.topCenter,
                     child: Container(
                       height: size.height * 0.16,
+                      margin: EdgeInsets.only(top: size.height * 0.02),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(15),
                         color: Colors.black54,

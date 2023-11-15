@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
@@ -33,6 +34,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
   int _sortColumnIndex = 0;
   int currentPage = 1;
   int rowPerPages = PaginatedDataTable.defaultRowsPerPage;
+  String level = '';
   List att = [];
   List attFile = [];
 
@@ -48,6 +50,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
           '<GetAttachmentName xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<server>${widget.iom.last['server']}</server>' +
+          '<level>$level</level>' +
           '</GetAttachmentName>' +
           '</soap:Body>' +
           '</soap:Envelope>';
@@ -341,11 +344,22 @@ class _IOMAttachmentState extends State<IOMAttachment> {
     });
   }
 
+  Future<void> getLevel() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userLevel = prefs.getString('userLevel');
+
+    setState(() {
+      level = userLevel ?? 'No Data';
+      debugPrint(level);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
+      await getLevel();
       await getAttName();
     });
   }
@@ -683,7 +697,7 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: Text(
-              data['item'].toString(),
+              (index + 1).toString(),
               textAlign: TextAlign.center,
             ),
           ),
