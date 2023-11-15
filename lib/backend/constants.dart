@@ -50,3 +50,9 @@ const url_UpdatePayment =
 
 const url_UpdateAttach =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAttach';
+
+const url_DeletePayment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DeletePayment';
+
+const url_DeleteAttach =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DeleteAttach';

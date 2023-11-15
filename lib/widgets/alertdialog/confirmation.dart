@@ -63,7 +63,7 @@ class _ConfirmationState extends State<Confirmation> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData = document.findAllElements('ApprovalResult').isEmpty
-            ? 'Error'
+            ? 'GAGAL'
             : document.findAllElements('ApprovalResult').first.text;
 
         if (statusData == "GAGAL") {

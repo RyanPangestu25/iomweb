@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/alertdialog/delete.dart';
 import '../widgets/alertdialog/edit.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
@@ -433,7 +434,7 @@ class _PaymentState extends State<Payment> {
                           : size.height * 0.4,
                   child: PaginatedDataTable2(
                     border: TableBorder.all(width: 1),
-                    minWidth: 800,
+                    minWidth: 900,
                     sortColumnIndex: _sortColumnIndex,
                     sortAscending: _sortAscending,
                     rowsPerPage: rowPerPages,
@@ -599,32 +600,21 @@ class _PaymentState extends State<Payment> {
                           ),
                         ),
                       ),
+                      const DataColumn2(
+                        size: ColumnSize.S,
+                        label: Center(
+                          child: Text(
+                            'Delete',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                     ],
                     source: TableData(
                       payment: payment,
                       currentPage: currentPage,
                       rowsPerPage: rowPerPages,
                       status: widget.iom.last['status'],
-                      edit: (index) async {
-                        await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Edit(
-                              isUpdate: (value) async {
-                                if (value) {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  payment.clear();
-                                  await getIOMPayment();
-                                }
-                              },
-                              editItem: [payment[index]],
-                              server: widget.iom.last['server'],
-                            );
-                          },
-                        );
-                      },
                       action: (index) async {
                         setState(() {
                           att.clear();
@@ -667,6 +657,46 @@ class _PaymentState extends State<Payment> {
                             );
                           }
                         });
+                      },
+                      edit: (index) async {
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Edit(
+                              isUpdate: (value) async {
+                                if (value) {
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  payment.clear();
+                                  await getIOMPayment();
+                                }
+                              },
+                              editItem: [payment[index]],
+                              server: widget.iom.last['server'],
+                            );
+                          },
+                        );
+                      },
+                      delete: (index) async {
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Delete(
+                              isUpdate: (value) async {
+                                if (value) {
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  payment.clear();
+                                  await getIOMPayment();
+                                }
+                              },
+                              payment: [payment[index]],
+                              server: widget.iom.last['server'],
+                            );
+                          },
+                        );
                       },
                     ),
                   ),
@@ -717,6 +747,7 @@ class TableData extends DataTableSource {
   final String status;
   final Function(int) action;
   final Function(int) edit;
+  final Function(int) delete;
 
   TableData({
     required this.payment,
@@ -725,6 +756,7 @@ class TableData extends DataTableSource {
     required this.status,
     required this.action,
     required this.edit,
+    required this.delete,
   });
 
   @override
@@ -808,6 +840,12 @@ class TableData extends DataTableSource {
                 Icons.photo_library,
                 color: Colors.blue,
                 size: 30,
+                shadows: [
+                  Shadow(
+                    offset: Offset(2, 1),
+                    blurRadius: 8,
+                  )
+                ],
               ),
             ),
           ),
@@ -822,6 +860,32 @@ class TableData extends DataTableSource {
                 Icons.edit_square,
                 color: Colors.green,
                 size: 30,
+                shadows: [
+                  Shadow(
+                    offset: Offset(2, 1),
+                    blurRadius: 10,
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: IconButton(
+              onPressed: () async {
+                delete(index);
+              },
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.red,
+                size: 30,
+                shadows: [
+                  Shadow(
+                    offset: Offset(2, 1),
+                    blurRadius: 10,
+                  )
+                ],
               ),
             ),
           ),

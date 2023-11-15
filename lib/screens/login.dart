@@ -6,7 +6,6 @@ import '../screens/forgot_pass.dart';
 import '../screens/home.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
-import '../screens/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
@@ -443,27 +442,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          const Text('OR'),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TextButton(
-                style: TextButton.styleFrom(
-                  textStyle: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () async {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return const RegisterScreen();
-                    },
-                  ));
-                },
-                child: const Text('Create a new account'),
-              ),
-            ],
-          ),
+          // const SizedBox(height: 20),
+          // const Text('OR'),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: <Widget>[
+          //     TextButton(
+          //       style: TextButton.styleFrom(
+          //         textStyle: const TextStyle(
+          //             fontSize: 17, fontWeight: FontWeight.bold),
+          //       ),
+          //       onPressed: () async {
+          //         Navigator.of(context).push(MaterialPageRoute(
+          //           builder: (BuildContext context) {
+          //             return const RegisterScreen();
+          //           },
+          //         ));
+          //       },
+          //       child: const Text('Create a new account'),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
