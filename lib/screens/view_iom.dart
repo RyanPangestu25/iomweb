@@ -207,6 +207,12 @@ class _ViewIOMState extends State<ViewIOM> {
                         .findElements('Status_konfirmasi_direksi')
                         .first
                         .text;
+            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Currency_PPH').first.text;
+            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
+                ? '0'
+                : listResult.findElements('Biaya_PPH').first.text;
             final rute = listResult.findElements('Rute').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Rute').first.text;
@@ -256,6 +262,8 @@ class _ViewIOMState extends State<ViewIOM> {
                       : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
                           ? 'PENDING'
                           : 'PAID',
+                  'currencyPPH': currencyPPH,
+                  'biayaPPH': biayaPPH,
                   'rute': rute,
                   'tanggalRute': tanggal,
                   'server': server,

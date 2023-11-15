@@ -56,3 +56,6 @@ const url_DeletePayment =
 
 const url_DeleteAttach =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DeleteAttach';
+
+const url_UpdatePPH =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePPH';

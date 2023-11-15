@@ -10,6 +10,7 @@ import '../screens/attachment.dart';
 import '../screens/payment.dart';
 import '../screens/view_iom.dart';
 import '../widgets/alertdialog/confirmation.dart';
+import '../widgets/alertdialog/income_tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/alertdialog/verification.dart';
 import 'package:status_alert/status_alert.dart';
@@ -43,6 +44,8 @@ class _DetailIOMState extends State<DetailIOM> {
   int item = 0;
   List jadwal = [];
   List att = [];
+
+  TextEditingController pphAmount = TextEditingController();
 
   Future<void> getIOMItem() async {
     try {
@@ -390,6 +393,17 @@ class _DetailIOMState extends State<DetailIOM> {
       await getIOMItem();
       await cekSaldoIOM();
     });
+
+    pphAmount.text.isEmpty
+        ? pphAmount.text = widget.iom.last['currencyPPH'] +
+            " " +
+            NumberFormat.currency(locale: 'id_ID', symbol: '')
+                .format(
+                  double.parse(
+                      widget.iom.last['biayaPPH'].replaceAll(',', '.')),
+                )
+                .toString()
+        : null;
   }
 
   @override
@@ -558,7 +572,7 @@ class _DetailIOMState extends State<DetailIOM> {
                 ),
                 SizedBox(height: size.height * 0.015),
                 const Text(
-                  "Cost",
+                  "IOM Cost",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                   ),
@@ -802,6 +816,28 @@ class _DetailIOMState extends State<DetailIOM> {
                         color: level == 19 ? null : Colors.green,
                         size: size.height * 0.05,
                       ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: size.height * 0.015),
+                const Text(
+                  "Income Tax",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: size.height * 0.01),
+                TextFormField(
+                  controller: pphAmount,
+                  autocorrect: false,
+                  readOnly: true,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  decoration: const InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(width: 2),
                     ),
                   ),
                 ),
@@ -1118,35 +1154,70 @@ class _DetailIOMState extends State<DetailIOM> {
                       ),
                     ]
               : [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      fixedSize: Size(size.width, size.height * 0.08),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: loading
-                        ? null
-                        : () async {
-                            await showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (BuildContext context) {
-                                return Verification(
-                                  item: (value) {
-                                    setState(() {
-                                      item = value;
-                                    });
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: Size(size.width * 0.4, size.height * 0.08),
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext context) {
+                                    return Verification(
+                                      item: (value) {
+                                        setState(() {
+                                          item = value;
+                                        });
+                                      },
+                                      iom: widget.iom,
+                                      lastItem: item,
+                                    );
                                   },
-                                  iom: widget.iom,
-                                  lastItem: item,
                                 );
                               },
-                            );
-                          },
-                    child: const Text('Verification'),
+                        child: const Text('Verification'),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          fixedSize: Size(size.width * 0.4, size.height * 0.08),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (BuildContext context) {
+                                    return IncomeTax(
+                                      pphAmount: (value) {
+                                        setState(() {
+                                          pphAmount.text = value;
+                                        });
+                                      },
+                                      iom: widget.iom,
+                                    );
+                                  },
+                                );
+                              },
+                        child: const Text('Income Tax'),
+                      ),
+                    ],
                   )
                 ]
           : level == 10
@@ -1171,7 +1242,7 @@ class _DetailIOMState extends State<DetailIOM> {
                     ]
                   : [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           ElevatedButton(
@@ -1203,7 +1274,6 @@ class _DetailIOMState extends State<DetailIOM> {
                                   },
                             child: const Text('Approval'),
                           ),
-                          SizedBox(width: size.width * 0.02),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               fixedSize:

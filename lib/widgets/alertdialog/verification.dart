@@ -706,7 +706,10 @@ class _VerificationState extends State<Verification> {
   @override
   void dispose() {
     date.dispose();
+    namaBank.dispose();
     bank.dispose();
+    curr.dispose();
+    amount.dispose();
     _focusNode.dispose();
     _focusNode1.dispose();
     super.dispose();
