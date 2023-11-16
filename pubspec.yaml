@@ -50,7 +50,6 @@ dependencies:
   simple_circular_progress_bar: ^1.0.2
   pin_code_fields: ^8.0.1
   file_picker: ^6.1.1
-  flutter_masked_text2: ^0.9.1
   path: ^1.8.3
 
 dev_dependencies:

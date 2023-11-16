@@ -1,15 +1,14 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import '../../widgets/alertdialog/list_curr.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../loading.dart';
-import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class IncomeTax extends StatefulWidget {
   final Function(String) pphAmount;
@@ -29,11 +28,133 @@ class _IncomeTaxState extends State<IncomeTax> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
+  bool isCurr = false;
+  List<String> listCurr = [];
+  ValueNotifier<List<String>> filteredCurr = ValueNotifier([]);
 
   TextEditingController curr = TextEditingController();
-  var amount = MoneyMaskedTextController();
+  TextEditingController amount = TextEditingController();
 
   final FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode1 = FocusNode();
+
+  Future<void> filterCurr(String query) async {
+    setState(() {
+      filteredCurr.value = listCurr.where((data) {
+        return data.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
+  Future<void> getCurr() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<ListCurrency xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_ListCurrency),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/ListCurrency',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (final listResult in listResultAll) {
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.text;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final currCode = listResult.findElements('CurrCode').first.text;
+            final currName = listResult.findElements('CurrName').first.text;
+
+            setState(() {
+              listCurr.add('$currCode - $currName');
+            });
+
+            var hasilJson = jsonEncode(listCurr);
+            debugPrint(hasilJson);
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          }
+        }
+
+        setState(() {
+          filteredCurr.value = listCurr;
+        });
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Error Get Currency",
+          backgroundColor: Colors.grey[300],
+        );
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Get Currency",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
 
   Future<void> updatePPH() async {
     try {
@@ -47,7 +168,7 @@ class _IncomeTaxState extends State<IncomeTax> {
           '<UpdatePPH xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Currency_PPH>${curr.text.substring(0, 3)}</Currency_PPH>' +
-          '<Biaya_PPH>${amount.numberValue}</Biaya_PPH>' +
+          '<Biaya_PPH>${amount.text.replaceAll('.', '').replaceAll(',', '.')}</Biaya_PPH>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</UpdatePPH>' +
           '</soap:Body>' +
@@ -106,7 +227,10 @@ class _IncomeTaxState extends State<IncomeTax> {
                 " " +
                 NumberFormat.currency(locale: 'id_ID', symbol: '')
                     .format(
-                      amount.numberValue,
+                      double.parse(amount.text
+                          .toString()
+                          .replaceAll('.', '')
+                          .replaceAll(',', '.')),
                     )
                     .toString());
             Navigator.of(context).pop();
@@ -155,6 +279,9 @@ class _IncomeTaxState extends State<IncomeTax> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await getCurr();
+    });
   }
 
   @override
@@ -162,6 +289,7 @@ class _IncomeTaxState extends State<IncomeTax> {
     curr.dispose();
     amount.dispose();
     _focusNode.dispose();
+    _focusNode1.dispose();
     super.dispose();
   }
 
@@ -172,6 +300,34 @@ class _IncomeTaxState extends State<IncomeTax> {
     return GestureDetector(
       onTap: () {
         _focusNode.unfocus();
+        _focusNode1.unfocus();
+
+        if (_focusNode1.hasFocus) {
+          try {
+            if (amount.text.isNotEmpty) {
+              setState(() {
+                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
+                    .format(
+                      double.parse(amount.text.toString().replaceAll(',', '.')),
+                    )
+                    .toString();
+              });
+            }
+          } catch (e) {
+            if (amount.text.isNotEmpty) {
+              setState(() {
+                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
+                    .format(
+                      double.parse(amount.text
+                          .toString()
+                          .replaceAll('.', '')
+                          .replaceAll(',', '.')),
+                    )
+                    .toString();
+              });
+            }
+          }
+        }
       },
       child: SizedBox(
         height: size.height,
@@ -202,45 +358,86 @@ class _IncomeTaxState extends State<IncomeTax> {
                           const Text("Currency"),
                           SizedBox(height: size.height * 0.005),
                           TextFormField(
+                            focusNode: _focusNode,
                             controller: curr,
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              enabledBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(width: 1),
+                            decoration: const InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(width: 2),
                               ),
-                              focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(width: 1),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: Color.fromARGB(255, 4, 88, 156),
+                                ),
                               ),
-                              suffixIcon: IconButton(
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (BuildContext context) {
-                                      return ListCurr(
-                                        curr: (value) {
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              hintText: 'IDR',
+                            ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return "Currency can't be empty";
+                              } else if (!listCurr.contains(value)) {
+                                return "Currency doesn't match";
+                              } else {
+                                return null;
+                              }
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                isCurr = true;
+                              });
+                              filterCurr(value);
+                            },
+                            onEditingComplete: () {
+                              setState(() {
+                                isCurr = true;
+                              });
+                              filterCurr(curr.text);
+                            },
+                          ),
+                          isCurr
+                              ? SizedBox(
+                                  height: size.height * 0.2,
+                                  width: size.width,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    clipBehavior: Clip.antiAlias,
+                                    itemCount: filteredCurr.value.length,
+                                    itemBuilder: (BuildContext context, index) {
+                                      return ListTile(
+                                        title: Text(
+                                          filteredCurr.value[index],
+                                        ),
+                                        onTap: () async {
                                           setState(() {
-                                            curr.text = value;
+                                            curr.text =
+                                                filteredCurr.value[index];
+                                            isCurr = false;
                                           });
                                         },
                                       );
                                     },
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.list_alt,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ),
-                          ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                           SizedBox(height: size.height * 0.01),
                           const Text("Amount"),
                           SizedBox(height: size.height * 0.005),
                           TextFormField(
-                            focusNode: _focusNode,
+                            focusNode: _focusNode1,
                             controller: amount,
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
@@ -273,7 +470,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                               hintText: '0.0',
                             ),
                             validator: (value) {
-                              if (value == '0,00') {
+                              if (value!.isEmpty) {
                                 return "Amount can't be 0,00";
                               } else {
                                 return null;
@@ -293,6 +490,30 @@ class _IncomeTaxState extends State<IncomeTax> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
+                            try {
+                              setState(() {
+                                amount.text = NumberFormat.currency(
+                                        locale: 'id_ID', symbol: '')
+                                    .format(
+                                      double.parse(amount.text
+                                          .toString()
+                                          .replaceAll(',', '.')),
+                                    )
+                                    .toString();
+                              });
+                            } catch (e) {
+                              setState(() {
+                                amount.text = NumberFormat.currency(
+                                        locale: 'id_ID', symbol: '')
+                                    .format(
+                                      double.parse(amount.text
+                                          .toString()
+                                          .replaceAll('.', '')
+                                          .replaceAll(',', '.')),
+                                    )
+                                    .toString();
+                              });
+                            }
 
                             await updatePPH();
                           }
