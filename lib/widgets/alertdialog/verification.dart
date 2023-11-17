@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:pattern_formatter/numeric_formatter.dart';
 import '../../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
@@ -510,7 +511,7 @@ class _VerificationState extends State<Verification> {
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
-          '<AmountPembayaran>${amount.text.replaceAll('.', '').replaceAll(',', '.')}</AmountPembayaran>' +
+          '<AmountPembayaran>${amount.text}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</VerificationPayment>' +
@@ -971,33 +972,6 @@ class _VerificationState extends State<Verification> {
         _focusNode1.unfocus();
         _focusNode2.unfocus();
         _focusNode3.unfocus();
-
-        if (_focusNode3.hasFocus) {
-          try {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text.toString().replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          } catch (e) {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text
-                          .toString()
-                          .replaceAll('.', '')
-                          .replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          }
-        }
       },
       child: SizedBox(
         height: size.height,
@@ -1194,7 +1168,17 @@ class _VerificationState extends State<Verification> {
                                     : const SizedBox.shrink(),
                                 isBank
                                     ? SizedBox(
-                                        height: size.height * 0.2,
+                                        height: filteredBank.value.isEmpty
+                                            ? size.height * 0
+                                            : filteredBank.value.length < 3
+                                                ? ((MediaQuery.of(context)
+                                                                    .textScaleFactor *
+                                                                14 +
+                                                            2 * 18) *
+                                                        filteredBank
+                                                            .value.length) +
+                                                    2 * size.height * 0.02
+                                                : size.height * 0.2,
                                         width: size.width,
                                         child: ListView.builder(
                                           shrinkWrap: true,
@@ -1274,7 +1258,17 @@ class _VerificationState extends State<Verification> {
                                 ),
                                 isCurr
                                     ? SizedBox(
-                                        height: size.height * 0.2,
+                                        height: filteredCurr.value.isEmpty
+                                            ? size.height * 0
+                                            : filteredCurr.value.length < 3
+                                                ? ((MediaQuery.of(context)
+                                                                    .textScaleFactor *
+                                                                14 +
+                                                            2 * 18) *
+                                                        filteredCurr
+                                                            .value.length) +
+                                                    2 * size.height * 0.02
+                                                : size.height * 0.2,
                                         width: size.width,
                                         child: ListView.builder(
                                           shrinkWrap: true,
@@ -1311,6 +1305,9 @@ class _VerificationState extends State<Verification> {
                                   autovalidateMode:
                                       AutovalidateMode.onUserInteraction,
                                   autocorrect: false,
+                                  inputFormatters: [
+                                    ThousandsFormatter(allowFraction: true)
+                                  ],
                                   decoration: const InputDecoration(
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(width: 2),
@@ -1340,32 +1337,6 @@ class _VerificationState extends State<Verification> {
                                       return "Amount can't be empty";
                                     } else {
                                       return null;
-                                    }
-                                  },
-                                  onEditingComplete: () {
-                                    try {
-                                      setState(() {
-                                        amount.text = NumberFormat.currency(
-                                                locale: 'id_ID', symbol: '')
-                                            .format(
-                                              double.parse(amount.text
-                                                  .toString()
-                                                  .replaceAll(',', '.')),
-                                            )
-                                            .toString();
-                                      });
-                                    } catch (e) {
-                                      setState(() {
-                                        amount.text = NumberFormat.currency(
-                                                locale: 'id_ID', symbol: '')
-                                            .format(
-                                              double.parse(amount.text
-                                                  .toString()
-                                                  .replaceAll('.', '')
-                                                  .replaceAll(',', '.')),
-                                            )
-                                            .toString();
-                                      });
                                     }
                                   },
                                 ),
@@ -1421,31 +1392,6 @@ class _VerificationState extends State<Verification> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            try {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            } catch (e) {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll('.', '')
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            }
-
                             int isPayment = 0;
 
                             setState(() {

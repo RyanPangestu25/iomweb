@@ -13,6 +13,7 @@ import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../loading.dart';
 import 'try_again.dart';
+import 'package:pattern_formatter/numeric_formatter.dart';
 
 class Edit extends StatefulWidget {
   final Function(bool) isUpdate;
@@ -354,7 +355,7 @@ class _EditState extends State<Edit> {
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
-          '<AmountPembayaran>${amount.text.replaceAll('.', '').replaceAll(',', '.')}</AmountPembayaran>' +
+          '<AmountPembayaran>${amount.text}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.server}</server>' +
           '</UpdatePayment>' +
@@ -817,33 +818,6 @@ class _EditState extends State<Edit> {
         _focusNode1.unfocus();
         _focusNode2.unfocus();
         _focusNode3.unfocus();
-
-        if (_focusNode3.hasFocus) {
-          try {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text.toString().replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          } catch (e) {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text
-                          .toString()
-                          .replaceAll('.', '')
-                          .replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          }
-        }
       },
       child: SizedBox(
         height: size.height,
@@ -997,7 +971,16 @@ class _EditState extends State<Edit> {
                               : const SizedBox.shrink(),
                           isBank
                               ? SizedBox(
-                                  height: size.height * 0.2,
+                                  height: filteredBank.value.isEmpty
+                                      ? size.height * 0
+                                      : filteredBank.value.length < 3
+                                          ? ((MediaQuery.of(context)
+                                                              .textScaleFactor *
+                                                          14 +
+                                                      2 * 18) *
+                                                  filteredBank.value.length) +
+                                              2 * size.height * 0.02
+                                          : size.height * 0.2,
                                   width: size.width,
                                   child: ListView.builder(
                                     shrinkWrap: true,
@@ -1076,7 +1059,16 @@ class _EditState extends State<Edit> {
                           ),
                           isCurr
                               ? SizedBox(
-                                  height: size.height * 0.2,
+                                  height: filteredCurr.value.isEmpty
+                                      ? size.height * 0
+                                      : filteredCurr.value.length < 3
+                                          ? ((MediaQuery.of(context)
+                                                              .textScaleFactor *
+                                                          14 +
+                                                      2 * 18) *
+                                                  filteredCurr.value.length) +
+                                              2 * size.height * 0.02
+                                          : size.height * 0.2,
                                   width: size.width,
                                   child: ListView.builder(
                                     shrinkWrap: true,
@@ -1111,6 +1103,9 @@ class _EditState extends State<Edit> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             autocorrect: false,
+                            inputFormatters: [
+                              ThousandsFormatter(allowFraction: true)
+                            ],
                             decoration: const InputDecoration(
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(width: 2),
@@ -1140,32 +1135,6 @@ class _EditState extends State<Edit> {
                                 return "Amount can't be empty";
                               } else {
                                 return null;
-                              }
-                            },
-                            onEditingComplete: () {
-                              try {
-                                setState(() {
-                                  amount.text = NumberFormat.currency(
-                                          locale: 'id_ID', symbol: '')
-                                      .format(
-                                        double.parse(amount.text
-                                            .toString()
-                                            .replaceAll(',', '.')),
-                                      )
-                                      .toString();
-                                });
-                              } catch (e) {
-                                setState(() {
-                                  amount.text = NumberFormat.currency(
-                                          locale: 'id_ID', symbol: '')
-                                      .format(
-                                        double.parse(amount.text
-                                            .toString()
-                                            .replaceAll('.', '')
-                                            .replaceAll(',', '.')),
-                                      )
-                                      .toString();
-                                });
                               }
                             },
                           ),
@@ -1226,32 +1195,6 @@ class _EditState extends State<Edit> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-
-                            try {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            } catch (e) {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll('.', '')
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            }
-
                             setState(() {
                               loading = true;
                             });

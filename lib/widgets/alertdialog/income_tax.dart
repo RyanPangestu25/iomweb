@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:pattern_formatter/numeric_formatter.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
@@ -33,10 +34,12 @@ class _IncomeTaxState extends State<IncomeTax> {
   ValueNotifier<List<String>> filteredCurr = ValueNotifier([]);
 
   TextEditingController curr = TextEditingController();
+  TextEditingController percent = TextEditingController();
   TextEditingController amount = TextEditingController();
 
   final FocusNode _focusNode = FocusNode();
   final FocusNode _focusNode1 = FocusNode();
+  final FocusNode _focusNode2 = FocusNode();
 
   Future<void> filterCurr(String query) async {
     setState(() {
@@ -168,7 +171,7 @@ class _IncomeTaxState extends State<IncomeTax> {
           '<UpdatePPH xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Currency_PPH>${curr.text.substring(0, 3)}</Currency_PPH>' +
-          '<Biaya_PPH>${amount.text.replaceAll('.', '').replaceAll(',', '.')}</Biaya_PPH>' +
+          '<Biaya_PPH>${amount.text}</Biaya_PPH>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</UpdatePPH>' +
           '</soap:Body>' +
@@ -290,6 +293,7 @@ class _IncomeTaxState extends State<IncomeTax> {
     amount.dispose();
     _focusNode.dispose();
     _focusNode1.dispose();
+    _focusNode2.dispose();
     super.dispose();
   }
 
@@ -301,33 +305,7 @@ class _IncomeTaxState extends State<IncomeTax> {
       onTap: () {
         _focusNode.unfocus();
         _focusNode1.unfocus();
-
-        if (_focusNode1.hasFocus) {
-          try {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text.toString().replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          } catch (e) {
-            if (amount.text.isNotEmpty) {
-              setState(() {
-                amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
-                    .format(
-                      double.parse(amount.text
-                          .toString()
-                          .replaceAll('.', '')
-                          .replaceAll(',', '.')),
-                    )
-                    .toString();
-              });
-            }
-          }
-        }
+        _focusNode2.unfocus();
       },
       child: SizedBox(
         height: size.height,
@@ -410,7 +388,16 @@ class _IncomeTaxState extends State<IncomeTax> {
                           ),
                           isCurr
                               ? SizedBox(
-                                  height: size.height * 0.2,
+                                  height: filteredCurr.value.isEmpty
+                                      ? size.height * 0
+                                      : filteredCurr.value.length < 3
+                                          ? ((MediaQuery.of(context)
+                                                              .textScaleFactor *
+                                                          14 +
+                                                      2 * 18) *
+                                                  filteredCurr.value.length) +
+                                              2 * size.height * 0.02
+                                          : size.height * 0.2,
                                   width: size.width,
                                   child: ListView.builder(
                                     shrinkWrap: true,
@@ -433,11 +420,55 @@ class _IncomeTaxState extends State<IncomeTax> {
                                   ),
                                 )
                               : const SizedBox.shrink(),
+                          // SizedBox(height: size.height * 0.01),
+                          // const Text("Percentage (%)"),
+                          // SizedBox(height: size.height * 0.005),
+                          // TextFormField(
+                          //   focusNode: _focusNode1,
+                          //   controller: percent,
+                          //   keyboardType: const TextInputType.numberWithOptions(
+                          //     signed: true,
+                          //   ),
+                          //   autovalidateMode:
+                          //       AutovalidateMode.onUserInteraction,
+                          //   autocorrect: false,
+                          //   decoration: const InputDecoration(
+                          //     enabledBorder: OutlineInputBorder(
+                          //       borderSide: BorderSide(width: 2),
+                          //     ),
+                          //     focusedBorder: OutlineInputBorder(
+                          //       borderSide: BorderSide(
+                          //         width: 2,
+                          //         color: Color.fromARGB(255, 4, 88, 156),
+                          //       ),
+                          //     ),
+                          //     errorBorder: OutlineInputBorder(
+                          //       borderSide: BorderSide(
+                          //         width: 1,
+                          //         color: Colors.red,
+                          //       ),
+                          //     ),
+                          //     focusedErrorBorder: OutlineInputBorder(
+                          //       borderSide: BorderSide(
+                          //         width: 1,
+                          //         color: Colors.red,
+                          //       ),
+                          //     ),
+                          //     hintText: '0.0',
+                          //   ),
+                          //   validator: (value) {
+                          //     if (value!.isEmpty) {
+                          //       return "Percentage can't be empty";
+                          //     } else {
+                          //       return null;
+                          //     }
+                          //   },
+                          // ),
                           SizedBox(height: size.height * 0.01),
                           const Text("Amount"),
                           SizedBox(height: size.height * 0.005),
                           TextFormField(
-                            focusNode: _focusNode1,
+                            focusNode: _focusNode2,
                             controller: amount,
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
@@ -445,6 +476,9 @@ class _IncomeTaxState extends State<IncomeTax> {
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             autocorrect: false,
+                            inputFormatters: [
+                              ThousandsFormatter(allowFraction: true)
+                            ],
                             decoration: const InputDecoration(
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(width: 2),
@@ -471,7 +505,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                             ),
                             validator: (value) {
                               if (value!.isEmpty) {
-                                return "Amount can't be 0,00";
+                                return "Amount can't be empty";
                               } else {
                                 return null;
                               }
@@ -490,31 +524,6 @@ class _IncomeTaxState extends State<IncomeTax> {
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-                            try {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            } catch (e) {
-                              setState(() {
-                                amount.text = NumberFormat.currency(
-                                        locale: 'id_ID', symbol: '')
-                                    .format(
-                                      double.parse(amount.text
-                                          .toString()
-                                          .replaceAll('.', '')
-                                          .replaceAll(',', '.')),
-                                    )
-                                    .toString();
-                              });
-                            }
-
                             await updatePPH();
                           }
                         },
