@@ -3,13 +3,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:pattern_formatter/numeric_formatter.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../loading.dart';
+import 'package:pattern_formatter/pattern_formatter.dart';
 
 class IncomeTax extends StatefulWidget {
   final Function(String) pphAmount;
@@ -405,6 +406,16 @@ class _IncomeTaxState extends State<IncomeTax> {
                                 return null;
                               }
                             },
+                            onTap: () async {
+                              setState(() {
+                                isCurr = true;
+                              });
+                            },
+                            onTapOutside: (event) {
+                              setState(() {
+                                isCurr = false;
+                              });
+                            },
                             onChanged: (value) {
                               setState(() {
                                 isCurr = true;
@@ -552,6 +563,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                             controller: amount,
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
+                              decimal: true,
                             ),
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
