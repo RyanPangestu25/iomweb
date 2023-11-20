@@ -30,8 +30,15 @@ class _IncomeTaxState extends State<IncomeTax> {
 
   bool loading = false;
   bool isCurr = false;
+  bool isPercent = false;
   List<String> listCurr = [];
+  List<String> listPercent = ['0%', '1.8%', '2.64%'];
   ValueNotifier<List<String>> filteredCurr = ValueNotifier([]);
+  ValueNotifier<List<String>> filteredPer = ValueNotifier([
+    '0%',
+    '1.8%',
+    '2.64%',
+  ]);
 
   TextEditingController curr = TextEditingController();
   TextEditingController percent = TextEditingController();
@@ -45,6 +52,14 @@ class _IncomeTaxState extends State<IncomeTax> {
     setState(() {
       filteredCurr.value = listCurr.where((data) {
         return data.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
+  Future<void> filterPer(String query) async {
+    setState(() {
+      filteredPer.value = listPercent.where((data) {
+        return data.toString().contains(query.toString());
       }).toList();
     });
   }
@@ -171,6 +186,7 @@ class _IncomeTaxState extends State<IncomeTax> {
           '<UpdatePPH xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Currency_PPH>${curr.text.substring(0, 3)}</Currency_PPH>' +
+          '<Persentase_PPH>${percent.text}</Persentase_PPH>' +
           '<Biaya_PPH>${amount.text}</Biaya_PPH>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</UpdatePPH>' +
@@ -230,10 +246,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                 " " +
                 NumberFormat.currency(locale: 'id_ID', symbol: '')
                     .format(
-                      double.parse(amount.text
-                          .toString()
-                          .replaceAll('.', '')
-                          .replaceAll(',', '.')),
+                      double.parse(amount.text.toString().replaceAll(',', '')),
                     )
                     .toString());
             Navigator.of(context).pop();
@@ -279,17 +292,36 @@ class _IncomeTaxState extends State<IncomeTax> {
     }
   }
 
+  void countTax() {
+    double iomValue = double.parse(widget.iom.last['biaya']);
+    double percentValue = double.tryParse(this.percent.text) ?? 0.0;
+    double percent = percentValue / 100;
+    double total = 0.0;
+    setState(() {
+      total = iomValue * percent;
+      amount.text = NumberFormat.currency(symbol: '').format(total);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await getCurr();
     });
+
+    percent.addListener(() {
+      countTax();
+    });
   }
 
   @override
   void dispose() {
+    percent.removeListener(() {
+      countTax();
+    });
     curr.dispose();
+    percent.dispose();
     amount.dispose();
     _focusNode.dispose();
     _focusNode1.dispose();
@@ -420,50 +452,98 @@ class _IncomeTaxState extends State<IncomeTax> {
                                   ),
                                 )
                               : const SizedBox.shrink(),
-                          // SizedBox(height: size.height * 0.01),
-                          // const Text("Percentage (%)"),
-                          // SizedBox(height: size.height * 0.005),
-                          // TextFormField(
-                          //   focusNode: _focusNode1,
-                          //   controller: percent,
-                          //   keyboardType: const TextInputType.numberWithOptions(
-                          //     signed: true,
-                          //   ),
-                          //   autovalidateMode:
-                          //       AutovalidateMode.onUserInteraction,
-                          //   autocorrect: false,
-                          //   decoration: const InputDecoration(
-                          //     enabledBorder: OutlineInputBorder(
-                          //       borderSide: BorderSide(width: 2),
-                          //     ),
-                          //     focusedBorder: OutlineInputBorder(
-                          //       borderSide: BorderSide(
-                          //         width: 2,
-                          //         color: Color.fromARGB(255, 4, 88, 156),
-                          //       ),
-                          //     ),
-                          //     errorBorder: OutlineInputBorder(
-                          //       borderSide: BorderSide(
-                          //         width: 1,
-                          //         color: Colors.red,
-                          //       ),
-                          //     ),
-                          //     focusedErrorBorder: OutlineInputBorder(
-                          //       borderSide: BorderSide(
-                          //         width: 1,
-                          //         color: Colors.red,
-                          //       ),
-                          //     ),
-                          //     hintText: '0.0',
-                          //   ),
-                          //   validator: (value) {
-                          //     if (value!.isEmpty) {
-                          //       return "Percentage can't be empty";
-                          //     } else {
-                          //       return null;
-                          //     }
-                          //   },
-                          // ),
+                          SizedBox(height: size.height * 0.01),
+                          const Text("Percentage (%)"),
+                          SizedBox(height: size.height * 0.005),
+                          TextFormField(
+                            focusNode: _focusNode1,
+                            controller: percent,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              signed: true,
+                            ),
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            autocorrect: false,
+                            decoration: const InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(width: 2),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: Color.fromARGB(255, 4, 88, 156),
+                                ),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              hintText: '1%',
+                              suffixText: '%',
+                            ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return "Amount can't be empty";
+                              } else {
+                                return null;
+                              }
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                isPercent = true;
+                              });
+                              filterPer(value);
+                            },
+                            onEditingComplete: () {
+                              setState(() {
+                                isPercent = true;
+                              });
+                              filterPer(curr.text);
+                            },
+                          ),
+                          isPercent
+                              ? SizedBox(
+                                  height: filteredPer.value.isEmpty
+                                      ? size.height * 0
+                                      : filteredPer.value.length < 3
+                                          ? ((MediaQuery.of(context)
+                                                              .textScaleFactor *
+                                                          14 +
+                                                      2 * 18) *
+                                                  filteredPer.value.length) +
+                                              2 * size.height * 0.02
+                                          : size.height * 0.2,
+                                  width: size.width,
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    clipBehavior: Clip.antiAlias,
+                                    itemCount: filteredPer.value.length,
+                                    itemBuilder: (BuildContext context, index) {
+                                      return ListTile(
+                                        title: Text(
+                                          filteredPer.value[index],
+                                        ),
+                                        onTap: () async {
+                                          setState(() {
+                                            percent.text = filteredPer
+                                                .value[index]
+                                                .replaceAll('%', '');
+                                            isPercent = false;
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                           SizedBox(height: size.height * 0.01),
                           const Text("Amount"),
                           SizedBox(height: size.height * 0.005),

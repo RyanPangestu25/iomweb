@@ -769,9 +769,9 @@ class _EditState extends State<Edit> {
         .where((data) => data.contains(widget.editItem.last['curr']))
         .toList();
     curr.text = curr1.last;
-    amount.text = NumberFormat.currency(locale: 'id_ID', symbol: '')
+    amount.text = NumberFormat.currency(symbol: '')
         .format(
-            double.parse(widget.editItem.last['amount'].replaceAll(',', '.')))
+            double.parse(widget.editItem.last['amount'].replaceAll(',', '')))
         .toString();
     fileName = attFile.last['filename'];
 
