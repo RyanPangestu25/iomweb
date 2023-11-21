@@ -208,7 +208,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         .first
                         .text;
             final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
-                ? 'No Data'
+                ? ''
                 : listResult.findElements('Currency_PPH').first.text;
             final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
                 ? '0'
@@ -1101,7 +1101,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                       ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
                                                     ),
                                                     SizedBox(
-                                                      width: size.width * 0.5,
+                                                      width: size.width * 0.45,
                                                       child: Text(
                                                         ': ${filteredIOM.value[index]['charter']}',
                                                         style: const TextStyle(
@@ -1114,44 +1114,43 @@ class _ViewIOMState extends State<ViewIOM> {
                                                         ': ${filteredIOM.value[index]['rute']}'),
                                                     Text(
                                                         ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
-                                                    Text.rich(
-                                                      TextSpan(
-                                                        text: ': ',
-                                                        children: [
-                                                          TextSpan(
-                                                            text: filteredIOM
-                                                                .value[index]
-                                                                    ['status']
-                                                                .toString()
-                                                                .toUpperCase(),
-                                                            style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: filteredIOM.value[index]
-                                                                              [
-                                                                              'status'] ==
-                                                                          'VERIFIED PENDING PAYMENT' ||
-                                                                      filteredIOM.value[index]
-                                                                              [
-                                                                              'status'] ==
-                                                                          'VERIFIED PAYMENT'
-                                                                  ? Colors.blue
-                                                                  : filteredIOM.value[index]
-                                                                              [
-                                                                              'status'] ==
-                                                                          'APPROVED'
-                                                                      ? Colors
-                                                                          .green
-                                                                      : filteredIOM.value[index]['status'] ==
-                                                                              'REJECTED'
-                                                                          ? Colors
-                                                                              .red
-                                                                          : Colors
-                                                                              .black,
-                                                            ),
-                                                          )
-                                                        ],
+                                                    SizedBox(
+                                                      width: size.width * 0.45,
+                                                      child: Text.rich(
+                                                        TextSpan(
+                                                          text: ': ',
+                                                          children: [
+                                                            TextSpan(
+                                                              text: filteredIOM
+                                                                  .value[index]
+                                                                      ['status']
+                                                                  .toString()
+                                                                  .toUpperCase(),
+                                                              style: TextStyle(
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: filteredIOM.value[index]['status'] ==
+                                                                            'VERIFIED PENDING PAYMENT' ||
+                                                                        filteredIOM.value[index]['status'] ==
+                                                                            'VERIFIED PAYMENT'
+                                                                    ? Colors
+                                                                        .blue
+                                                                    : filteredIOM.value[index]['status'] ==
+                                                                            'APPROVED'
+                                                                        ? Colors
+                                                                            .green
+                                                                        : filteredIOM.value[index]['status'] ==
+                                                                                'REJECTED'
+                                                                            ? Colors.red
+                                                                            : Colors.black,
+                                                              ),
+                                                            )
+                                                          ],
+                                                        ),
                                                       ),
                                                     ),
                                                   ],

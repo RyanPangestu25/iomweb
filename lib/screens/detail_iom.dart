@@ -17,6 +17,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../widgets/loading.dart';
+import 'package:excel/excel.dart';
 
 class DetailIOM extends StatefulWidget {
   final List iom;
@@ -36,6 +37,7 @@ class _DetailIOMState extends State<DetailIOM> {
   bool loading = false;
   bool _sortAscending = true;
   bool isBalance = false;
+  bool isSave = false;
   String status = '';
   int level = 0;
   int _sortColumnIndex = 0;
@@ -44,6 +46,8 @@ class _DetailIOMState extends State<DetailIOM> {
   int item = 0;
   List jadwal = [];
   List att = [];
+  List payment = [];
+  var excelPath = '';
 
   TextEditingController pphAmount = TextEditingController();
 
@@ -333,6 +337,303 @@ class _DetailIOMState extends State<DetailIOM> {
     }
   }
 
+  Future<void> getIOMPayment() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetIOMPayment xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<server>${widget.iom.last['server']}</server>' +
+          '</GetIOMPayment>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetIOMPayment),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetIOMPayment',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (final listResult in listResultAll) {
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.text;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.text;
+            final item = listResult.findElements('Item').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Item').first.text;
+            final tglTerimaPembayaran = listResult
+                    .findElements('Tgl_TerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tgl_TerimaPembayaran').first.text;
+            final namaBankPenerima =
+                listResult.findElements('NamaBankPenerima').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('NamaBankPenerima').first.text;
+            final amountPembayaran =
+                listResult.findElements('AmountPembayaran').isEmpty
+                    ? '0'
+                    : listResult.findElements('AmountPembayaran').first.text;
+            final currPembayaran =
+                listResult.findElements('CurrPembayaran').isEmpty
+                    ? '0'
+                    : listResult.findElements('CurrPembayaran').first.text;
+
+            setState(() {
+              payment.add({
+                'noIOM': noIOM,
+                'item': item,
+                'tanggal': tglTerimaPembayaran,
+                'bank': namaBankPenerima,
+                'amount': amountPembayaran,
+                'curr': currPembayaran,
+              });
+            });
+
+            var hasilJson = jsonEncode(payment);
+            debugPrint(hasilJson);
+          }
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Error Get IOM Payment",
+          backgroundColor: Colors.grey[300],
+        );
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Get IOM Payment",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> createExcelFile() async {
+    try {
+      var excel = Excel.createExcel();
+      var sheet = excel['Sheet1'];
+
+      // Add data to the sheet
+      sheet.appendRow(['IOM DETAIL']);
+      sheet.appendRow([
+        'No. IOM',
+        'Charter',
+        'Date',
+        'Description',
+        'IOM Cost',
+        'Income Tax',
+        'Payment',
+        'Note',
+        'Status',
+        'Verification Pending Payment Date',
+        'Verification Payment Date',
+        'Approved Data',
+        'Payment Status',
+      ]);
+      sheet.appendRow(List.generate(
+          13, (index) => '========================================'));
+      sheet.appendRow([
+        widget.iom.last['noIOM'],
+        widget.iom.last['charter'],
+        DateFormat('dd-MMM-yyyy')
+            .format(DateTime.parse(widget.iom.last['tanggal']).toLocal()),
+        widget.iom.last['perihal'],
+        widget.iom.last['curr'] +
+            ' ' +
+            NumberFormat.currency(locale: 'id_ID', symbol: '')
+                .format(
+                  double.parse(widget.iom.last['biaya'].replaceAll(',', '.')),
+                )
+                .toString(),
+        pphAmount.text,
+        widget.iom.last['pembayaran'],
+        widget.iom.last['note'],
+        widget.iom.last['status'],
+        widget.iom.last['verifNoPayStatus'] == 'No Data'
+            ? widget.iom.last['verifNoPayStatus']
+            : DateFormat('dd-MMM-yyyy').format(
+                DateTime.parse(widget.iom.last['verifNoPayStatus']).toLocal()),
+        widget.iom.last['verifPayStatus'] == 'No Data'
+            ? widget.iom.last['verifPayStatus']
+            : DateFormat('dd-MMM-yyyy').format(
+                DateTime.parse(widget.iom.last['verifPayStatus']).toLocal()),
+        widget.iom.last['approveDate'] == 'No Data'
+            ? widget.iom.last['approveDate']
+            : DateFormat('dd-MMM-yyyy').format(
+                DateTime.parse(widget.iom.last['approveDate']).toLocal()),
+        widget.iom.last['payStatus'],
+      ]);
+      for (int i = 0; i < 2; i++) {
+        sheet.appendRow(['']);
+      }
+      sheet.appendRow(['IOM ITEM']);
+      sheet.appendRow([
+        'No',
+        'Date',
+        'Route',
+        'BLK TIME',
+        'Description',
+        'Flight Number',
+        'Airline Code',
+      ]);
+      sheet.appendRow(
+          List.generate(7, (index) => '=============================='));
+      for (int index = 0; index < jadwal.length; index++) {
+        List<String> scheduleData = [
+          jadwal[index]['item'].toString(),
+          jadwal[index]['tanggal'] == 'No Data'
+              ? jadwal[index]['tanggal']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(jadwal[index]['tanggal']).toLocal()),
+          jadwal[index]['rute'],
+          DateFormat('HH:mm')
+              .format(DateTime.parse(jadwal[index]['blockTime']).toLocal()),
+          jadwal[index]['ket'],
+          jadwal[index]['flightNumber'],
+          jadwal[index]['airlineCode'],
+        ];
+
+        sheet.appendRow(scheduleData);
+      }
+      for (int i = 0; i < 2; i++) {
+        sheet.appendRow(['']);
+      }
+      level == 19 ? null : sheet.appendRow(['PAYMENT']);
+      level == 19
+          ? null
+          : sheet.appendRow([
+              'No',
+              'Payment Date',
+              'Bank Name',
+              'Curr',
+              'Amount',
+            ]);
+      level == 19
+          ? null
+          : sheet.appendRow(List.generate(5, (index) => '================='));
+      for (int index = 0; index < payment.length; index++) {
+        List<String> payData = [
+          payment[index]['item'].toString(),
+          payment[index]['tanggal'] == 'No Data'
+              ? payment[index]['tanggal']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(payment[index]['tanggal']).toLocal()),
+          payment[index]['bank'],
+          payment[index]['curr'],
+          NumberFormat.currency(locale: 'id_ID', symbol: '')
+              .format(double.parse(payment[index]['amount']))
+              .toString(),
+        ];
+
+        level == 19 ? null : sheet.appendRow(payData);
+      }
+
+      String fileName = widget.iom.last['noIOM'];
+
+      // Simpan data byte ke file Excel
+      excel.save(fileName: '$fileName.xlsx');
+
+      setState(() {
+        isSave = true;
+      });
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      });
+
+      Future.delayed(const Duration(seconds: 3), () async {
+        if (mounted) {
+          setState(() {
+            isSave = false;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Download Report",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
   Future<void> initConnection() async {
     Connectivity().checkConnectivity().then((value) {
       debugPrint('$value');
@@ -457,6 +758,40 @@ class _DetailIOMState extends State<DetailIOM> {
           ),
         ),
         actions: [
+          IconButton(
+            onPressed: loading
+                ? null
+                : () async {
+                    setState(() {
+                      loading = true;
+                      payment.clear();
+                    });
+                    await getIOMPayment();
+
+                    Future.delayed(const Duration(milliseconds: 100), () async {
+                      await createExcelFile();
+                    });
+
+                    if (isSave) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          showCloseIcon: false,
+                          duration: Duration(seconds: 5),
+                          behavior: SnackBarBehavior.floating,
+                          padding: EdgeInsets.all(20),
+                          elevation: 10,
+                          content: Center(
+                            child: Text(
+                              'File Saved in Download',
+                              textAlign: TextAlign.justify,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+            icon: const Icon(Icons.download_for_offline),
+          ),
           IconButton(
             onPressed: loading
                 ? null

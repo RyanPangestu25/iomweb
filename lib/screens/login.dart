@@ -78,6 +78,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 configuration: const IconConfiguration(
                     icon: Icons.error, color: Colors.red),
                 title: "Error Login, Registration Already?",
+                titleOptions: StatusAlertTextConfiguration(
+                  overflow: TextOverflow.visible,
+                ),
                 backgroundColor: Colors.grey[300],
               );
               if (mounted) {
