@@ -768,7 +768,8 @@ class _DetailIOMState extends State<DetailIOM> {
                     });
                     await getIOMPayment();
 
-                    Future.delayed(const Duration(milliseconds: 100), () async {
+                    await Future.delayed(const Duration(milliseconds: 100),
+                        () async {
                       await createExcelFile();
                     });
 
