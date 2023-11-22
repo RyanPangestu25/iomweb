@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:status_alert/status_alert.dart';
@@ -410,11 +411,6 @@ class _IncomeTaxState extends State<IncomeTax> {
                                 isCurr = true;
                               });
                             },
-                            onTapOutside: (event) {
-                              setState(() {
-                                isCurr = false;
-                              });
-                            },
                             onChanged: (value) {
                               setState(() {
                                 isCurr = true;
@@ -471,6 +467,9 @@ class _IncomeTaxState extends State<IncomeTax> {
                             keyboardType: const TextInputType.numberWithOptions(
                               signed: true,
                             ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly
+                            ],
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
                             autocorrect: false,
@@ -509,11 +508,6 @@ class _IncomeTaxState extends State<IncomeTax> {
                             onTap: () async {
                               setState(() {
                                 isPercent = true;
-                              });
-                            },
-                            onTapOutside: (event) {
-                              setState(() {
-                                isPercent = false;
                               });
                             },
                             onChanged: (value) {

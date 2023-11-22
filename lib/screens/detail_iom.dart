@@ -1252,7 +1252,7 @@ class _DetailIOMState extends State<DetailIOM> {
                         size: ColumnSize.M,
                         label: const Center(
                           child: Text(
-                            'Date',
+                            'Flight Date',
                             textAlign: TextAlign.center,
                           ),
                         ),

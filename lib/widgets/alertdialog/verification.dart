@@ -1116,11 +1116,6 @@ class _VerificationState extends State<Verification> {
                                       isBank = true;
                                     });
                                   },
-                                  onTapOutside: (event) {
-                                    setState(() {
-                                      isBank = false;
-                                    });
-                                  },
                                   onChanged: (value) {
                                     setState(() {
                                       isBank = true;
@@ -1256,11 +1251,6 @@ class _VerificationState extends State<Verification> {
                                   onTap: () async {
                                     setState(() {
                                       isCurr = true;
-                                    });
-                                  },
-                                  onTapOutside: (event) {
-                                    setState(() {
-                                      isCurr = false;
                                     });
                                   },
                                   onChanged: (value) {
