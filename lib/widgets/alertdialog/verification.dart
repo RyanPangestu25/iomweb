@@ -673,10 +673,7 @@ class _VerificationState extends State<Verification> {
             if (mounted) {
               setState(() {
                 saldo = saldo +
-                    double.parse(amount.text
-                        .toString()
-                        .replaceAll('.', '')
-                        .replaceAll(',', '.'));
+                    double.parse(amount.text.toString().replaceAll(',', ''));
                 loading = false;
                 item = item + 1;
                 namaBank.clear();
