@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../../screens/view_iom.dart';
+import 'try_again.dart';
 
 class Confirmation extends StatefulWidget {
   final String text;
@@ -84,52 +85,52 @@ class _ConfirmationState extends State<Confirmation> {
           });
         } else {
           Future.delayed(const Duration(seconds: 1), () async {
-            // if (status == 'APPROVED') {
-            //   await sendtoIssued(status);
-            // } else {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 2),
-              configuration: const IconConfiguration(
-                icon: Icons.done,
-                color: Colors.green,
-              ),
-              title: "Success",
-              backgroundColor: Colors.grey[300],
-            );
-
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            if (level == '12') {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Verification',
-                  );
-                },
-              ));
-            } else if (level == '10') {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Approval',
-                  );
-                },
-              ));
+            if (status == 'APPROVED') {
+              await sendtoIssued(status);
             } else {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'View IOM',
-                  );
-                },
-              ));
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 2),
+                configuration: const IconConfiguration(
+                  icon: Icons.done,
+                  color: Colors.green,
+                ),
+                title: "Success",
+                backgroundColor: Colors.grey[300],
+              );
+
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+
+              if (level == '12') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Verification',
+                    );
+                  },
+                ));
+              } else if (level == '10') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Approval',
+                    );
+                  },
+                ));
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'View IOM',
+                    );
+                  },
+                ));
+              }
             }
-            // }
           });
         }
       } else {
@@ -172,200 +173,200 @@ class _ConfirmationState extends State<Confirmation> {
     }
   }
 
-  // Future<void> sendtoIssued(String status) async {
-  //   try {
-  //     setState(() {
-  //       loading = true;
-  //     });
+  Future<void> sendtoIssued(String status) async {
+    try {
+      setState(() {
+        loading = true;
+      });
 
-  //     final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-  //         '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-  //         '<soap:Body>' +
-  //         '<SendToIssued xmlns="http://tempuri.org/">' +
-  //         '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
-  //         '<IOMNUMBER>${widget.iom.last['noIOM']}</IOMNUMBER>' +
-  //         '</SendToIssued>' +
-  //         '</soap:Body>' +
-  //         '</soap:Envelope>';
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<SendToIssued xmlns="http://tempuri.org/">' +
+          '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
+          '<IOMNUMBER>${widget.iom.last['noIOM']}</IOMNUMBER>' +
+          '</SendToIssued>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
 
-  //     final response = await http.post(Uri.parse(url_SendToIssued),
-  //         headers: <String, String>{
-  //           "Access-Control-Allow-Origin": "*",
-  //           'SOAPAction': 'http://tempuri.org/SendToIssued',
-  //           'Access-Control-Allow-Credentials': 'true',
-  //           'Content-type': 'text/xml; charset=utf-8'
-  //         },
-  //         body: soapEnvelope);
+      final response = await http.post(Uri.parse(url_SendToIssued),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/SendToIssued',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
 
-  //     if (response.statusCode == 200) {
-  //       final document = xml.XmlDocument.parse(response.body);
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
 
-  //       final statusData = document.findAllElements('_x002D_').isEmpty
-  //           ? 'GAGAL'
-  //           : document.findAllElements('_x002D_').first.text;
+        final statusData = document.findAllElements('_x002D_').isEmpty
+            ? 'GAGAL'
+            : document.findAllElements('_x002D_').first.text;
 
-  //       debugPrint(statusData);
+        debugPrint(statusData);
 
-  //       if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
-  //         Future.delayed(const Duration(seconds: 1), () {
-  //           StatusAlert.show(
-  //             context,
-  //             duration: const Duration(seconds: 1),
-  //             configuration:
-  //                 const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //             title: 'Failed SendToIssued',
-  //             backgroundColor: Colors.grey[300],
-  //           );
+        if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
+          Future.delayed(const Duration(seconds: 1), () {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: 'Failed SendToIssued',
+              backgroundColor: Colors.grey[300],
+            );
 
-  //           if (mounted) {
-  //             setState(() {
-  //               loading = false;
-  //             });
-  //           }
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
 
-  //           if (level == '12') {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'IOM Verification',
-  //                 );
-  //               },
-  //             ));
-  //           } else if (level == '10') {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'IOM Approval',
-  //                 );
-  //               },
-  //             ));
-  //           } else {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'View IOM',
-  //                 );
-  //               },
-  //             ));
-  //           }
-  //         });
-  //       } else {
-  //         Future.delayed(const Duration(seconds: 1), () async {
-  //           StatusAlert.show(
-  //             context,
-  //             duration: const Duration(seconds: 2),
-  //             configuration: const IconConfiguration(
-  //               icon: Icons.done,
-  //               color: Colors.green,
-  //             ),
-  //             title: "Success",
-  //             backgroundColor: Colors.grey[300],
-  //           );
+            if (level == '12') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Verification',
+                  );
+                },
+              ));
+            } else if (level == '10') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Approval',
+                  );
+                },
+              ));
+            } else {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'View IOM',
+                  );
+                },
+              ));
+            }
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 2),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success",
+              backgroundColor: Colors.grey[300],
+            );
 
-  //           if (mounted) {
-  //             setState(() {
-  //               loading = false;
-  //             });
-  //           }
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
 
-  //           if (level == '12') {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'IOM Verification',
-  //                 );
-  //               },
-  //             ));
-  //           } else if (level == '10') {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'IOM Approval',
-  //                 );
-  //               },
-  //             ));
-  //           } else {
-  //             Navigator.of(context).push(MaterialPageRoute(
-  //               builder: (BuildContext context) {
-  //                 return const ViewIOM(
-  //                   title: 'View IOM',
-  //                 );
-  //               },
-  //             ));
-  //           }
-  //         });
-  //       }
-  //     } else {
-  //       debugPrint('Error: ${response.statusCode}');
-  //       debugPrint('Desc: ${response.body}');
-  //       StatusAlert.show(
-  //         context,
-  //         duration: const Duration(seconds: 1),
-  //         configuration:
-  //             const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //         title: "${response.statusCode}",
-  //         subtitle: "Failed SendToIssued",
-  //         backgroundColor: Colors.grey[300],
-  //       );
+            if (level == '12') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Verification',
+                  );
+                },
+              ));
+            } else if (level == '10') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Approval',
+                  );
+                },
+              ));
+            } else {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'View IOM',
+                  );
+                },
+              ));
+            }
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Failed SendToIssued",
+          backgroundColor: Colors.grey[300],
+        );
 
-  //       Future.delayed(const Duration(seconds: 1), () async {
-  //         if (mounted) {
-  //           setState(() {
-  //             loading = false;
-  //           });
-  //         }
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
 
-  //         await showDialog(
-  //             context: context,
-  //             barrierDismissible: false,
-  //             builder: (context) {
-  //               return TryAgain(
-  //                 submit: (value) async {
-  //                   if (value) {
-  //                     await sendtoIssued(status);
-  //                   }
-  //                 },
-  //               );
-  //             });
-  //       });
-  //     }
-  //   } catch (e) {
-  //     debugPrint('$e');
-  //     StatusAlert.show(
-  //       context,
-  //       duration: const Duration(seconds: 2),
-  //       configuration:
-  //           const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //       title: "Failed SendToIssued",
-  //       subtitle: "$e",
-  //       subtitleOptions: StatusAlertTextConfiguration(
-  //         overflow: TextOverflow.visible,
-  //       ),
-  //       backgroundColor: Colors.grey[300],
-  //     );
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return TryAgain(
+                  submit: (value) async {
+                    if (value) {
+                      await sendtoIssued(status);
+                    }
+                  },
+                );
+              });
+        });
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed SendToIssued",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
 
-  //     Future.delayed(const Duration(seconds: 1), () async {
-  //       if (mounted) {
-  //         setState(() {
-  //           loading = false;
-  //         });
-  //       }
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
 
-  //       await showDialog(
-  //           context: context,
-  //           barrierDismissible: false,
-  //           builder: (context) {
-  //             return TryAgain(
-  //               submit: (value) async {
-  //                 if (value) {
-  //                   await sendtoIssued(status);
-  //                 }
-  //               },
-  //             );
-  //           });
-  //     });
-  //   }
-  // }
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await sendtoIssued(status);
+                  }
+                },
+              );
+            });
+      });
+    }
+  }
 
   Future<void> getUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

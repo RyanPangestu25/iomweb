@@ -60,5 +60,4 @@ const url_DeleteAttach =
 const url_UpdatePPH =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePPH';
 
-const url_SendToIssued =
-    'http://apb.lgapvfncacc.com/apb23/prc.asmx?op=SendToIssued';
+const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
