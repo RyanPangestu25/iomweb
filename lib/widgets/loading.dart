@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 
 class LoadingWidget extends StatefulWidget {
   final bool isLoading;
+  final String title;
 
-  const LoadingWidget({Key? key, required this.isLoading}) : super(key: key);
+  const LoadingWidget({
+    Key? key,
+    required this.isLoading,
+    required this.title,
+  }) : super(key: key);
 
   @override
   State<LoadingWidget> createState() => _LoadingWidgetState();
@@ -76,7 +81,7 @@ class _LoadingWidgetState extends State<LoadingWidget> {
                         SizedBox(width: size.width * 0.02),
                         Row(
                           children: [
-                            const Text('Loading '),
+                            Text('${widget.title} '),
                             Visibility(
                               visible: titik1,
                               child: const Text('. '),

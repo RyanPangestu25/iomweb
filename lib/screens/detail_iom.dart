@@ -12,6 +12,7 @@ import '../screens/view_iom.dart';
 import '../widgets/alertdialog/confirmation.dart';
 import '../widgets/alertdialog/income_tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/alertdialog/try_again.dart';
 import '../widgets/alertdialog/verification.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
@@ -38,6 +39,8 @@ class _DetailIOMState extends State<DetailIOM> {
   bool _sortAscending = true;
   bool isBalance = false;
   bool isSave = false;
+  bool isNeedIssued = false;
+  bool isIssued = false;
   String status = '';
   int level = 0;
   int _sortColumnIndex = 0;
@@ -468,6 +471,385 @@ class _DetailIOMState extends State<DetailIOM> {
     }
   }
 
+  Future<void> getIOMNotSend() async {
+    List temporary = [];
+
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetCharterNotSend xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetCharterNotSend),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetCharterNotSend',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('_x002D_');
+
+        for (final listResult in listResultAll) {
+          final iomNumber = listResult.findElements('IOMNumber').isEmpty
+              ? 'No Data'
+              : listResult.findElements('IOMNumber').first.text;
+          final airlines = listResult.findElements('Airlines').isEmpty
+              ? 'No Data'
+              : listResult.findElements('Airlines').first.text;
+
+          setState(() {
+            if (!temporary.any((item) =>
+                item['noIOM'] ==
+                iomNumber
+                    .replaceAll('MKT CM', 'MKT-CM')
+                    .replaceAll(' ', '/'))) {
+              temporary.add({
+                'noIOM': iomNumber
+                    .replaceAll('MKT CM', 'MKT-CM')
+                    .replaceAll(' ', '/'),
+                'server': airlines == 'IU'
+                    ? 'SAJ'
+                    : airlines == 'AS'
+                        ? 'ANGKASA'
+                        : airlines == 'BA'
+                            ? 'BATIK'
+                            : airlines == 'WA'
+                                ? 'WINGS'
+                                : 'LION',
+              });
+            }
+          });
+
+          var hasilJson = jsonEncode(temporary);
+          debugPrint(hasilJson);
+        }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (mounted) {
+            setState(() {
+              loading = false;
+              if (temporary
+                  .any((data) => data['noIOM'] == widget.iom.last['noIOM'])) {
+                isNeedIssued = true;
+              }
+            });
+          }
+        });
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Error Get IOM Not Send",
+          backgroundColor: Colors.grey[300],
+        );
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Get IOM Not Send",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  // Future<void> updateAPB() async {
+  //   List flightDate = [];
+
+  //   for (var data in jadwal) {
+  //     String tanggal = data['tanggal'];
+  //     if (!flightDate.contains(tanggal)) {
+  //       flightDate.add(tanggal);
+  //     }
+  //   }
+
+  //   debugPrint('$flightDate');
+
+  //   try {
+  //     setState(() {
+  //       loading = true;
+  //     });
+
+  //     // for (int index = 0; index < flightDate.length; index++) {
+  //     final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+  //         '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+  //         '<soap:Body>' +
+  //         '<UpdateAPBIOM xmlns="http://tempuri.org/">' +
+  //         '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+  //         '<FlightDate>${DateTime.parse(flightDate.last.toString()).toLocal().toIso8601String()}</FlightDate>' +
+  //         '<server>${widget.iom.last['server']}</server>' +
+  //         '</UpdateAPBIOM>' +
+  //         '</soap:Body>' +
+  //         '</soap:Envelope>';
+
+  //     final response = await http.post(Uri.parse(url_UpdateAPBIOM),
+  //         headers: <String, String>{
+  //           "Access-Control-Allow-Origin": "*",
+  //           'SOAPAction': 'http://tempuri.org/UpdateAPBIOM',
+  //           'Access-Control-Allow-Credentials': 'true',
+  //           'Content-type': 'text/xml; charset=utf-8'
+  //         },
+  //         body: soapEnvelope);
+
+  //     if (response.statusCode == 200) {
+  //       final document = xml.XmlDocument.parse(response.body);
+
+  //       final statusData = document.findAllElements('StatusData').isEmpty
+  //           ? 'No Data'
+  //           : document.findAllElements('StatusData').first.text;
+
+  //       debugPrint(statusData);
+
+  //       if (statusData == 'GAGAL') {
+  //         Future.delayed(const Duration(seconds: 1), () {
+  //           StatusAlert.show(
+  //             context,
+  //             duration: const Duration(seconds: 1),
+  //             configuration:
+  //                 const IconConfiguration(icon: Icons.error, color: Colors.red),
+  //             title: 'Failed Update',
+  //             backgroundColor: Colors.grey[300],
+  //           );
+
+  //           if (mounted) {
+  //             setState(() {
+  //               loading = false;
+  //             });
+  //           }
+  //         });
+  //       } else {
+  //         setState(() {
+  //           isIssued = true;
+  //         });
+  //       }
+  //     } else {
+  //       debugPrint('Error: ${response.statusCode}');
+  //       debugPrint('Desc: ${response.body}');
+  //       StatusAlert.show(
+  //         context,
+  //         duration: const Duration(seconds: 1),
+  //         configuration:
+  //             const IconConfiguration(icon: Icons.error, color: Colors.red),
+  //         title: "${response.statusCode}",
+  //         subtitle: "Failed Update APB",
+  //         backgroundColor: Colors.grey[300],
+  //       );
+
+  //       if (mounted) {
+  //         setState(() {
+  //           loading = false;
+  //         });
+  //       }
+  //     }
+  //     // }
+
+  //     Future.delayed(const Duration(seconds: 1), () async {
+  //       if (isIssued) {
+  //         await sendtoIssued();
+  //       }
+  //     });
+  //   } catch (e) {
+  //     debugPrint('$e');
+  //     StatusAlert.show(
+  //       context,
+  //       duration: const Duration(seconds: 2),
+  //       configuration:
+  //           const IconConfiguration(icon: Icons.error, color: Colors.red),
+  //       title: "Failed Update APB",
+  //       subtitle: "$e",
+  //       subtitleOptions: StatusAlertTextConfiguration(
+  //         overflow: TextOverflow.visible,
+  //       ),
+  //       backgroundColor: Colors.grey[300],
+  //     );
+
+  //     if (mounted) {
+  //       setState(() {
+  //         loading = false;
+  //       });
+  //     }
+  //   }
+  // }
+
+  Future<void> sendtoIssued() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<SendToIssued xmlns="http://tempuri.org/">' +
+          '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
+          '<IOMNUMBER>${widget.iom.last['noIOM']}</IOMNUMBER>' +
+          '</SendToIssued>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_SendToIssued),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/SendToIssued',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData = document.findAllElements('_x002D_').isEmpty
+            ? 'GAGAL'
+            : document.findAllElements('_x002D_').first.text;
+
+        // debugPrint(statusData);
+
+        if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
+          Future.delayed(const Duration(seconds: 1), () {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: 'Failed',
+              subtitle: 'IOM NOT FOUND',
+              backgroundColor: Colors.grey[300],
+            );
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+                isNeedIssued = false;
+              });
+            }
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 2),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success",
+              backgroundColor: Colors.grey[300],
+            );
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+                isNeedIssued = false;
+              });
+            }
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Failed SendToIssued",
+          backgroundColor: Colors.grey[300],
+        );
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
+
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return TryAgain(
+                  submit: (value) async {
+                    if (value) {
+                      await sendtoIssued();
+                    }
+                  },
+                );
+              });
+        });
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed SendToIssued",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await sendtoIssued();
+                  }
+                },
+              );
+            });
+      });
+    }
+  }
+
   Future<void> createExcelFile() async {
     try {
       var excel = Excel.createExcel();
@@ -693,6 +1075,10 @@ class _DetailIOMState extends State<DetailIOM> {
       await getLevel();
       await getIOMItem();
       await cekSaldoIOM();
+
+      if (level == 10 && widget.iom.last['status'] == 'APPROVED') {
+        // await getIOMNotSend();
+      }
     });
 
     pphAmount.text.isEmpty
@@ -716,953 +1102,1059 @@ class _DetailIOMState extends State<DetailIOM> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.redAccent,
-        foregroundColor: Colors.white,
-        title: const Text(
-          "Detail IOM",
-        ),
-        elevation: 3,
-        leading: IconButton(
-          onPressed: () async {
-            if (level == 12) {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Verification',
-                  );
-                },
-              ));
-            } else if (level == 10) {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Approval',
-                  );
-                },
-              ));
-            } else {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'View IOM',
-                  );
-                },
-              ));
-            }
-          },
-          icon: const Icon(
-            Icons.arrow_back,
+    return WillPopScope(
+      onWillPop: () {
+        if (level == 12) {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) {
+              return const ViewIOM(
+                title: 'IOM Verification',
+              );
+            },
+          ));
+        } else if (level == 10) {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) {
+              return const ViewIOM(
+                title: 'IOM Approval',
+              );
+            },
+          ));
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (BuildContext context) {
+              return const ViewIOM(
+                title: 'View IOM',
+              );
+            },
+          ));
+        }
+
+        return Future(() => true);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: Colors.redAccent,
+          foregroundColor: Colors.white,
+          title: const Text(
+            "Detail IOM",
           ),
+          elevation: 3,
+          leading: IconButton(
+            onPressed: () async {
+              if (level == 12) {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Verification',
+                    );
+                  },
+                ));
+              } else if (level == 10) {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Approval',
+                    );
+                  },
+                ));
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'View IOM',
+                    );
+                  },
+                ));
+              }
+            },
+            icon: const Icon(
+              Icons.arrow_back,
+            ),
+          ),
+          actions: [
+            IconButton(
+              onPressed: loading
+                  ? null
+                  : () async {
+                      setState(() {
+                        loading = true;
+                        payment.clear();
+                      });
+                      await getIOMPayment();
+
+                      await Future.delayed(const Duration(milliseconds: 100),
+                          () async {
+                        await createExcelFile();
+                      });
+
+                      if (isSave) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            showCloseIcon: false,
+                            duration: Duration(seconds: 5),
+                            behavior: SnackBarBehavior.floating,
+                            padding: EdgeInsets.all(20),
+                            elevation: 10,
+                            content: Center(
+                              child: Text(
+                                'File Saved in Download',
+                                textAlign: TextAlign.justify,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+              icon: const Icon(Icons.download_for_offline),
+            ),
+            IconButton(
+              onPressed: loading
+                  ? null
+                  : () async {
+                      setState(() {
+                        loading = true;
+                        isBalance = false;
+                      });
+                      jadwal.clear();
+                      await getIOMItem();
+                      await cekSaldoIOM();
+                    },
+              icon: const Icon(Icons.refresh),
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            onPressed: loading
-                ? null
-                : () async {
-                    setState(() {
-                      loading = true;
-                      payment.clear();
-                    });
-                    await getIOMPayment();
-
-                    await Future.delayed(const Duration(milliseconds: 100),
-                        () async {
-                      await createExcelFile();
-                    });
-
-                    if (isSave) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          showCloseIcon: false,
-                          duration: Duration(seconds: 5),
-                          behavior: SnackBarBehavior.floating,
-                          padding: EdgeInsets.all(20),
-                          elevation: 10,
-                          content: Center(
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "IOM No",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['noIOM'],
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Charter",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['charter'],
+                    autocorrect: false,
+                    readOnly: true,
+                    maxLines: 2,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Date",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: DateFormat('dd-MMM-yyyy').format(
+                        DateTime.parse(widget.iom.last['tanggal']).toLocal()),
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Description",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['perihal'],
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "IOM Cost",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['curr'] +
+                        ' ' +
+                        NumberFormat.currency(locale: 'id_ID', symbol: '')
+                            .format(
+                              double.parse(widget.iom.last['biaya']
+                                  .replaceAll(',', '.')),
+                            )
+                            .toString(),
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Payment",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['pembayaran'],
+                    autocorrect: false,
+                    readOnly: true,
+                    maxLines: 2,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Note",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['note'],
+                    autocorrect: false,
+                    readOnly: true,
+                    maxLines: 2,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Status",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['status'],
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          width: 2,
+                          color: widget.iom.last['status'] ==
+                                      'VERIFIED PENDING PAYMENT' ||
+                                  widget.iom.last['status'] ==
+                                      'VERIFIED PAYMENT'
+                              ? Colors.blue
+                              : widget.iom.last['status'] == 'APPROVED'
+                                  ? Colors.green
+                                  : widget.iom.last['status'] == 'REJECTED'
+                                      ? Colors.red
+                                      : Colors.black,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          width: 2,
+                          color: widget.iom.last['status'] ==
+                                      'VERIFIED PENDING PAYMENT' ||
+                                  widget.iom.last['status'] ==
+                                      'VERIFIED PAYMENT'
+                              ? Colors.blue
+                              : widget.iom.last['status'] == 'APPROVED'
+                                  ? Colors.green
+                                  : widget.iom.last['status'] == 'REJECTED'
+                                      ? Colors.red
+                                      : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Verification Pending Payment Date",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['verifNoPayStatus'] ==
+                            'No Data'
+                        ? widget.iom.last['verifNoPayStatus']
+                        : DateFormat('dd-MMM-yyyy').format(
+                            DateTime.parse(widget.iom.last['verifNoPayStatus'])
+                                .toLocal()),
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Verification Payment Date",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['verifPayStatus'] == 'No Data'
+                        ? widget.iom.last['verifPayStatus']
+                        : DateFormat('dd-MMM-yyyy').format(
+                            DateTime.parse(widget.iom.last['verifPayStatus'])
+                                .toLocal()),
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Approved Date",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['approveDate'] == 'No Data'
+                        ? widget.iom.last['approveDate']
+                        : DateFormat('dd-MMM-yyyy').format(
+                            DateTime.parse(widget.iom.last['approveDate'])
+                                .toLocal()),
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Payment Status",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['payStatus'],
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          width: 2,
+                          color: widget.iom.last['payStatus'] == 'PAID'
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          width: 2,
+                          color: widget.iom.last['payStatus'] == 'PAID'
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                      suffixIcon: IconButton(
+                        onPressed: loading
+                            ? null
+                            : level == 19
+                                ? null
+                                : () async {
+                                    Navigator.of(context)
+                                        .push(MaterialPageRoute(
+                                      builder: (BuildContext context) {
+                                        return Payment(
+                                          iom: widget.iom,
+                                        );
+                                      },
+                                    ));
+                                  },
+                        icon: Icon(
+                          Icons.arrow_circle_right,
+                          color: level == 19 ? null : Colors.green,
+                          size: size.height * 0.05,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Income Tax",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    controller: pphAmount,
+                    autocorrect: false,
+                    readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  TextButton(
+                    onPressed: () async {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (BuildContext context) {
+                          return IOMAttachment(
+                            iom: widget.iom,
+                          );
+                        },
+                      ));
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'View Attachment',
+                          style: TextStyle(
+                            fontSize:
+                                MediaQuery.of(context).textScaleFactor * 16,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward,
+                          size: size.height * 0.05,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.02),
+                  const Text("Schedule:"),
+                  SizedBox(height: size.height * 0.01),
+                  SizedBox(
+                    height: jadwal.isEmpty
+                        ? size.height * 0.25
+                        : jadwal.length < 5
+                            ? ((MediaQuery.of(context).textScaleFactor * 14 +
+                                        2 * 18) *
+                                    jadwal.length) +
+                                2 * size.height * 0.085
+                            : size.height * 0.4,
+                    child: PaginatedDataTable2(
+                      border: TableBorder.all(width: 1),
+                      minWidth: 1000,
+                      sortColumnIndex: _sortColumnIndex,
+                      sortAscending: _sortAscending,
+                      rowsPerPage: rowPerPages,
+                      onRowsPerPageChanged: (value) {
+                        rowPerPages = value!;
+                      },
+                      sortArrowIcon: Icons.keyboard_arrow_up,
+                      smRatio: 0.35,
+                      lmRatio: 1.4,
+                      renderEmptyRowsInTheEnd: false,
+                      showFirstLastButtons: true,
+                      horizontalMargin: size.width * 0,
+                      columnSpacing: 15,
+                      empty: Center(
+                        child: loading
+                            ? const Text('Waiting...')
+                            : const Text('No Data'),
+                      ),
+                      columns: [
+                        const DataColumn2(
+                          size: ColumnSize.S,
+                          label: Center(
                             child: Text(
-                              'File Saved in Download',
-                              textAlign: TextAlign.justify,
+                              'No',
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
-                      );
-                    }
-                  },
-            icon: const Icon(Icons.download_for_offline),
-          ),
-          IconButton(
-            onPressed: loading
-                ? null
-                : () async {
-                    setState(() {
-                      loading = true;
-                      isBalance = false;
-                    });
-                    jadwal.clear();
-                    await getIOMItem();
-                    await cekSaldoIOM();
-                  },
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "IOM No",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['noIOM'],
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Charter",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['charter'],
-                  autocorrect: false,
-                  readOnly: true,
-                  maxLines: 2,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Date",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: DateFormat('dd-MMM-yyyy').format(
-                      DateTime.parse(widget.iom.last['tanggal']).toLocal()),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Description",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['perihal'],
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "IOM Cost",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['curr'] +
-                      ' ' +
-                      NumberFormat.currency(locale: 'id_ID', symbol: '')
-                          .format(
-                            double.parse(
-                                widget.iom.last['biaya'].replaceAll(',', '.')),
-                          )
-                          .toString(),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Payment",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['pembayaran'],
-                  autocorrect: false,
-                  readOnly: true,
-                  maxLines: 2,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Note",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['note'],
-                  autocorrect: false,
-                  readOnly: true,
-                  maxLines: 2,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Status",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['status'],
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 2,
-                        color: widget.iom.last['status'] ==
-                                    'VERIFIED PENDING PAYMENT' ||
-                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
-                            ? Colors.blue
-                            : widget.iom.last['status'] == 'APPROVED'
-                                ? Colors.green
-                                : widget.iom.last['status'] == 'REJECTED'
-                                    ? Colors.red
-                                    : Colors.black,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 2,
-                        color: widget.iom.last['status'] ==
-                                    'VERIFIED PENDING PAYMENT' ||
-                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
-                            ? Colors.blue
-                            : widget.iom.last['status'] == 'APPROVED'
-                                ? Colors.green
-                                : widget.iom.last['status'] == 'REJECTED'
-                                    ? Colors.red
-                                    : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Verification Pending Payment Date",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['verifNoPayStatus'] == 'No Data'
-                      ? widget.iom.last['verifNoPayStatus']
-                      : DateFormat('dd-MMM-yyyy').format(
-                          DateTime.parse(widget.iom.last['verifNoPayStatus'])
-                              .toLocal()),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Verification Payment Date",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['verifPayStatus'] == 'No Data'
-                      ? widget.iom.last['verifPayStatus']
-                      : DateFormat('dd-MMM-yyyy').format(
-                          DateTime.parse(widget.iom.last['verifPayStatus'])
-                              .toLocal()),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Approved Date",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['approveDate'] == 'No Data'
-                      ? widget.iom.last['approveDate']
-                      : DateFormat('dd-MMM-yyyy').format(
-                          DateTime.parse(widget.iom.last['approveDate'])
-                              .toLocal()),
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Payment Status",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  initialValue: widget.iom.last['payStatus'],
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 2,
-                        color: widget.iom.last['payStatus'] == 'PAID'
-                            ? Colors.green
-                            : Colors.red,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        width: 2,
-                        color: widget.iom.last['payStatus'] == 'PAID'
-                            ? Colors.green
-                            : Colors.red,
-                      ),
-                    ),
-                    suffixIcon: IconButton(
-                      onPressed: loading
-                          ? null
-                          : level == 19
-                              ? null
-                              : () async {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (BuildContext context) {
-                                      return Payment(
-                                        iom: widget.iom,
-                                      );
-                                    },
-                                  ));
-                                },
-                      icon: Icon(
-                        Icons.arrow_circle_right,
-                        color: level == 19 ? null : Colors.green,
-                        size: size.height * 0.05,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                const Text(
-                  "Income Tax",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: size.height * 0.01),
-                TextFormField(
-                  controller: pphAmount,
-                  autocorrect: false,
-                  readOnly: true,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  decoration: const InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(width: 2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: size.height * 0.015),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (BuildContext context) {
-                        return IOMAttachment(
-                          iom: widget.iom,
-                        );
-                      },
-                    ));
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'View Attachment',
-                        style: TextStyle(
-                          fontSize: MediaQuery.of(context).textScaleFactor * 16,
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward,
-                        size: size.height * 0.05,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: size.height * 0.02),
-                const Text("Schedule:"),
-                SizedBox(height: size.height * 0.01),
-                SizedBox(
-                  height: jadwal.isEmpty
-                      ? size.height * 0.25
-                      : jadwal.length < 5
-                          ? ((MediaQuery.of(context).textScaleFactor * 14 +
-                                      2 * 18) *
-                                  jadwal.length) +
-                              2 * size.height * 0.085
-                          : size.height * 0.4,
-                  child: PaginatedDataTable2(
-                    border: TableBorder.all(width: 1),
-                    minWidth: 1000,
-                    sortColumnIndex: _sortColumnIndex,
-                    sortAscending: _sortAscending,
-                    rowsPerPage: rowPerPages,
-                    onRowsPerPageChanged: (value) {
-                      rowPerPages = value!;
-                    },
-                    sortArrowIcon: Icons.keyboard_arrow_up,
-                    smRatio: 0.35,
-                    lmRatio: 1.4,
-                    renderEmptyRowsInTheEnd: false,
-                    showFirstLastButtons: true,
-                    horizontalMargin: size.width * 0,
-                    columnSpacing: 15,
-                    empty: Center(
-                      child: loading
-                          ? const Text('Waiting...')
-                          : const Text('No Data'),
-                    ),
-                    columns: [
-                      const DataColumn2(
-                        size: ColumnSize.S,
-                        label: Center(
-                          child: Text(
-                            'No',
-                            textAlign: TextAlign.center,
+                        DataColumn2(
+                          size: ColumnSize.M,
+                          label: const Center(
+                            child: Text(
+                              'Flight Date',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                        ),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Flight Date',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        onSort: (columnIndex, ascending) {
-                          setState(() {
-                            _sortColumnIndex = columnIndex;
-                            _sortAscending = ascending;
-                            if (ascending) {
-                              jadwal.sort((a, b) {
-                                // Mendapatkan tanggal dari data a dan b dalam format DateTime
-                                DateTime dateA = DateTime.parse(a['tanggal']);
-                                DateTime dateB = DateTime.parse(b['tanggal']);
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              _sortColumnIndex = columnIndex;
+                              _sortAscending = ascending;
+                              if (ascending) {
+                                jadwal.sort((a, b) {
+                                  // Mendapatkan tanggal dari data a dan b dalam format DateTime
+                                  DateTime dateA = DateTime.parse(a['tanggal']);
+                                  DateTime dateB = DateTime.parse(b['tanggal']);
 
-                                // Membandingkan berdasarkan tahun dan bulan
-                                int yearComparison =
-                                    dateA.year.compareTo(dateB.year);
-                                int monthComparison =
-                                    dateA.month.compareTo(dateB.month);
+                                  // Membandingkan berdasarkan tahun dan bulan
+                                  int yearComparison =
+                                      dateA.year.compareTo(dateB.year);
+                                  int monthComparison =
+                                      dateA.month.compareTo(dateB.month);
 
-                                // Jika tahun sama, bandingkan bulan
-                                if (yearComparison == 0) {
-                                  return monthComparison;
-                                } else {
-                                  return yearComparison;
-                                }
-                              });
-                            } else {
-                              jadwal.sort((a, b) {
-                                DateTime dateA = DateTime.parse(a['tanggal']);
-                                DateTime dateB = DateTime.parse(b['tanggal']);
+                                  // Jika tahun sama, bandingkan bulan
+                                  if (yearComparison == 0) {
+                                    return monthComparison;
+                                  } else {
+                                    return yearComparison;
+                                  }
+                                });
+                              } else {
+                                jadwal.sort((a, b) {
+                                  DateTime dateA = DateTime.parse(a['tanggal']);
+                                  DateTime dateB = DateTime.parse(b['tanggal']);
 
-                                int yearComparison =
-                                    dateB.year.compareTo(dateA.year);
-                                int monthComparison =
-                                    dateB.month.compareTo(dateA.month);
+                                  int yearComparison =
+                                      dateB.year.compareTo(dateA.year);
+                                  int monthComparison =
+                                      dateB.month.compareTo(dateA.month);
 
-                                if (yearComparison == 0) {
-                                  return monthComparison;
-                                } else {
-                                  return yearComparison;
-                                }
-                              });
-                            }
-                          });
-                        },
-                      ),
-                      const DataColumn2(
-                        size: ColumnSize.L,
-                        label: Center(
-                          child: Text(
-                            'Route',
-                            textAlign: TextAlign.center,
+                                  if (yearComparison == 0) {
+                                    return monthComparison;
+                                  } else {
+                                    return yearComparison;
+                                  }
+                                });
+                              }
+                            });
+                          },
+                        ),
+                        const DataColumn2(
+                          size: ColumnSize.L,
+                          label: Center(
+                            child: Text(
+                              'Route',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
-                      ),
-                      const DataColumn2(
-                        size: ColumnSize.S,
-                        label: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                'BLK',
-                                textAlign: TextAlign.center,
-                              ),
-                              Text(
-                                'TIME',
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                        const DataColumn2(
+                          size: ColumnSize.S,
+                          label: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'BLK',
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'TIME',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Description',
-                            textAlign: TextAlign.center,
+                        DataColumn2(
+                          size: ColumnSize.M,
+                          label: const Center(
+                            child: Text(
+                              'Description',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              _sortColumnIndex = columnIndex;
+                              _sortAscending = ascending;
+                              if (ascending) {
+                                jadwal.sort(
+                                  (a, b) {
+                                    return a['ket'].compareTo(b['ket']);
+                                  },
+                                );
+                              } else {
+                                jadwal.sort(
+                                    (a, b) => b['ket'].compareTo(a['ket']));
+                              }
+                            });
+                          },
                         ),
-                        onSort: (columnIndex, ascending) {
-                          setState(() {
-                            _sortColumnIndex = columnIndex;
-                            _sortAscending = ascending;
-                            if (ascending) {
-                              jadwal.sort(
-                                (a, b) {
-                                  return a['ket'].compareTo(b['ket']);
-                                },
-                              );
-                            } else {
-                              jadwal
-                                  .sort((a, b) => b['ket'].compareTo(a['ket']));
-                            }
-                          });
-                        },
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Flight Number',
-                            textAlign: TextAlign.center,
+                        DataColumn2(
+                          size: ColumnSize.M,
+                          label: const Center(
+                            child: Text(
+                              'Flight Number',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              _sortColumnIndex = columnIndex;
+                              _sortAscending = ascending;
+                              if (ascending) {
+                                jadwal.sort(
+                                  (a, b) {
+                                    return a['flightNumber']
+                                        .compareTo(b['flightNumber']);
+                                  },
+                                );
+                              } else {
+                                jadwal.sort((a, b) => b['flightNumber']
+                                    .compareTo(a['flightNumber']));
+                              }
+                            });
+                          },
                         ),
-                        onSort: (columnIndex, ascending) {
-                          setState(() {
-                            _sortColumnIndex = columnIndex;
-                            _sortAscending = ascending;
-                            if (ascending) {
-                              jadwal.sort(
-                                (a, b) {
-                                  return a['flightNumber']
-                                      .compareTo(b['flightNumber']);
-                                },
-                              );
-                            } else {
-                              jadwal.sort((a, b) => b['flightNumber']
-                                  .compareTo(a['flightNumber']));
-                            }
-                          });
-                        },
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Airline Code',
-                            textAlign: TextAlign.center,
+                        DataColumn2(
+                          size: ColumnSize.M,
+                          label: const Center(
+                            child: Text(
+                              'Airline Code',
+                              textAlign: TextAlign.center,
+                            ),
                           ),
+                          onSort: (columnIndex, ascending) {
+                            setState(() {
+                              _sortColumnIndex = columnIndex;
+                              _sortAscending = ascending;
+                              if (ascending) {
+                                jadwal.sort(
+                                  (a, b) {
+                                    return a['airlineCode']
+                                        .compareTo(b['airlineCode']);
+                                  },
+                                );
+                              } else {
+                                jadwal.sort((a, b) => b['airlineCode']
+                                    .compareTo(a['airlineCode']));
+                              }
+                            });
+                          },
                         ),
-                        onSort: (columnIndex, ascending) {
-                          setState(() {
-                            _sortColumnIndex = columnIndex;
-                            _sortAscending = ascending;
-                            if (ascending) {
-                              jadwal.sort(
-                                (a, b) {
-                                  return a['airlineCode']
-                                      .compareTo(b['airlineCode']);
-                                },
-                              );
-                            } else {
-                              jadwal.sort((a, b) =>
-                                  b['airlineCode'].compareTo(a['airlineCode']));
-                            }
-                          });
-                        },
+                      ],
+                      source: TableData(
+                        jadwal: jadwal,
+                        currentPage: currentPage,
+                        rowsPerPage: rowPerPages,
                       ),
-                    ],
-                    source: TableData(
-                      jadwal: jadwal,
-                      currentPage: currentPage,
-                      rowsPerPage: rowPerPages,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Visibility(
-            visible: visible,
-            child: Container(
-              color: _isConnected ? Colors.green : Colors.red,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _isConnected ? 'ONLINE' : 'OFFLINE',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(width: size.width * 0.01),
-                  _isConnected
-                      ? const SizedBox.shrink()
-                      : const SizedBox(
-                          height: 15,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            color: Colors.blue,
-                          ),
-                        ),
                 ],
               ),
             ),
-          ),
-          LoadingWidget(isLoading: loading),
-        ],
-      ),
-      persistentFooterButtons: level == 12
-          ? (widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
-                      widget.iom.last['status'] == 'APPROVED' ||
-                      widget.iom.last['status'] == 'REJECTED') &&
-                  isBalance
-              ? (widget.iom.last['status'] == 'APPROVED' ||
-                          widget.iom.last['status'] == 'REJECTED') &&
-                      !isBalance
-                  ? [
-                      Center(
-                        child: Text(
-                          widget.iom.last['status'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color:
-                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
-                                    ? Colors.blue
-                                    : widget.iom.last['status'] == 'APPROVED'
-                                        ? Colors.green
-                                        : Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [
-                      Center(
-                        child: Text(
-                          widget.iom.last['status'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color:
-                                widget.iom.last['status'] == 'VERIFIED PAYMENT'
-                                    ? Colors.blue
-                                    : widget.iom.last['status'] == 'APPROVED'
-                                        ? Colors.green
-                                        : Colors.red,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ]
-              : [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size(size.width * 0.4, size.height * 0.08),
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: loading
-                            ? null
-                            : () async {
-                                await showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return Verification(
-                                      item: (value) {
-                                        setState(() {
-                                          item = value;
-                                        });
-                                      },
-                                      iom: widget.iom,
-                                      lastItem: item,
-                                    );
-                                  },
-                                );
-                              },
-                        child: const Text('Verification'),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size(size.width * 0.4, size.height * 0.08),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: loading
-                            ? null
-                            : () async {
-                                await showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (BuildContext context) {
-                                    return IncomeTax(
-                                      pphAmount: (value) {
-                                        setState(() {
-                                          pphAmount.text = value;
-                                        });
-                                      },
-                                      iom: widget.iom,
-                                    );
-                                  },
-                                );
-                              },
-                        child: const Text('Income Tax'),
-                      ),
-                    ],
-                  )
-                ]
-          : level == 10
-              ? widget.iom.last['status'] == 'APPROVED' ||
-                      widget.iom.last['status'] == 'REJECTED' ||
-                      widget.iom.last['status'] == 'NONE'
-                  ? [
-                      Center(
-                        child: Text(
-                          widget.iom.last['status'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: widget.iom.last['status'] == 'APPROVED'
-                                ? Colors.green
-                                : widget.iom.last['status'] == 'REJECTED'
-                                    ? Colors.red
-                                    : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              fixedSize:
-                                  Size(size.width * 0.4, size.height * 0.08),
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: loading
-                                ? null
-                                : () async {
-                                    setState(() {
-                                      status = 'APPROVE';
-                                    });
-
-                                    await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Confirmation(
-                                          text: status,
-                                          iom: widget.iom,
-                                        );
-                                      },
-                                    );
-                                  },
-                            child: const Text('Approval'),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              fixedSize:
-                                  Size(size.width * 0.4, size.height * 0.08),
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: loading
-                                ? null
-                                : () async {
-                                    setState(() {
-                                      status = 'REJECT';
-                                    });
-
-                                    await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Confirmation(
-                                          text: status,
-                                          iom: widget.iom,
-                                        );
-                                      },
-                                    );
-                                  },
-                            child: const Text('Rejection'),
-                          ),
-                        ],
-                      ),
-                    ]
-              : [
-                  Center(
-                    child: Text(
-                      widget.iom.last['status'],
+            Visibility(
+              visible: visible,
+              child: Container(
+                color: _isConnected ? Colors.green : Colors.red,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isConnected ? 'ONLINE' : 'OFFLINE',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: widget.iom.last['status'] == 'NONE'
-                            ? Colors.black
-                            : widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
-                                    widget.iom.last['status'] ==
-                                        'VERIFIED PENDING PAYMENT'
-                                ? Colors.blue
-                                : widget.iom.last['status'] == 'APPROVED'
-                                    ? Colors.green
-                                    : Colors.red,
-                        fontWeight: FontWeight.bold,
+                      style: const TextStyle(
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                ],
-      persistentFooterAlignment: AlignmentDirectional.center,
+                    SizedBox(width: size.width * 0.01),
+                    _isConnected
+                        ? const SizedBox.shrink()
+                        : const SizedBox(
+                            height: 15,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Colors.blue,
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+            LoadingWidget(
+              isLoading: loading,
+              title: 'Loading',
+            ),
+          ],
+        ),
+        persistentFooterButtons: level == 12
+            ? (widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
+                        widget.iom.last['status'] == 'APPROVED' ||
+                        widget.iom.last['status'] == 'REJECTED') &&
+                    isBalance
+                ? (widget.iom.last['status'] == 'APPROVED' ||
+                            widget.iom.last['status'] == 'REJECTED') &&
+                        !isBalance
+                    ? [
+                        Center(
+                          child: Text(
+                            widget.iom.last['status'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.iom.last['status'] ==
+                                      'VERIFIED PAYMENT'
+                                  ? Colors.blue
+                                  : widget.iom.last['status'] == 'APPROVED'
+                                      ? Colors.green
+                                      : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ]
+                    : [
+                        Center(
+                          child: Text(
+                            widget.iom.last['status'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.iom.last['status'] ==
+                                      'VERIFIED PAYMENT'
+                                  ? Colors.blue
+                                  : widget.iom.last['status'] == 'APPROVED'
+                                      ? Colors.green
+                                      : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ]
+                : [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            fixedSize:
+                                Size(size.width * 0.4, size.height * 0.08),
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: loading
+                              ? null
+                              : () async {
+                                  if (double.parse(widget.iom.last['biaya']
+                                          .replaceAll(',', '.')) ==
+                                      0.00) {
+                                    StatusAlert.show(
+                                      context,
+                                      duration: const Duration(seconds: 1),
+                                      configuration: const IconConfiguration(
+                                        icon: Icons.error,
+                                        color: Colors.red,
+                                      ),
+                                      title: "Verified Failed",
+                                      subtitle: "0 IOM Cost",
+                                      backgroundColor: Colors.grey[300],
+                                    );
+                                  } else {
+                                    await showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (BuildContext context) {
+                                        return Verification(
+                                          item: (value) {
+                                            setState(() {
+                                              item = value;
+                                            });
+                                          },
+                                          iom: widget.iom,
+                                          lastItem: item,
+                                        );
+                                      },
+                                    );
+                                  }
+                                },
+                          child: const Text('Verification'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            fixedSize:
+                                Size(size.width * 0.4, size.height * 0.08),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: loading
+                              ? null
+                              : () async {
+                                  if (double.parse(widget.iom.last['biaya']
+                                          .replaceAll(',', '.')) ==
+                                      0.00) {
+                                    StatusAlert.show(
+                                      context,
+                                      duration: const Duration(seconds: 1),
+                                      configuration: const IconConfiguration(
+                                        icon: Icons.error,
+                                        color: Colors.red,
+                                      ),
+                                      title: "Failed",
+                                      subtitle: "0 IOM Cost",
+                                      backgroundColor: Colors.grey[300],
+                                    );
+                                  } else {
+                                    await showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (BuildContext context) {
+                                        return IncomeTax(
+                                          pphAmount: (value) {
+                                            setState(() {
+                                              pphAmount.text = value;
+                                            });
+                                          },
+                                          iom: widget.iom,
+                                        );
+                                      },
+                                    );
+                                  }
+                                },
+                          child: const Text('Income Tax'),
+                        ),
+                      ],
+                    )
+                  ]
+            : level == 10
+                ? widget.iom.last['status'] == 'APPROVED' ||
+                        widget.iom.last['status'] == 'REJECTED' ||
+                        widget.iom.last['status'] == 'NONE'
+                    ? [
+                        Center(
+                          child: Text(
+                            widget.iom.last['status'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.iom.last['status'] == 'APPROVED'
+                                  ? Colors.green
+                                  : widget.iom.last['status'] == 'REJECTED'
+                                      ? Colors.red
+                                      : Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ]
+                    : [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                fixedSize:
+                                    Size(size.width * 0.4, size.height * 0.08),
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: loading
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        status = 'APPROVE';
+                                      });
+
+                                      await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          List flightDate = [];
+
+                                          for (var data in jadwal) {
+                                            String tanggal = data['tanggal'];
+                                            if (!flightDate.contains(tanggal)) {
+                                              flightDate.add(tanggal);
+                                            }
+                                          }
+
+                                          return Confirmation(
+                                            text: status,
+                                            iom: widget.iom,
+                                            iomItem: jadwal,
+                                            flightDate: flightDate,
+                                          );
+                                        },
+                                      );
+                                    },
+                              child: const Text('Approval'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                fixedSize:
+                                    Size(size.width * 0.4, size.height * 0.08),
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: loading
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        status = 'REJECT';
+                                      });
+
+                                      await showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Confirmation(
+                                            text: status,
+                                            iom: widget.iom,
+                                            iomItem: jadwal,
+                                            flightDate: const [],
+                                          );
+                                        },
+                                      );
+                                    },
+                              child: const Text('Rejection'),
+                            ),
+                          ],
+                        ),
+                      ]
+                : [
+                    Center(
+                      child: Text(
+                        widget.iom.last['status'],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: widget.iom.last['status'] == 'NONE'
+                              ? Colors.black
+                              : widget.iom.last['status'] ==
+                                          'VERIFIED PAYMENT' ||
+                                      widget.iom.last['status'] ==
+                                          'VERIFIED PENDING PAYMENT'
+                                  ? Colors.blue
+                                  : widget.iom.last['status'] == 'APPROVED'
+                                      ? Colors.green
+                                      : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+        persistentFooterAlignment: AlignmentDirectional.center,
+        floatingActionButton:
+            level == 10 && widget.iom.last['status'] == 'APPROVED'
+                ? FloatingActionButton(
+                    onPressed: loading
+                        ? null
+                        : () async {
+                            setState(() {
+                              loading = true;
+                            });
+
+                            await sendtoIssued();
+                          },
+                    tooltip: 'Sent to Issued',
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    child: const Icon(Icons.send_rounded),
+                  )
+                : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      ),
     );
   }
 }

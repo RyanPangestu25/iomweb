@@ -825,7 +825,7 @@ class _VerificationState extends State<Verification> {
 
               double.parse(total) >= double.parse(widget.iom.last['biaya'])
                   ? isBalance = true
-                  : false;
+                  : isBalance = false;
 
               if (saldo == 0.0) {
                 filteredPay.value = payType;
@@ -1452,7 +1452,10 @@ class _VerificationState extends State<Verification> {
                 borderRadius: BorderRadius.circular(6.0),
               ),
             ),
-            LoadingWidget(isLoading: loading),
+            LoadingWidget(
+              isLoading: loading,
+              title: 'Loading',
+            ),
           ],
         ),
       ),

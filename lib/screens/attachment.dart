@@ -654,7 +654,10 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               ),
             ),
           ),
-          LoadingWidget(isLoading: loading),
+          LoadingWidget(
+            isLoading: loading,
+            title: 'Loading',
+          ),
         ],
       ),
     );

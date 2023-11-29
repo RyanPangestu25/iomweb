@@ -61,3 +61,21 @@ const url_UpdatePPH =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePPH';
 
 const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
+
+const url_GetCharterNotSend =
+    'https://lgapvfncacc.com/apb/prc.asmx?op=GetCharterNotSend';
+
+const url_CekAPBEmbark =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
+
+const url_CekAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBIOM';
+
+const url_CreateAPBEmbark =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBEmbark';
+
+const url_CreateAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBIOM';
+
+// const url_UpdateAPBIOM =
+//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';

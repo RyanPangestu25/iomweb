@@ -357,7 +357,10 @@ class _DeleteState extends State<Delete> {
               borderRadius: BorderRadius.circular(6.0),
             ),
           ),
-          LoadingWidget(isLoading: loading),
+          LoadingWidget(
+            isLoading: loading,
+            title: 'Loading',
+          ),
         ],
       ),
     );

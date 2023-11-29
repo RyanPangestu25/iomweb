@@ -1252,7 +1252,10 @@ class _EditState extends State<Edit> {
                 borderRadius: BorderRadius.circular(6.0),
               ),
             ),
-            LoadingWidget(isLoading: loading),
+            LoadingWidget(
+              isLoading: loading,
+              title: 'Loading',
+            ),
           ],
         ),
       ),

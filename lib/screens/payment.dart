@@ -733,7 +733,10 @@ class _PaymentState extends State<Payment> {
               ),
             ),
           ),
-          LoadingWidget(isLoading: loading),
+          LoadingWidget(
+            isLoading: loading,
+            title: 'Loading',
+          ),
         ],
       ),
     );

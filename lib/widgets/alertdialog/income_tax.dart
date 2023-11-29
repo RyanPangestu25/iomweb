@@ -647,7 +647,10 @@ class _IncomeTaxState extends State<IncomeTax> {
                 borderRadius: BorderRadius.circular(6.0),
               ),
             ),
-            LoadingWidget(isLoading: loading),
+            LoadingWidget(
+              isLoading: loading,
+              title: 'Loading',
+            ),
           ],
         ),
       ),

@@ -1174,7 +1174,10 @@ class _ViewIOMState extends State<ViewIOM> {
                                       );
                                     },
                                   ),
-                            LoadingWidget(isLoading: loading),
+                            LoadingWidget(
+                              isLoading: loading,
+                              title: 'Loading',
+                            ),
                           ],
                         ),
                       ),
