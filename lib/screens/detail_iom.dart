@@ -2137,21 +2137,23 @@ class _DetailIOMState extends State<DetailIOM> {
         persistentFooterAlignment: AlignmentDirectional.center,
         floatingActionButton:
             level == 10 && widget.iom.last['status'] == 'APPROVED'
-                ? FloatingActionButton(
-                    onPressed: loading
-                        ? null
-                        : () async {
-                            setState(() {
-                              loading = true;
-                            });
+                ? isNeedIssued
+                    ? FloatingActionButton(
+                        onPressed: loading
+                            ? null
+                            : () async {
+                                setState(() {
+                                  loading = true;
+                                });
 
-                            await sendtoIssued();
-                          },
-                    tooltip: 'Sent to Issued',
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    child: const Icon(Icons.send_rounded),
-                  )
+                                await sendtoIssued();
+                              },
+                        tooltip: 'Sent to Issued',
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        child: const Icon(Icons.send_rounded),
+                      )
+                    : null
                 : null,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),

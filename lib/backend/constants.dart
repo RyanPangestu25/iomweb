@@ -77,5 +77,5 @@ const url_CreateAPBEmbark =
 const url_CreateAPBIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBIOM';
 
-// const url_UpdateAPBIOM =
-//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
+const url_UpdateAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
