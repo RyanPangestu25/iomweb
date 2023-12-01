@@ -62,8 +62,8 @@ const url_UpdatePPH =
 
 const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
 
-const url_GetCharterNotSend =
-    'https://lgapvfncacc.com/apb/prc.asmx?op=GetCharterNotSend';
+// const url_GetCharterNotSend =
+//     'https://lgapvfncacc.com/apb/prc.asmx?op=GetCharterNotSend';
 
 const url_CekAPBEmbark =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
