@@ -60,22 +60,19 @@ const url_DeleteAttach =
 const url_UpdatePPH =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePPH';
 
-const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
+// const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
 
-// const url_GetCharterNotSend =
-//     'https://lgapvfncacc.com/apb/prc.asmx?op=GetCharterNotSend';
+// const url_CekAPBEmbark =
+//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
 
-const url_CekAPBEmbark =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
+// const url_UpdateAPBIOM =
+//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
 
-const url_CekAPBIOM =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBIOM';
+const url_CreateAPB =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPB';
 
-const url_CreateAPBEmbark =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBEmbark';
+const url_CekAPBEmbarkTest =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbarkTest';
 
-const url_CreateAPBIOM =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBIOM';
-
-const url_UpdateAPBIOM =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
+const url_UpdateAPBIOMTest =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOMTest';
