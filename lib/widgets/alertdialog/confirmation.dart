@@ -193,19 +193,19 @@ class _ConfirmationState extends State<Confirmation> {
         final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
             '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
             '<soap:Body>' +
-            '<CekAPBEmbarkTest xmlns="http://tempuri.org/">' +
+            '<CekAPBEmbark xmlns="http://tempuri.org/">' +
             '<FlightNumber>${widget.iomItem[index]['flightNumber']}</FlightNumber>' +
             '<FlightDate>${DateTime.parse(widget.iomItem[index]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
             '<Airlines>${widget.iomItem[index]['airlineCode']}</Airlines>' +
             '<Routes>${widget.iomItem[index]['rute']}</Routes>' +
-            '</CekAPBEmbarkTest>' +
+            '</CekAPBEmbark>' +
             '</soap:Body>' +
             '</soap:Envelope>';
 
-        final response = await http.post(Uri.parse(url_CekAPBEmbarkTest),
+        final response = await http.post(Uri.parse(url_CekAPBEmbark),
             headers: <String, String>{
               "Access-Control-Allow-Origin": "*",
-              'SOAPAction': 'http://tempuri.org/CekAPBEmbarkTest',
+              'SOAPAction': 'http://tempuri.org/CekAPBEmbark',
               'Access-Control-Allow-Credentials': 'true',
               'Content-type': 'text/xml; charset=utf-8'
             },
@@ -436,21 +436,20 @@ class _ConfirmationState extends State<Confirmation> {
         status = 'Updating APB IOM';
       });
 
-      // for (int index = 0; index < flightDate.length; index++) {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<UpdateAPBIOMTest xmlns="http://tempuri.org/">' +
+          '<UpdateAPBIOM xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<server>${widget.iom.last['server']}</server>' +
-          '</UpdateAPBIOMTest>' +
+          '</UpdateAPBIOM>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_UpdateAPBIOMTest),
+      final response = await http.post(Uri.parse(url_UpdateAPBIOM),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/UpdateAPBIOMTest',
+            'SOAPAction': 'http://tempuri.org/UpdateAPBIOM',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -460,9 +459,9 @@ class _ConfirmationState extends State<Confirmation> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('UpdateAPBIOMTestResult').isEmpty
+            document.findAllElements('UpdateAPBIOMResult').isEmpty
                 ? 'No Data'
-                : document.findAllElements('UpdateAPBIOMTestResult').first.text;
+                : document.findAllElements('UpdateAPBIOMResult').first.text;
 
         if (statusData == 'GAGAL') {
           StatusAlert.show(
@@ -495,51 +494,8 @@ class _ConfirmationState extends State<Confirmation> {
                 });
           });
         } else {
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 2),
-            configuration: const IconConfiguration(
-              icon: Icons.done,
-              color: Colors.green,
-            ),
-            title: "Success",
-            backgroundColor: Colors.grey[300],
-          );
-
           Future.delayed(const Duration(seconds: 1), () async {
-            // await sendtoIssued();
-
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            if (level == '12') {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Verification',
-                  );
-                },
-              ));
-            } else if (level == '10') {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'IOM Approval',
-                  );
-                },
-              ));
-            } else {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) {
-                  return const ViewIOM(
-                    title: 'View IOM',
-                  );
-                },
-              ));
-            }
+            await sendtoIssued();
           });
         }
       } else {
@@ -576,7 +532,6 @@ class _ConfirmationState extends State<Confirmation> {
               });
         });
       }
-      // }
     } catch (e) {
       debugPrint('$e');
       StatusAlert.show(
@@ -615,206 +570,206 @@ class _ConfirmationState extends State<Confirmation> {
     }
   }
 
-  // Future<void> sendtoIssued() async {
-  //   try {
-  //     setState(() {
-  //       loading = true;
-  //       status = 'SendToIssued';
-  //     });
+  Future<void> sendtoIssued() async {
+    try {
+      setState(() {
+        loading = true;
+        status = 'SendToIssued';
+      });
 
-  //     for (int index = 0; index < widget.flightDate.length; index++) {
-  //       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-  //           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-  //           '<soap:Body>' +
-  //           '<SendToIssued xmlns="http://tempuri.org/">' +
-  //           '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
-  //           '<IOMNUMBER>${widget.iom.last['noIOM']}</IOMNUMBER>' +
-  //           '<AIRLINES>${widget.iomItem.last['airlineCode']}</AIRLINES>' +
-  //           '<FLIGHTDATE>${DateTime.parse(widget.flightDate[index].toString()).toLocal().toIso8601String()}</FLIGHTDATE>' +
-  //           '</SendToIssued>' +
-  //           '</soap:Body>' +
-  //           '</soap:Envelope>';
+      for (int index = 0; index < widget.flightDate.length; index++) {
+        final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+            '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+            '<soap:Body>' +
+            '<SendToIssued xmlns="http://tempuri.org/">' +
+            '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
+            '<IOMNUMBER>${widget.iom.last['noIOM']}</IOMNUMBER>' +
+            '<AIRLINES>${widget.iomItem.last['airlineCode']}</AIRLINES>' +
+            '<FLIGHTDATE>${DateTime.parse(widget.flightDate[index].toString()).toLocal().toIso8601String()}</FLIGHTDATE>' +
+            '</SendToIssued>' +
+            '</soap:Body>' +
+            '</soap:Envelope>';
 
-  //       final response = await http.post(Uri.parse(url_SendToIssued),
-  //           headers: <String, String>{
-  //             "Access-Control-Allow-Origin": "*",
-  //             'SOAPAction': 'http://tempuri.org/SendToIssued',
-  //             'Access-Control-Allow-Credentials': 'true',
-  //             'Content-type': 'text/xml; charset=utf-8'
-  //           },
-  //           body: soapEnvelope);
+        final response = await http.post(Uri.parse(url_SendToIssued),
+            headers: <String, String>{
+              "Access-Control-Allow-Origin": "*",
+              'SOAPAction': 'http://tempuri.org/SendToIssued',
+              'Access-Control-Allow-Credentials': 'true',
+              'Content-type': 'text/xml; charset=utf-8'
+            },
+            body: soapEnvelope);
 
-  //       if (response.statusCode == 200) {
-  //         final document = xml.XmlDocument.parse(response.body);
+        if (response.statusCode == 200) {
+          final document = xml.XmlDocument.parse(response.body);
 
-  //         final statusData = document.findAllElements('_x002D_').isEmpty
-  //             ? 'GAGAL'
-  //             : document.findAllElements('_x002D_').first.text;
+          final statusData = document.findAllElements('_x002D_').isEmpty
+              ? 'GAGAL'
+              : document.findAllElements('_x002D_').first.text;
 
-  //         debugPrint(statusData);
+          debugPrint(statusData);
 
-  //         if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
-  //           StatusAlert.show(
-  //             context,
-  //             duration: const Duration(seconds: 1),
-  //             configuration:
-  //                 const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //             title: 'Failed SendToIssued',
-  //             subtitle: 'IOM NOT FOUND',
-  //             backgroundColor: Colors.grey[300],
-  //           );
+          if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: 'Failed SendToIssued',
+              subtitle: 'IOM NOT FOUND',
+              backgroundColor: Colors.grey[300],
+            );
 
-  //           Future.delayed(const Duration(seconds: 1), () {
-  //             if (mounted) {
-  //               setState(() {
-  //                 loading = false;
-  //               });
-  //             }
+            Future.delayed(const Duration(seconds: 1), () {
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
 
-  //             if (level == '12') {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'IOM Verification',
-  //                   );
-  //                 },
-  //               ));
-  //             } else if (level == '10') {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'IOM Approval',
-  //                   );
-  //                 },
-  //               ));
-  //             } else {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'View IOM',
-  //                   );
-  //                 },
-  //               ));
-  //             }
-  //           });
-  //         } else {
-  //           StatusAlert.show(
-  //             context,
-  //             duration: const Duration(seconds: 2),
-  //             configuration: const IconConfiguration(
-  //               icon: Icons.done,
-  //               color: Colors.green,
-  //             ),
-  //             title: "Success SendToIssued",
-  //             backgroundColor: Colors.grey[300],
-  //           );
+              if (level == '12') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Verification',
+                    );
+                  },
+                ));
+              } else if (level == '10') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Approval',
+                    );
+                  },
+                ));
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'View IOM',
+                    );
+                  },
+                ));
+              }
+            });
+          } else {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 2),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success SendToIssued",
+              backgroundColor: Colors.grey[300],
+            );
 
-  //           Future.delayed(const Duration(seconds: 1), () async {
-  //             if (mounted) {
-  //               setState(() {
-  //                 loading = false;
-  //               });
-  //             }
+            Future.delayed(const Duration(seconds: 1), () async {
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
 
-  //             if (level == '12') {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'IOM Verification',
-  //                   );
-  //                 },
-  //               ));
-  //             } else if (level == '10') {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'IOM Approval',
-  //                   );
-  //                 },
-  //               ));
-  //             } else {
-  //               Navigator.of(context).push(MaterialPageRoute(
-  //                 builder: (BuildContext context) {
-  //                   return const ViewIOM(
-  //                     title: 'View IOM',
-  //                   );
-  //                 },
-  //               ));
-  //             }
-  //           });
-  //         }
-  //       } else {
-  //         debugPrint('Error: ${response.statusCode}');
-  //         debugPrint('Desc: ${response.body}');
-  //         StatusAlert.show(
-  //           context,
-  //           duration: const Duration(seconds: 1),
-  //           configuration:
-  //               const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //           title: "${response.statusCode}",
-  //           subtitle: "Failed SendToIssued",
-  //           backgroundColor: Colors.grey[300],
-  //         );
+              if (level == '12') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Verification',
+                    );
+                  },
+                ));
+              } else if (level == '10') {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'IOM Approval',
+                    );
+                  },
+                ));
+              } else {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'View IOM',
+                    );
+                  },
+                ));
+              }
+            });
+          }
+        } else {
+          debugPrint('Error: ${response.statusCode}');
+          debugPrint('Desc: ${response.body}');
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Failed SendToIssued",
+            backgroundColor: Colors.grey[300],
+          );
 
-  //         Future.delayed(const Duration(seconds: 1), () async {
-  //           if (mounted) {
-  //             setState(() {
-  //               loading = false;
-  //             });
-  //           }
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
 
-  //           await showDialog(
-  //               context: context,
-  //               barrierDismissible: false,
-  //               builder: (context) {
-  //                 return TryAgain(
-  //                   submit: (value) async {
-  //                     if (value) {
-  //                       await sendtoIssued();
-  //                     }
-  //                   },
-  //                 );
-  //               });
-  //         });
-  //       }
-  //     }
-  //   } catch (e) {
-  //     debugPrint('$e');
-  //     StatusAlert.show(
-  //       context,
-  //       duration: const Duration(seconds: 2),
-  //       configuration:
-  //           const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //       title: "Failed SendToIssued",
-  //       subtitle: "$e",
-  //       subtitleOptions: StatusAlertTextConfiguration(
-  //         overflow: TextOverflow.visible,
-  //       ),
-  //       backgroundColor: Colors.grey[300],
-  //     );
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) {
+                  return TryAgain(
+                    submit: (value) async {
+                      if (value) {
+                        await sendtoIssued();
+                      }
+                    },
+                  );
+                });
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed SendToIssued",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
 
-  //     Future.delayed(const Duration(seconds: 1), () async {
-  //       if (mounted) {
-  //         setState(() {
-  //           loading = false;
-  //         });
-  //       }
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
 
-  //       await showDialog(
-  //           context: context,
-  //           barrierDismissible: false,
-  //           builder: (context) {
-  //             return TryAgain(
-  //               submit: (value) async {
-  //                 if (value) {
-  //                   await sendtoIssued();
-  //                 }
-  //               },
-  //             );
-  //           });
-  //     });
-  //   }
-  // }
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await sendtoIssued();
+                  }
+                },
+              );
+            });
+      });
+    }
+  }
 
   Future<void> getUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

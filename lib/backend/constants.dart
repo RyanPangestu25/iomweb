@@ -60,19 +60,13 @@ const url_DeleteAttach =
 const url_UpdatePPH =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePPH';
 
-// const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
+const url_SendToIssued = 'https://lgapvfncacc.com/apb/prc.asmx?op=SendToIssued';
 
-// const url_CekAPBEmbark =
-//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
+const url_CekAPBEmbark =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
 
-// const url_UpdateAPBIOM =
-//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
+const url_UpdateAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
 
 const url_CreateAPB =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPB';
-
-const url_CekAPBEmbarkTest =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbarkTest';
-
-const url_UpdateAPBIOMTest =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOMTest';
