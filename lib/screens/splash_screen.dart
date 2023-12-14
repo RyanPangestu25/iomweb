@@ -54,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
               "IOMCharter",
               style: TextStyle(
                 inherit: false,
+                color: Colors.white,
                 fontSize: MediaQuery.of(context).textScaleFactor * 40,
                 shadows: const [
                   Shadow(
