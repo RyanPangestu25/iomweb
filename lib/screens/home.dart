@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: MediaQuery.of(context).textScaleFactor * 40,
+                        fontSize: MediaQuery.of(context).textScaler.scale(40),
                         shadows: const [
                           Shadow(
                             color: Colors.black,
@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: MediaQuery.of(context).textScaleFactor * 40,
+                        fontSize: MediaQuery.of(context).textScaler.scale(40),
                         shadows: const [
                           Shadow(
                             color: Colors.black,

@@ -920,6 +920,7 @@ class _EditState extends State<Edit> {
                               setState(() {
                                 isBank = true;
                               });
+                              filterBank(namaBank.text);
                             },
                             onChanged: (value) {
                               setState(() {
@@ -1053,6 +1054,7 @@ class _EditState extends State<Edit> {
                               setState(() {
                                 isCurr = true;
                               });
+                              filterCurr(curr.text);
                             },
                             onChanged: (value) {
                               setState(() {

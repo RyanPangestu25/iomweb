@@ -1112,6 +1112,7 @@ class _VerificationState extends State<Verification> {
                                     setState(() {
                                       isBank = true;
                                     });
+                                    filterBank(namaBank.text);
                                   },
                                   onChanged: (value) {
                                     setState(() {
@@ -1249,6 +1250,7 @@ class _VerificationState extends State<Verification> {
                                     setState(() {
                                       isCurr = true;
                                     });
+                                    filterCurr(curr.text);
                                   },
                                   onChanged: (value) {
                                     setState(() {

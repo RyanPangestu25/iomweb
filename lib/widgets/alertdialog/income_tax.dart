@@ -410,6 +410,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                               setState(() {
                                 isCurr = true;
                               });
+                              filterCurr(curr.text);
                             },
                             onChanged: (value) {
                               setState(() {
@@ -509,6 +510,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                               setState(() {
                                 isPercent = true;
                               });
+                              filterPer(curr.text);
                             },
                             onChanged: (value) {
                               setState(() {

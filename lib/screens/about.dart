@@ -38,7 +38,7 @@ class _AboutState extends State<About> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final textScaleFactor = MediaQuery.of(context).textScaler;
 
     return Scaffold(
       body: Center(
@@ -58,7 +58,7 @@ class _AboutState extends State<About> {
             Text(
               "IOMCharter",
               style: TextStyle(
-                fontSize: textScaleFactor * 30,
+                fontSize: textScaleFactor.scale(30),
                 fontWeight: FontWeight.bold,
                 color: const Color.fromARGB(255, 255, 17, 0),
               ),
@@ -68,14 +68,14 @@ class _AboutState extends State<About> {
             ),
             Text(
               "Version:",
-              style: TextStyle(fontSize: textScaleFactor * 20),
+              style: TextStyle(fontSize: textScaleFactor.scale(20)),
             ),
             SizedBox(
               height: size.height * 0.008,
             ),
             Text(
               "$appsVersion build $appsBuild",
-              style: TextStyle(fontSize: textScaleFactor * 20),
+              style: TextStyle(fontSize: textScaleFactor.scale(20)),
             ),
             SizedBox(
               height: size.height * 0.023,
@@ -83,11 +83,11 @@ class _AboutState extends State<About> {
             curYear == 2023
                 ? Text(
                     "\u00A9 Copyright 2023",
-                    style: TextStyle(fontSize: textScaleFactor * 15),
+                    style: TextStyle(fontSize: textScaleFactor.scale(15)),
                   )
                 : Text(
                     "\u00A9 Copyright 2023 - $curYear",
-                    style: TextStyle(fontSize: textScaleFactor * 15),
+                    style: TextStyle(fontSize: textScaleFactor.scale(15)),
                   ),
           ],
         ),

@@ -37,55 +37,54 @@ class _SplashScreenState extends State<SplashScreen> {
     final size = MediaQuery.of(context).size;
 
     return Container(
-        color: Colors.red,
-        child: Column(children: [
-          SizedBox(
-            height: size.height * 0.05,
-          ),
-          SizedBox(
-            width: size.width * 0.4,
-            height: size.height * 0.4,
-            child: Image.asset(
+      color: Colors.red,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20, bottom: 50),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: size.height * 0.05),
+            Image.asset(
               'assets/images/logo.png',
+              scale: 2,
               color: Colors.white,
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "IOMCharter",
-            style: TextStyle(
-              inherit: false,
-              fontSize: MediaQuery.of(context).textScaleFactor * 40,
-              color: Colors.white,
-              shadows: const [
-                Shadow(
-                  color: Colors.black,
-                  offset: Offset(4, 2),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: size.height * 0.2,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: SimpleCircularProgressBar(
-              mergeMode: true,
-              animationDuration: 2,
-              progressStrokeWidth: 10,
-              onGetText: (double value) {
-                return Text(
-                  '${value.toInt()}%',
-                  style: TextStyle(
-                    inherit: false,
-                    fontSize: MediaQuery.of(context).textScaleFactor * 25,
+            SizedBox(height: size.height * 0.05),
+            Text(
+              "IOMCharter",
+              style: TextStyle(
+                inherit: false,
+                fontSize: MediaQuery.of(context).textScaleFactor * 40,
+                shadows: const [
+                  Shadow(
+                    color: Colors.black,
+                    offset: Offset(4, 2),
+                    blurRadius: 8,
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-        ]));
+            const Spacer(flex: 1),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: SimpleCircularProgressBar(
+                mergeMode: true,
+                animationDuration: 2,
+                progressStrokeWidth: 10,
+                onGetText: (double value) {
+                  return Text(
+                    '${value.toInt()}%',
+                    style: TextStyle(
+                      inherit: false,
+                      fontSize: MediaQuery.of(context).textScaleFactor * 25,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
