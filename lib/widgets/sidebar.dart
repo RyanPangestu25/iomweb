@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../screens/change_pass.dart';
 import '../screens/home.dart';
 import '../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../screens/about.dart';
 import '../screens/login.dart';
 
@@ -16,7 +17,7 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
-  int level = 0;
+  List data = [];
   Widget expan = const ExpansionTile(
     collapsedIconColor: Colors.white,
     collapsedTextColor: Colors.white,
@@ -29,7 +30,7 @@ class _SidebarState extends State<Sidebar> {
   );
 
   Future<Widget> cekLevel() async {
-    if (level == 12) {
+    if (data.last['level'] == '12') {
       setState(() {
         expan = ExpansionTile(
           collapsedIconColor: Colors.white,
@@ -58,7 +59,7 @@ class _SidebarState extends State<Sidebar> {
           ],
         );
       });
-    } else if (level == 10) {
+    } else if (data.last['level'] == '10') {
       setState(() {
         expan = ExpansionTile(
           collapsedIconColor: Colors.white,
@@ -121,13 +122,21 @@ class _SidebarState extends State<Sidebar> {
     return expan;
   }
 
-  Future<void> getLevel() async {
+  Future<void> getData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? nik = prefs.getString('nik');
+    String? userEmail = prefs.getString('userEmail');
     String? userLevel = prefs.getString('userLevel');
 
     setState(() {
-      level = int.parse(userLevel ?? '0');
-      debugPrint(level.toString());
+      data = [
+        {
+          'nik': nik,
+          'email': userEmail,
+          'level': userLevel,
+        }
+      ];
+      debugPrint(jsonEncode(data));
     });
 
     await cekLevel();
@@ -148,7 +157,7 @@ class _SidebarState extends State<Sidebar> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await getLevel();
+      await getData();
     });
   }
 
@@ -227,6 +236,28 @@ class _SidebarState extends State<Sidebar> {
               ),
             ),
             expan,
+            ListTile(
+              onTap: () async {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (BuildContext context) {
+                    return ChangePass(
+                      nik: data.last['nik'],
+                      email: data.last['email'],
+                    );
+                  },
+                ));
+              },
+              leading: const Icon(
+                Icons.lock_person,
+                color: Colors.white,
+              ),
+              title: const Text(
+                'Change Password',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+            ),
             ListTile(
               onTap: () async {
                 Navigator.of(context).push(MaterialPageRoute(

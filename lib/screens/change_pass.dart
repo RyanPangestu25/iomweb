@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/login.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
@@ -82,7 +83,7 @@ class _ChangePassState extends State<ChangePass> {
             });
           });
         } else {
-          Future.delayed(const Duration(seconds: 1), () {
+          Future.delayed(const Duration(seconds: 1), () async {
             StatusAlert.show(
               context,
               duration: const Duration(seconds: 1),
@@ -91,6 +92,9 @@ class _ChangePassState extends State<ChangePass> {
               title: "Password Updated",
               backgroundColor: Colors.grey[300],
             );
+
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.clear();
 
             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
               builder: (BuildContext context) {
