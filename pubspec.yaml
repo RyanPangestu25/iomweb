@@ -51,8 +51,8 @@ dependencies:
   pin_code_fields: ^8.0.1
   file_picker: ^6.1.1
   path: ^1.8.3
-  pattern_formatter: ^3.0.0
   excel: ^3.0.0
+  flutter_multi_formatter: ^2.12.3
 
 dev_dependencies:
   flutter_test:

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:pattern_formatter/numeric_formatter.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
@@ -511,7 +511,7 @@ class _VerificationState extends State<Verification> {
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
-          '<AmountPembayaran>${amount.text}</AmountPembayaran>' +
+          '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</VerificationPayment>' +
@@ -1315,7 +1315,7 @@ class _VerificationState extends State<Verification> {
                                       AutovalidateMode.onUserInteraction,
                                   autocorrect: false,
                                   inputFormatters: [
-                                    ThousandsFormatter(allowFraction: true)
+                                    CurrencyInputFormatter(),
                                   ],
                                   decoration: const InputDecoration(
                                     enabledBorder: OutlineInputBorder(

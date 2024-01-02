@@ -3,14 +3,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../loading.dart';
-import 'package:pattern_formatter/pattern_formatter.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
 class IncomeTax extends StatefulWidget {
   final Function(String) pphAmount;
@@ -59,9 +58,13 @@ class _IncomeTaxState extends State<IncomeTax> {
 
   Future<void> filterPer(String query) async {
     setState(() {
-      filteredPer.value = listPercent.where((data) {
-        return data.toString().contains(query.toString());
-      }).toList();
+      if (query == '0.00') {
+        filteredPer.value = listPercent.toList();
+      } else {
+        filteredPer.value = listPercent.where((data) {
+          return data.toString().contains(query.toString());
+        }).toList();
+      }
     });
   }
 
@@ -187,8 +190,8 @@ class _IncomeTaxState extends State<IncomeTax> {
           '<UpdatePPH xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
           '<Currency_PPH>${curr.text.substring(0, 3)}</Currency_PPH>' +
-          '<Persentase_PPH>${percent.text}</Persentase_PPH>' +
-          '<Biaya_PPH>${amount.text}</Biaya_PPH>' +
+          '<Persentase_PPH>${percent.text.replaceAll(',', '')}</Persentase_PPH>' +
+          '<Biaya_PPH>${amount.text.replaceAll(',', '')}</Biaya_PPH>' +
           '<server>${widget.iom.last['server']}</server>' +
           '</UpdatePPH>' +
           '</soap:Body>' +
@@ -295,7 +298,8 @@ class _IncomeTaxState extends State<IncomeTax> {
 
   void countTax() {
     double iomValue = double.parse(widget.iom.last['biaya']);
-    double percentValue = double.tryParse(this.percent.text) ?? 0.0;
+    double percentValue =
+        double.tryParse(this.percent.text.replaceAll(',', '')) ?? 0.0;
     double percent = percentValue / 100;
     double total = 0.0;
     setState(() {
@@ -469,7 +473,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                               signed: true,
                             ),
                             inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
+                              CurrencyInputFormatter(),
                             ],
                             autovalidateMode:
                                 AutovalidateMode.onUserInteraction,
@@ -500,8 +504,8 @@ class _IncomeTaxState extends State<IncomeTax> {
                               suffixText: '%',
                             ),
                             validator: (value) {
-                              if (value!.isEmpty) {
-                                return "Amount can't be empty";
+                              if (value!.isEmpty || value == '0.00') {
+                                return "Percentage can't be empty or 0";
                               } else {
                                 return null;
                               }
@@ -574,7 +578,7 @@ class _IncomeTaxState extends State<IncomeTax> {
                                 AutovalidateMode.onUserInteraction,
                             autocorrect: false,
                             inputFormatters: [
-                              ThousandsFormatter(allowFraction: true)
+                              CurrencyInputFormatter(),
                             ],
                             decoration: const InputDecoration(
                               enabledBorder: OutlineInputBorder(
