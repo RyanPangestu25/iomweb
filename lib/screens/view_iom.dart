@@ -5,6 +5,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/alertdialog/confirm_reset.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
 import '../widgets/sidebar.dart';
@@ -38,6 +40,7 @@ class _ViewIOMState extends State<ViewIOM> {
   bool isHelp = false;
   bool isPeriod = false;
   bool isAttach = false;
+  bool isOpen = false;
   List iom = [];
   List status = [
     'NONE',
@@ -662,12 +665,22 @@ class _ViewIOMState extends State<ViewIOM> {
     });
   }
 
+  Future<void> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userOpen = prefs.getString('userOpen');
+
+    setState(() {
+      isOpen = userOpen == 'true' ? true : false;
+      debugPrint('$isOpen');
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
-
+      await getUser();
       await getIOM();
     });
 
@@ -1076,85 +1089,181 @@ class _ViewIOMState extends State<ViewIOM> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            subtitle: Row(
+                                            subtitle: Column(
                                               children: [
-                                                const Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                Row(
                                                   children: [
-                                                    Text('IOM Date '),
-                                                    Text('Charter '),
-                                                    Text('Route '),
-                                                    Text('Route Date '),
-                                                    Text('Status '),
-                                                  ],
-                                                ),
-                                                Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
+                                                    const Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text('IOM Date '),
+                                                        Text('Charter '),
+                                                        Text('Route '),
+                                                        Text('Route Date '),
+                                                        Text('Status '),
+                                                      ],
                                                     ),
-                                                    SizedBox(
-                                                      width: size.width * 0.45,
-                                                      child: Text(
-                                                        ': ${filteredIOM.value[index]['charter']}',
-                                                        style: const TextStyle(
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                                    Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
                                                         ),
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                        ': ${filteredIOM.value[index]['rute']}'),
-                                                    Text(
-                                                        ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
-                                                    SizedBox(
-                                                      width: size.width * 0.45,
-                                                      child: Text.rich(
-                                                        TextSpan(
-                                                          text: ': ',
-                                                          children: [
+                                                        SizedBox(
+                                                          width:
+                                                              size.width * 0.45,
+                                                          child: Text(
+                                                            ': ${filteredIOM.value[index]['charter']}',
+                                                            style:
+                                                                const TextStyle(
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Text(
+                                                            ': ${filteredIOM.value[index]['rute']}'),
+                                                        Text(
+                                                            ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
+                                                        SizedBox(
+                                                          width:
+                                                              size.width * 0.45,
+                                                          child: Text.rich(
                                                             TextSpan(
-                                                              text: filteredIOM
-                                                                  .value[index]
-                                                                      ['status']
-                                                                  .toString()
-                                                                  .toUpperCase(),
-                                                              style: TextStyle(
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: filteredIOM.value[index]['status'] ==
-                                                                            'VERIFIED PENDING PAYMENT' ||
-                                                                        filteredIOM.value[index]['status'] ==
-                                                                            'VERIFIED PAYMENT'
-                                                                    ? Colors
-                                                                        .blue
-                                                                    : filteredIOM.value[index]['status'] ==
-                                                                            'APPROVED'
+                                                              text: ': ',
+                                                              children: [
+                                                                TextSpan(
+                                                                  text: filteredIOM
+                                                                      .value[
+                                                                          index]
+                                                                          [
+                                                                          'status']
+                                                                      .toString()
+                                                                      .toUpperCase(),
+                                                                  style:
+                                                                      TextStyle(
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: filteredIOM.value[index]['status'] ==
+                                                                                'VERIFIED PENDING PAYMENT' ||
+                                                                            filteredIOM.value[index]['status'] ==
+                                                                                'VERIFIED PAYMENT'
                                                                         ? Colors
-                                                                            .green
+                                                                            .blue
                                                                         : filteredIOM.value[index]['status'] ==
-                                                                                'REJECTED'
-                                                                            ? Colors.red
-                                                                            : Colors.black,
-                                                              ),
-                                                            )
-                                                          ],
+                                                                                'APPROVED'
+                                                                            ? Colors.green
+                                                                            : filteredIOM.value[index]['status'] == 'REJECTED'
+                                                                                ? Colors.red
+                                                                                : Colors.black,
+                                                                  ),
+                                                                )
+                                                              ],
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
+                                                      ],
                                                     ),
                                                   ],
                                                 ),
+                                                isOpen
+                                                    ? DateTime.parse(filteredIOM
+                                                                            .value[
+                                                                        index][
+                                                                    'tanggalRute'])
+                                                                .toLocal()
+                                                                .year ==
+                                                            2024
+                                                        ? ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              await showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return ResetConfirmation(
+                                                                      isSuccess:
+                                                                          (value) async {
+                                                                        if (value) {
+                                                                          setState(
+                                                                              () {
+                                                                            loading =
+                                                                                true;
+                                                                            dateRange =
+                                                                                DateTimeRange(
+                                                                              start: DateTime.now(),
+                                                                              end: DateTime.now(),
+                                                                            );
+                                                                            date.text =
+                                                                                '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                                                                            isStatus =
+                                                                                false;
+                                                                            isPeriod =
+                                                                                false;
+                                                                            isCompany =
+                                                                                false;
+                                                                            searchController.clear();
+                                                                            filteredStatus.value =
+                                                                                status;
+                                                                            filteredCompany.value =
+                                                                                company;
+                                                                          });
+
+                                                                          iom.clear();
+                                                                          await getIOM();
+                                                                        }
+                                                                      },
+                                                                      noIOM: filteredIOM
+                                                                              .value[index]
+                                                                          [
+                                                                          'noIOM'],
+                                                                      server: filteredIOM
+                                                                              .value[index]
+                                                                          [
+                                                                          'server'],
+                                                                      status: filteredIOM
+                                                                              .value[index]
+                                                                          [
+                                                                          'status'],
+                                                                    );
+                                                                  });
+                                                            },
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              fixedSize: Size(
+                                                                size.width,
+                                                                size.height *
+                                                                    0.05,
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                            ),
+                                                            child: const Text(
+                                                                'RESET'),
+                                                          )
+                                                        : const SizedBox
+                                                            .shrink()
+                                                    : const SizedBox.shrink(),
                                               ],
                                             ),
                                             trailing: filteredIOM.value[index]

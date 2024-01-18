@@ -97,6 +97,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 listResult.findElements('IOMCharterLevel').isEmpty
                     ? 'No Data'
                     : listResult.findElements('IOMCharterLevel').first.text;
+            final iomOpenAccess =
+                listResult.findElements('IOMOpenAccess').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('IOMOpenAccess').first.text;
             final userEmail = listResult.findElements('UserEmail').isEmpty
                 ? 'No Data'
                 : listResult.findElements('UserEmail').first.text;
@@ -112,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : iomCharterLevel.toUpperCase() == 'FINANCE'
                           ? '12'
                           : '10',
+              'userOpen': iomOpenAccess,
               'userEmail': userEmail,
               'nik': nik,
             });
@@ -142,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 await saveData(
                   userName,
                   temporaryList.last['userLevel'],
+                  iomOpenAccess,
                   userEmail,
                   nik,
                 );
@@ -208,6 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> saveData(
     String userName,
     String userLevel,
+    String userOpen,
     String userEmail,
     String nik,
   ) async {
@@ -219,6 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await prefs.setString('userName', userName);
       await prefs.setString('userLevel', userLevel);
+      await prefs.setString('userOpen', userOpen);
       await prefs.setString('userEmail', userEmail);
       await prefs.setString('userlevel', userLevel);
       await prefs.setString('nik', nik);
@@ -226,6 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       await prefs.setString('userName', userName);
       await prefs.setString('userLevel', userLevel);
+      await prefs.setString('userOpen', userOpen);
       await prefs.setString('userEmail', userEmail);
       await prefs.setString('userlevel', userLevel);
       await prefs.setString('nik', nik);

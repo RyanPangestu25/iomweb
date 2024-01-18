@@ -91,6 +91,8 @@ class _ConfirmationState extends State<Confirmation> {
             }
           });
         } else {
+          await sendLog();
+
           Future.delayed(const Duration(seconds: 1), () async {
             if (status == 'APPROVED') {
               await cekAPBEmbark();
@@ -179,6 +181,145 @@ class _ConfirmationState extends State<Confirmation> {
           loading = false;
         });
       }
+    }
+  }
+
+  Future<void> sendLog() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<SendLog xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<Status_konfirmasi_direksi>$status</Status_konfirmasi_direksi>' +
+          '<server>${widget.iom.last['server']}</server>' +
+          '<ConfirmedBy>$userName</ConfirmedBy>' +
+          '</SendLog>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_SendLog),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/SendLog',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData = document.findAllElements('SendLogResult').isEmpty
+            ? 'GAGAL'
+            : document.findAllElements('SendLogResult').first.text;
+
+        if (statusData == "GAGAL") {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "Failed",
+              backgroundColor: Colors.grey[300],
+            );
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) {
+                  return TryAgain(
+                    submit: (value) async {
+                      if (value) {
+                        await sendLog();
+                      }
+                    },
+                  );
+                });
+          });
+        } else {
+          debugPrint('Success Send Log');
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Failed Send Log",
+          backgroundColor: Colors.grey[300],
+        );
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
+
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return TryAgain(
+                  submit: (value) async {
+                    if (value) {
+                      await sendLog();
+                    }
+                  },
+                );
+              });
+        });
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed Send Log",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await sendLog();
+                  }
+                },
+              );
+            });
+      });
     }
   }
 

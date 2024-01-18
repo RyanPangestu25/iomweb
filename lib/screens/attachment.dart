@@ -113,7 +113,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                 'item': item,
                 'fileName': fileName,
                 'date': uploadedDate,
-                'ext': ext,
+                'ext': ext.toLowerCase(),
                 'attachmentType': attachmentType,
               });
             });
@@ -246,7 +246,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                 'noIOM': noIOM,
                 'filename': filename,
                 'pdf': pdfFile,
-                'ext': ext,
+                'ext': ext.toLowerCase(),
                 'attachmentType': attachmentType,
               });
             });

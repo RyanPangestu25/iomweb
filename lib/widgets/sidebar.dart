@@ -8,6 +8,7 @@ import '../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/about.dart';
 import '../screens/login.dart';
+import 'alertdialog/pick_date.dart';
 
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
@@ -53,6 +54,21 @@ class _SidebarState extends State<Sidebar> {
                       title: 'IOM Verification',
                     );
                   }),
+                );
+              },
+            ),
+            ListTile(
+              iconColor: Colors.white70,
+              textColor: Colors.white70,
+              leading: const Icon(Icons.circle_outlined),
+              title: const Text("Download Report"),
+              onTap: () async {
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return const PickDate();
+                  },
                 );
               },
             ),

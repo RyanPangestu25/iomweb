@@ -30,6 +30,9 @@ const url_GetIOMPayment =
 const url_Approval =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=Approval';
 
+const url_SendLog =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=SendLog';
+
 const url_Verification =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=Verification';
 
@@ -41,6 +44,9 @@ const url_VerificationAttach =
 
 const url_CekSaldoIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoIOM';
+
+const url_GetVersion =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetVersion';
 
 const url_GetAttachmentName =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAttachmentName';
@@ -71,3 +77,21 @@ const url_UpdateAPBIOM =
 
 const url_CreateAPB =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPB';
+
+const url_GetReport =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReport';
+
+const url_GetReportAll =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportAll';
+
+const url_ResetIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetIOM';
+
+const url_DelAPB =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DelAPB';
+
+const url_DelCharter =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DelCharter';
+
+const url_ResetCharter =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetCharter';
