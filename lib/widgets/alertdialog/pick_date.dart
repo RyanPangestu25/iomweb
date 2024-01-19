@@ -94,7 +94,6 @@ class _PickDateState extends State<PickDate> {
         'Perihal',
         'Curr',
         'BiayaCharter',
-        'BiayaCharter',
         'TglCreate',
         'UserCreate',
         'NamaPencharter',
@@ -174,6 +173,8 @@ class _PickDateState extends State<PickDate> {
             loading = false;
           });
         }
+
+        Navigator.of(context).pop();
       });
 
       Future.delayed(const Duration(seconds: 3), () async {
@@ -236,7 +237,9 @@ class _PickDateState extends State<PickDate> {
 
         final listResultAll = document.findAllElements('Table');
 
-        for (final listResult in listResultAll) {
+        for (int index = 0; index < listResultAll.length; index++) {
+          final listResult = listResultAll.toList()[index];
+
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
               : listResult.findElements('StatusData').first.innerText;
@@ -365,46 +368,51 @@ class _PickDateState extends State<PickDate> {
                 : listResult.findElements('Status').first.innerText;
 
             setState(() {
-              iom.add({
-                'noIOM': noIOM,
-                'tglIom': tglIOM,
-                'dari': dari,
-                'kepadaYTH': kepadaYth,
-                'ccYTH': ccYth,
-                'perihal': perihal,
-                'curr': currency,
-                'biayaCharter': biayaCharter,
-                'createdDate': createdDate,
-                'createdBy': createdBy,
-                'desc': description,
-                'item': item,
-                'tanggal': tanggal,
-                'rute': rute,
-                'amount': amount,
-                'tglVerifikasi': tgl_Verifikasi,
-                'verifiedBy': verifiedBy,
-                'payNo': payNo,
-                'currPembayaran': currPembayaran,
-                'amountPembayaran': amountPembayaran,
-                'namaBankPenerima': namaBankPenerima,
-                'tglTerimaPembayaran': tgl_TerimaPembayaran,
-                'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
-                'confirmedBy': confirmedBy,
-                'statusKonfirmasiDireksi': status_konfirmasi_direksi,
-                'logNo': logNo,
-                'userInsert': userInsert,
-                'insertDate': insertDate,
-                'status': status,
-              });
+              if (!iom.any((e) => e['no'] == index + 1)) {
+                iom.add({
+                  'no': index,
+                  'noIOM': noIOM,
+                  'tglIom': tglIOM,
+                  'dari': dari,
+                  'kepadaYTH': kepadaYth,
+                  'ccYTH': ccYth,
+                  'perihal': perihal,
+                  'curr': currency,
+                  'biayaCharter': biayaCharter,
+                  'createdDate': createdDate,
+                  'createdBy': createdBy,
+                  'desc': description,
+                  'item': item,
+                  'tanggal': tanggal,
+                  'rute': rute,
+                  'amount': amount,
+                  'tglVerifikasi': tgl_Verifikasi,
+                  'verifiedBy': verifiedBy,
+                  'payNo': payNo,
+                  'currPembayaran': currPembayaran,
+                  'amountPembayaran': amountPembayaran,
+                  'namaBankPenerima': namaBankPenerima,
+                  'tglTerimaPembayaran': tgl_TerimaPembayaran,
+                  'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
+                  'confirmedBy': confirmedBy,
+                  'statusKonfirmasiDireksi': status_konfirmasi_direksi,
+                  'logNo': logNo,
+                  'userInsert': userInsert,
+                  'insertDate': insertDate,
+                  'status': status,
+                });
+              }
             });
 
             debugPrint(jsonEncode(iom));
-
-            Future.delayed(const Duration(seconds: 1), () async {
-              await DownloadReport();
-            });
           }
         }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (iom.isNotEmpty) {
+            await DownloadReport();
+          }
+        });
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
@@ -454,18 +462,17 @@ class _PickDateState extends State<PickDate> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetReport xmlns="http://tempuri.org/">' +
+          '<GetReportAll xmlns="http://tempuri.org/">' +
           '<start>${DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal().toIso8601String()}</start>' +
           '<end>${DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal().toIso8601String()}</end>' +
-          '<server>$airlines</server>' +
-          '</GetReport>' +
+          '</GetReportAll>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetReport),
+      final response = await http.post(Uri.parse(url_GetReportAll),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetReport',
+            'SOAPAction': 'http://tempuri.org/GetReportAll',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -476,7 +483,9 @@ class _PickDateState extends State<PickDate> {
 
         final listResultAll = document.findAllElements('Table');
 
-        for (final listResult in listResultAll) {
+        for (int index = 0; index < listResultAll.length; index++) {
+          final listResult = listResultAll.toList()[index];
+
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
               : listResult.findElements('StatusData').first.innerText;
@@ -498,157 +507,170 @@ class _PickDateState extends State<PickDate> {
               }
             });
           } else {
-            final server = listResult.findElements('Server').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Server').first.innerText;
-            final noIOM = listResult.findElements('NoIOM').isEmpty
-                ? 'No Data'
-                : listResult.findElements('NoIOM').first.innerText;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
-                ? 'No Data'
-                : listResult.findElements('TglIOM').first.innerText;
-            final dari = listResult.findElements('Dari').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Dari').first.innerText;
-            final kepadaYth = listResult.findElements('KepadaYth').isEmpty
-                ? 'No Data'
-                : listResult.findElements('KepadaYth').first.innerText;
-            final ccYth = listResult.findElements('CCYth').isEmpty
-                ? 'No Data'
-                : listResult.findElements('CCYth').first.innerText;
-            final perihal = listResult.findElements('Perihal').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Perihal').first.innerText;
-            final currency = listResult.findElements('Currency').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Currency').first.innerText;
-            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
-                ? '0'
-                : listResult.findElements('BiayaCharter').first.innerText;
-            final createdDate = listResult.findElements('CreatedDate').isEmpty
-                ? 'No Data'
-                : listResult.findElements('CreatedDate').first.innerText;
-            final createdBy = listResult.findElements('CreatedBy').isEmpty
-                ? 'No Data'
-                : listResult.findElements('CreatedBy').first.innerText;
-            final description = listResult.findElements('Description').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Description').first.innerText;
-            final item = listResult.findElements('Item').isEmpty
-                ? '0'
-                : listResult.findElements('Item').first.innerText;
-            final tanggal = listResult.findElements('Tanggal').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tanggal').first.innerText;
-            final rute = listResult.findElements('Rute').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Rute').first.innerText;
-            final amount = listResult.findElements('Amount').isEmpty
-                ? '0'
-                : listResult.findElements('Amount').first.innerText;
-            final tgl_Verifikasi =
-                listResult.findElements('Tgl_Verifikasi').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('Tgl_Verifikasi').first.innerText;
-            final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
-                ? 'No Data'
-                : listResult.findElements('VerifiedBy').first.innerText;
-            final payNo = listResult.findElements('PayNo').isEmpty
-                ? '0'
-                : listResult.findElements('PayNo').first.innerText;
-            final currPembayaran =
-                listResult.findElements('CurrPembayaran').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('CurrPembayaran').first.innerText;
-            final amountPembayaran = listResult
-                    .findElements('AmountPembayaran')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('AmountPembayaran').first.innerText;
-            final namaBankPenerima = listResult
-                    .findElements('NamaBankPenerima')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('NamaBankPenerima').first.innerText;
-            final tgl_TerimaPembayaran =
-                listResult.findElements('Tgl_TerimaPembayaran').isEmpty
-                    ? 'No Data'
-                    : listResult
-                        .findElements('Tgl_TerimaPembayaran')
-                        .first
-                        .innerText;
-            final tgl_konfirmasi_direksi =
-                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
-                    ? 'No Data'
-                    : listResult
-                        .findElements('Tgl_konfirmasi_direksi')
-                        .first
-                        .innerText;
-            final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
-                ? 'No Data'
-                : listResult.findElements('ConfirmedBy').first.innerText;
-            final status_konfirmasi_direksi =
-                listResult.findElements('Status_konfirmasi_direksi').isEmpty
-                    ? 'No Data'
-                    : listResult
-                        .findElements('Status_konfirmasi_direksi')
-                        .first
-                        .innerText;
-            final logNo = listResult.findElements('LogNo').isEmpty
-                ? '0'
-                : listResult.findElements('LogNo').first.innerText;
-            final userInsert = listResult.findElements('UserInsert').isEmpty
-                ? 'No Data'
-                : listResult.findElements('UserInsert').first.innerText;
-            final insertDate = listResult.findElements('InsertDate').isEmpty
-                ? 'No Data'
-                : listResult.findElements('InsertDate').first.innerText;
-            final status = listResult.findElements('Status').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Status').first.innerText;
+            final hasChanges = listResult.getAttribute('diffgr:hasChanges');
+            debugPrint(hasChanges);
 
-            setState(() {
-              iom.add({
-                'server': server,
-                'noIOM': noIOM,
-                'tglIom': tglIOM,
-                'dari': dari,
-                'kepadaYTH': kepadaYth,
-                'ccYTH': ccYth,
-                'perihal': perihal,
-                'curr': currency,
-                'biayaCharter': biayaCharter,
-                'createdDate': createdDate,
-                'createdBy': createdBy,
-                'desc': description,
-                'item': item,
-                'tanggal': tanggal,
-                'rute': rute,
-                'amount': amount,
-                'tglVerifikasi': tgl_Verifikasi,
-                'verifiedBy': verifiedBy,
-                'payNo': payNo,
-                'currPembayaran': currPembayaran,
-                'amountPembayaran': amountPembayaran,
-                'namaBankPenerima': namaBankPenerima,
-                'tglTerimaPembayaran': tgl_TerimaPembayaran,
-                'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
-                'confirmedBy': confirmedBy,
-                'statusKonfirmasiDireksi': status_konfirmasi_direksi,
-                'logNo': logNo,
-                'userInsert': userInsert,
-                'insertDate': insertDate,
-                'status': status,
+            if (hasChanges == "modified") {
+              final noIOM = listResult.findElements('NoIOM').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('NoIOM').first.innerText;
+              final tglIOM = listResult.findElements('TglIOM').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('TglIOM').first.innerText;
+              final dari = listResult.findElements('Dari').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Dari').first.innerText;
+              final kepadaYth = listResult.findElements('KepadaYth').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('KepadaYth').first.innerText;
+              final ccYth = listResult.findElements('CCYth').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('CCYth').first.innerText;
+              final perihal = listResult.findElements('Perihal').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Perihal').first.innerText;
+              final currency = listResult.findElements('Currency').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Currency').first.innerText;
+              final biayaCharter =
+                  listResult.findElements('BiayaCharter').isEmpty
+                      ? '0'
+                      : listResult.findElements('BiayaCharter').first.innerText;
+              final createdDate = listResult.findElements('CreatedDate').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('CreatedDate').first.innerText;
+              final createdBy = listResult.findElements('CreatedBy').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('CreatedBy').first.innerText;
+              final description = listResult.findElements('Description').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Description').first.innerText;
+              final item = listResult.findElements('Item').isEmpty
+                  ? '0'
+                  : listResult.findElements('Item').first.innerText;
+              final tanggal = listResult.findElements('Tanggal').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Tanggal').first.innerText;
+              final rute = listResult.findElements('Rute').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Rute').first.innerText;
+              final amount = listResult.findElements('Amount').isEmpty
+                  ? '0'
+                  : listResult.findElements('Amount').first.innerText;
+              final tgl_Verifikasi = listResult
+                      .findElements('Tgl_Verifikasi')
+                      .isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Tgl_Verifikasi').first.innerText;
+              final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('VerifiedBy').first.innerText;
+              final payNo = listResult.findElements('PayNo').isEmpty
+                  ? '0'
+                  : listResult.findElements('PayNo').first.innerText;
+              final currPembayaran = listResult
+                      .findElements('CurrPembayaran')
+                      .isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('CurrPembayaran').first.innerText;
+              final amountPembayaran = listResult
+                      .findElements('AmountPembayaran')
+                      .isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('AmountPembayaran').first.innerText;
+              final namaBankPenerima = listResult
+                      .findElements('NamaBankPenerima')
+                      .isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('NamaBankPenerima').first.innerText;
+              final tgl_TerimaPembayaran =
+                  listResult.findElements('Tgl_TerimaPembayaran').isEmpty
+                      ? 'No Data'
+                      : listResult
+                          .findElements('Tgl_TerimaPembayaran')
+                          .first
+                          .innerText;
+              final tgl_konfirmasi_direksi =
+                  listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                      ? 'No Data'
+                      : listResult
+                          .findElements('Tgl_konfirmasi_direksi')
+                          .first
+                          .innerText;
+              final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('ConfirmedBy').first.innerText;
+              final status_konfirmasi_direksi =
+                  listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                      ? 'No Data'
+                      : listResult
+                          .findElements('Status_konfirmasi_direksi')
+                          .first
+                          .innerText;
+              final logNo = listResult.findElements('LogNo').isEmpty
+                  ? '0'
+                  : listResult.findElements('LogNo').first.innerText;
+              final userInsert = listResult.findElements('UserInsert').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('UserInsert').first.innerText;
+              final insertDate = listResult.findElements('InsertDate').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('InsertDate').first.innerText;
+              final status = listResult.findElements('Status').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Status').first.innerText;
+              final server = listResult.findElements('Server').isEmpty
+                  ? 'No Data'
+                  : listResult.findElements('Server').first.innerText;
+
+              setState(() {
+                if (!iom.any((e) => e['no'] == index + 1)) {
+                  iom.add({
+                    'no': index,
+                    'server': server,
+                    'noIOM': noIOM,
+                    'tglIom': tglIOM,
+                    'dari': dari,
+                    'kepadaYTH': kepadaYth,
+                    'ccYTH': ccYth,
+                    'perihal': perihal,
+                    'curr': currency,
+                    'biayaCharter': biayaCharter,
+                    'createdDate': createdDate,
+                    'createdBy': createdBy,
+                    'desc': description,
+                    'item': item,
+                    'tanggal': tanggal,
+                    'rute': rute,
+                    'amount': amount,
+                    'tglVerifikasi': tgl_Verifikasi,
+                    'verifiedBy': verifiedBy,
+                    'payNo': payNo,
+                    'currPembayaran': currPembayaran,
+                    'amountPembayaran': amountPembayaran,
+                    'namaBankPenerima': namaBankPenerima,
+                    'tglTerimaPembayaran': tgl_TerimaPembayaran,
+                    'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
+                    'confirmedBy': confirmedBy,
+                    'statusKonfirmasiDireksi': status_konfirmasi_direksi,
+                    'logNo': logNo,
+                    'userInsert': userInsert,
+                    'insertDate': insertDate,
+                    'status': status,
+                  });
+                }
               });
-            });
 
-            debugPrint(jsonEncode(iom));
-
-            Future.delayed(const Duration(seconds: 1), () async {
-              await DownloadReport();
-            });
+              debugPrint(jsonEncode(iom));
+            }
           }
         }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (iom.isNotEmpty) {
+            await DownloadReport();
+          }
+        });
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
@@ -730,32 +752,36 @@ class _PickDateState extends State<PickDate> {
           onPressed: loading
               ? null
               : () async {
-                  setState(() {
-                    loading = true;
-                  });
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
 
-                  if (airlines != 'ALL') {
-                    await getReport();
-                  } else {
-                    await getReportAll();
-                  }
+                    setState(() {
+                      loading = true;
+                    });
 
-                  if (isSave) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        showCloseIcon: false,
-                        duration: Duration(seconds: 5),
-                        behavior: SnackBarBehavior.floating,
-                        padding: EdgeInsets.all(20),
-                        elevation: 10,
-                        content: Center(
-                          child: Text(
-                            'File Saved in Download',
-                            textAlign: TextAlign.justify,
+                    if (airlines != 'ALL') {
+                      await getReport();
+                    } else {
+                      await getReportAll();
+                    }
+
+                    if (isSave) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          showCloseIcon: false,
+                          duration: Duration(seconds: 5),
+                          behavior: SnackBarBehavior.floating,
+                          padding: EdgeInsets.all(20),
+                          elevation: 10,
+                          content: Center(
+                            child: Text(
+                              'File Saved in Download',
+                              textAlign: TextAlign.justify,
+                            ),
                           ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   }
                 },
           child: loading
@@ -865,12 +891,26 @@ class _PickDateState extends State<PickDate> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(width: 1),
                         ),
+                        errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1,
+                            color: Colors.red,
+                          ),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1,
+                            color: Colors.red,
+                          ),
+                        ),
                       ),
                       items: listAirlines.map(buildmenuItem).toList(),
                       onChanged: (value) {
-                        setState(() {
-                          airlines = value!;
-                        });
+                        if (!loading) {
+                          setState(() {
+                            airlines = value!;
+                          });
+                        }
                       },
                       validator: (value) {
                         if (value == "Select") {
