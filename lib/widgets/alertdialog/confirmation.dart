@@ -190,14 +190,16 @@ class _ConfirmationState extends State<Confirmation> {
         loading = true;
       });
 
+      String status = widget.text == 'APPROVE' ? 'APPROVED' : 'REJECTED';
+
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<SendLog xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<Status_konfirmasi_direksi>$status</Status_konfirmasi_direksi>' +
+          '<UserInsert>$userName</UserInsert>' +
+          '<Status>$status</Status>' +
           '<server>${widget.iom.last['server']}</server>' +
-          '<ConfirmedBy>$userName</ConfirmedBy>' +
           '</SendLog>' +
           '</soap:Body>' +
           '</soap:Envelope>';
