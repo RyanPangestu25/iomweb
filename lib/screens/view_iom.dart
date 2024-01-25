@@ -5,7 +5,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../widgets/alertdialog/confirm_reset.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
@@ -1181,89 +1180,89 @@ class _ViewIOMState extends State<ViewIOM> {
                                                     ),
                                                   ],
                                                 ),
-                                                isOpen
-                                                    ? DateTime.parse(filteredIOM
-                                                                            .value[
-                                                                        index][
-                                                                    'tanggalRute'])
-                                                                .toLocal()
-                                                                .year ==
-                                                            2024
-                                                        ? ElevatedButton(
-                                                            onPressed:
-                                                                () async {
-                                                              await showDialog(
-                                                                  context:
-                                                                      context,
-                                                                  builder:
-                                                                      (BuildContext
-                                                                          context) {
-                                                                    return ResetConfirmation(
-                                                                      isSuccess:
-                                                                          (value) async {
-                                                                        if (value) {
-                                                                          setState(
-                                                                              () {
-                                                                            loading =
-                                                                                true;
-                                                                            dateRange =
-                                                                                DateTimeRange(
-                                                                              start: DateTime.now(),
-                                                                              end: DateTime.now(),
-                                                                            );
-                                                                            date.text =
-                                                                                '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                                            isStatus =
-                                                                                false;
-                                                                            isPeriod =
-                                                                                false;
-                                                                            isCompany =
-                                                                                false;
-                                                                            searchController.clear();
-                                                                            filteredStatus.value =
-                                                                                status;
-                                                                            filteredCompany.value =
-                                                                                company;
-                                                                          });
+                                                // isOpen
+                                                //     ? DateTime.parse(filteredIOM
+                                                //                             .value[
+                                                //                         index][
+                                                //                     'tanggalRute'])
+                                                //                 .toLocal()
+                                                //                 .year ==
+                                                //             2024
+                                                //         ? ElevatedButton(
+                                                //             onPressed:
+                                                //                 () async {
+                                                //               await showDialog(
+                                                //                   context:
+                                                //                       context,
+                                                //                   builder:
+                                                //                       (BuildContext
+                                                //                           context) {
+                                                //                     return ResetConfirmation(
+                                                //                       isSuccess:
+                                                //                           (value) async {
+                                                //                         if (value) {
+                                                //                           setState(
+                                                //                               () {
+                                                //                             loading =
+                                                //                                 true;
+                                                //                             dateRange =
+                                                //                                 DateTimeRange(
+                                                //                               start: DateTime.now(),
+                                                //                               end: DateTime.now(),
+                                                //                             );
+                                                //                             date.text =
+                                                //                                 '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                                                //                             isStatus =
+                                                //                                 false;
+                                                //                             isPeriod =
+                                                //                                 false;
+                                                //                             isCompany =
+                                                //                                 false;
+                                                //                             searchController.clear();
+                                                //                             filteredStatus.value =
+                                                //                                 status;
+                                                //                             filteredCompany.value =
+                                                //                                 company;
+                                                //                           });
 
-                                                                          iom.clear();
-                                                                          await getIOM();
-                                                                        }
-                                                                      },
-                                                                      noIOM: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'noIOM'],
-                                                                      server: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'server'],
-                                                                      status: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'status'],
-                                                                    );
-                                                                  });
-                                                            },
-                                                            style:
-                                                                ElevatedButton
-                                                                    .styleFrom(
-                                                              fixedSize: Size(
-                                                                size.width,
-                                                                size.height *
-                                                                    0.05,
-                                                              ),
-                                                              backgroundColor:
-                                                                  Colors.red,
-                                                              foregroundColor:
-                                                                  Colors.white,
-                                                            ),
-                                                            child: const Text(
-                                                                'RESET'),
-                                                          )
-                                                        : const SizedBox
-                                                            .shrink()
-                                                    : const SizedBox.shrink(),
+                                                //                           iom.clear();
+                                                //                           await getIOM();
+                                                //                         }
+                                                //                       },
+                                                //                       noIOM: filteredIOM
+                                                //                               .value[index]
+                                                //                           [
+                                                //                           'noIOM'],
+                                                //                       server: filteredIOM
+                                                //                               .value[index]
+                                                //                           [
+                                                //                           'server'],
+                                                //                       status: filteredIOM
+                                                //                               .value[index]
+                                                //                           [
+                                                //                           'status'],
+                                                //                     );
+                                                //                   });
+                                                //             },
+                                                //             style:
+                                                //                 ElevatedButton
+                                                //                     .styleFrom(
+                                                //               fixedSize: Size(
+                                                //                 size.width,
+                                                //                 size.height *
+                                                //                     0.05,
+                                                //               ),
+                                                //               backgroundColor:
+                                                //                   Colors.red,
+                                                //               foregroundColor:
+                                                //                   Colors.white,
+                                                //             ),
+                                                //             child: const Text(
+                                                //                 'RESET'),
+                                                //           )
+                                                //         : const SizedBox
+                                                //             .shrink()
+                                                //     : const SizedBox.shrink(),
                                               ],
                                             ),
                                             trailing: filteredIOM.value[index]

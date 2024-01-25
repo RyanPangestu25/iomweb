@@ -125,40 +125,61 @@ class _PickDateState extends State<PickDate> {
               data['server'],
             },
           data['noIOM'],
-          data['tglIom'],
+          data['tglIom'] == 'No Data'
+              ? data['tglIom']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglIom']).toLocal()),
           data['dari'],
           data['kepadaYTH'],
           data['ccYTH'],
           data['perihal'],
           data['curr'],
           data['biayaCharter'],
-          data['createdDate'],
+          data['createdDate'] == 'No Data'
+              ? data['createdDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['createdDate']).toLocal()),
           data['createdBy'],
           data['desc'],
           data['item'],
-          data['tanggal'],
+          data['tanggal'] == 'No Data'
+              ? data['tanggal']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tanggal']).toLocal()),
           data['rute'],
           data['curr'],
           data['amount'],
-          data['tglVerifikasi'],
+          data['tglVerifikasi'] == 'No Data'
+              ? data['tglVerifikasi']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
           data['verifiedBy'],
           data['payNo'],
           data['currPembayaran'],
           data['amountPembayaran'],
           data['namaBankPenerima'],
-          data['tglTerimaPembayaran'],
-          data['tglKonfirmasiDireksi'],
+          data['tglTerimaPembayaran'] == 'No Data'
+              ? data['tglTerimaPembayaran']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglTerimaPembayaran']).toLocal()),
+          data['tglKonfirmasiDireksi'] == 'No Data'
+              ? data['tglKonfirmasiDireksi']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
           data['confirmedBy'],
           data['statusKonfirmasiDireksi'],
           data['logNo'],
           data['userInsert'],
-          data['insertDate'],
+          data['insertDate'] == 'No Data'
+              ? data['insertDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['insertDate']).toLocal()),
           data['status'],
         ]);
       }
 
       String fileName =
-          'IOM${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
+          '${airlines}IOM${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
 
       //Simpan data byte ke file excel
       excel.save(fileName: '$fileName.xlsx');
@@ -507,162 +528,154 @@ class _PickDateState extends State<PickDate> {
               }
             });
           } else {
-            final hasChanges = listResult.getAttribute('diffgr:hasChanges');
-            debugPrint(hasChanges);
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.innerText;
+            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglIOM').first.innerText;
+            final dari = listResult.findElements('Dari').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Dari').first.innerText;
+            final kepadaYth = listResult.findElements('KepadaYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('KepadaYth').first.innerText;
+            final ccYth = listResult.findElements('CCYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CCYth').first.innerText;
+            final perihal = listResult.findElements('Perihal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Perihal').first.innerText;
+            final currency = listResult.findElements('Currency').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Currency').first.innerText;
+            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
+                ? '0'
+                : listResult.findElements('BiayaCharter').first.innerText;
+            final createdDate = listResult.findElements('CreatedDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedDate').first.innerText;
+            final createdBy = listResult.findElements('CreatedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedBy').first.innerText;
+            final description = listResult.findElements('Description').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Description').first.innerText;
+            final item = listResult.findElements('Item').isEmpty
+                ? '0'
+                : listResult.findElements('Item').first.innerText;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.innerText;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.innerText;
+            final amount = listResult.findElements('Amount').isEmpty
+                ? '0'
+                : listResult.findElements('Amount').first.innerText;
+            final tgl_Verifikasi =
+                listResult.findElements('Tgl_Verifikasi').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('Tgl_Verifikasi').first.innerText;
+            final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('VerifiedBy').first.innerText;
+            final payNo = listResult.findElements('PayNo').isEmpty
+                ? '0'
+                : listResult.findElements('PayNo').first.innerText;
+            final currPembayaran =
+                listResult.findElements('CurrPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('CurrPembayaran').first.innerText;
+            final amountPembayaran = listResult
+                    .findElements('AmountPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('AmountPembayaran').first.innerText;
+            final namaBankPenerima = listResult
+                    .findElements('NamaBankPenerima')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('NamaBankPenerima').first.innerText;
+            final tgl_TerimaPembayaran =
+                listResult.findElements('Tgl_TerimaPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_TerimaPembayaran')
+                        .first
+                        .innerText;
+            final tgl_konfirmasi_direksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ConfirmedBy').first.innerText;
+            final status_konfirmasi_direksi =
+                listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Status_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final logNo = listResult.findElements('LogNo').isEmpty
+                ? '0'
+                : listResult.findElements('LogNo').first.innerText;
+            final userInsert = listResult.findElements('UserInsert').isEmpty
+                ? 'No Data'
+                : listResult.findElements('UserInsert').first.innerText;
+            final insertDate = listResult.findElements('InsertDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('InsertDate').first.innerText;
+            final status = listResult.findElements('Status').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Status').first.innerText;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.innerText;
 
-            if (hasChanges == "modified") {
-              final noIOM = listResult.findElements('NoIOM').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('NoIOM').first.innerText;
-              final tglIOM = listResult.findElements('TglIOM').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('TglIOM').first.innerText;
-              final dari = listResult.findElements('Dari').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Dari').first.innerText;
-              final kepadaYth = listResult.findElements('KepadaYth').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('KepadaYth').first.innerText;
-              final ccYth = listResult.findElements('CCYth').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('CCYth').first.innerText;
-              final perihal = listResult.findElements('Perihal').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Perihal').first.innerText;
-              final currency = listResult.findElements('Currency').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Currency').first.innerText;
-              final biayaCharter =
-                  listResult.findElements('BiayaCharter').isEmpty
-                      ? '0'
-                      : listResult.findElements('BiayaCharter').first.innerText;
-              final createdDate = listResult.findElements('CreatedDate').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('CreatedDate').first.innerText;
-              final createdBy = listResult.findElements('CreatedBy').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('CreatedBy').first.innerText;
-              final description = listResult.findElements('Description').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Description').first.innerText;
-              final item = listResult.findElements('Item').isEmpty
-                  ? '0'
-                  : listResult.findElements('Item').first.innerText;
-              final tanggal = listResult.findElements('Tanggal').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Tanggal').first.innerText;
-              final rute = listResult.findElements('Rute').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Rute').first.innerText;
-              final amount = listResult.findElements('Amount').isEmpty
-                  ? '0'
-                  : listResult.findElements('Amount').first.innerText;
-              final tgl_Verifikasi = listResult
-                      .findElements('Tgl_Verifikasi')
-                      .isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Tgl_Verifikasi').first.innerText;
-              final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('VerifiedBy').first.innerText;
-              final payNo = listResult.findElements('PayNo').isEmpty
-                  ? '0'
-                  : listResult.findElements('PayNo').first.innerText;
-              final currPembayaran = listResult
-                      .findElements('CurrPembayaran')
-                      .isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('CurrPembayaran').first.innerText;
-              final amountPembayaran = listResult
-                      .findElements('AmountPembayaran')
-                      .isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('AmountPembayaran').first.innerText;
-              final namaBankPenerima = listResult
-                      .findElements('NamaBankPenerima')
-                      .isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('NamaBankPenerima').first.innerText;
-              final tgl_TerimaPembayaran =
-                  listResult.findElements('Tgl_TerimaPembayaran').isEmpty
-                      ? 'No Data'
-                      : listResult
-                          .findElements('Tgl_TerimaPembayaran')
-                          .first
-                          .innerText;
-              final tgl_konfirmasi_direksi =
-                  listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
-                      ? 'No Data'
-                      : listResult
-                          .findElements('Tgl_konfirmasi_direksi')
-                          .first
-                          .innerText;
-              final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('ConfirmedBy').first.innerText;
-              final status_konfirmasi_direksi =
-                  listResult.findElements('Status_konfirmasi_direksi').isEmpty
-                      ? 'No Data'
-                      : listResult
-                          .findElements('Status_konfirmasi_direksi')
-                          .first
-                          .innerText;
-              final logNo = listResult.findElements('LogNo').isEmpty
-                  ? '0'
-                  : listResult.findElements('LogNo').first.innerText;
-              final userInsert = listResult.findElements('UserInsert').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('UserInsert').first.innerText;
-              final insertDate = listResult.findElements('InsertDate').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('InsertDate').first.innerText;
-              final status = listResult.findElements('Status').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Status').first.innerText;
-              final server = listResult.findElements('Server').isEmpty
-                  ? 'No Data'
-                  : listResult.findElements('Server').first.innerText;
+            setState(() {
+              if (!iom.any((e) => e['no'] == index + 1)) {
+                iom.add({
+                  'no': index,
+                  'server': server,
+                  'noIOM': noIOM,
+                  'tglIom': tglIOM,
+                  'dari': dari,
+                  'kepadaYTH': kepadaYth,
+                  'ccYTH': ccYth,
+                  'perihal': perihal,
+                  'curr': currency,
+                  'biayaCharter': biayaCharter,
+                  'createdDate': createdDate,
+                  'createdBy': createdBy,
+                  'desc': description,
+                  'item': item,
+                  'tanggal': tanggal,
+                  'rute': rute,
+                  'amount': amount,
+                  'tglVerifikasi': tgl_Verifikasi,
+                  'verifiedBy': verifiedBy,
+                  'payNo': payNo,
+                  'currPembayaran': currPembayaran,
+                  'amountPembayaran': amountPembayaran,
+                  'namaBankPenerima': namaBankPenerima,
+                  'tglTerimaPembayaran': tgl_TerimaPembayaran,
+                  'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
+                  'confirmedBy': confirmedBy,
+                  'statusKonfirmasiDireksi': status_konfirmasi_direksi,
+                  'logNo': logNo,
+                  'userInsert': userInsert,
+                  'insertDate': insertDate,
+                  'status': status,
+                });
+              }
+            });
 
-              setState(() {
-                if (!iom.any((e) => e['no'] == index + 1)) {
-                  iom.add({
-                    'no': index,
-                    'server': server,
-                    'noIOM': noIOM,
-                    'tglIom': tglIOM,
-                    'dari': dari,
-                    'kepadaYTH': kepadaYth,
-                    'ccYTH': ccYth,
-                    'perihal': perihal,
-                    'curr': currency,
-                    'biayaCharter': biayaCharter,
-                    'createdDate': createdDate,
-                    'createdBy': createdBy,
-                    'desc': description,
-                    'item': item,
-                    'tanggal': tanggal,
-                    'rute': rute,
-                    'amount': amount,
-                    'tglVerifikasi': tgl_Verifikasi,
-                    'verifiedBy': verifiedBy,
-                    'payNo': payNo,
-                    'currPembayaran': currPembayaran,
-                    'amountPembayaran': amountPembayaran,
-                    'namaBankPenerima': namaBankPenerima,
-                    'tglTerimaPembayaran': tgl_TerimaPembayaran,
-                    'tglKonfirmasiDireksi': tgl_konfirmasi_direksi,
-                    'confirmedBy': confirmedBy,
-                    'statusKonfirmasiDireksi': status_konfirmasi_direksi,
-                    'logNo': logNo,
-                    'userInsert': userInsert,
-                    'insertDate': insertDate,
-                    'status': status,
-                  });
-                }
-              });
-
-              debugPrint(jsonEncode(iom));
-            }
+            debugPrint(jsonEncode(iom));
           }
         }
 
