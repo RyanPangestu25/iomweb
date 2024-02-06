@@ -200,6 +200,7 @@ class _ConfirmationState extends State<Confirmation> {
           '<UserInsert>$userName</UserInsert>' +
           '<Status>$status</Status>' +
           '<server>${widget.iom.last['server']}</server>' +
+          '<Device>WEB</Device>' +
           '</SendLog>' +
           '</soap:Body>' +
           '</soap:Envelope>';
