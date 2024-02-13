@@ -1,7 +1,10 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:status_alert/status_alert.dart';
+import '../backend/constants.dart';
 import '../screens/change_pass.dart';
 import '../screens/home.dart';
 import '../screens/view_iom.dart';
@@ -9,6 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/about.dart';
 import '../screens/login.dart';
 import 'alertdialog/pick_date.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:xml/xml.dart' as xml;
 
 class Sidebar extends StatefulWidget {
   const Sidebar({super.key});
@@ -18,6 +24,9 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  bool loading = false;
+
+  String randomID = '';
   List data = [];
   Widget expan = const ExpansionTile(
     collapsedIconColor: Colors.white,
@@ -29,6 +38,115 @@ class _SidebarState extends State<Sidebar> {
     textColor: Color.fromARGB(255, 5, 98, 173),
     children: [],
   );
+
+  Future<void> genRandom() async {
+    int random = Random().nextInt(4294967296);
+
+    setState(() {
+      randomID = 'FC' + random.toString();
+    });
+
+    debugPrint(randomID);
+
+    await addTranKey();
+  }
+
+  Future<void> addTranKey() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<AddTranKey xmlns="http://tempuri.org/">' +
+          '<nik>${data.last['nik']}</nik>' +
+          '<TranKey>$randomID</TranKey>' +
+          '</AddTranKey>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_AddTranKey),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/AddTranKey',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData = document.findAllElements('AddTranKeyResult').isEmpty
+            ? 'GAGAL'
+            : document.findAllElements('AddTranKeyResult').first.text;
+
+        if (statusData == "GAGAL") {
+          Future.delayed(const Duration(seconds: 1), () {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "Failed",
+              backgroundColor: Colors.grey[300],
+            );
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Failed Add TranKey",
+          backgroundColor: Colors.grey[300],
+        );
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed Add TranKey",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
 
   Future<Widget> cekLevel() async {
     if (data.last['level'] == '12') {
@@ -99,6 +217,59 @@ class _SidebarState extends State<Sidebar> {
                     );
                   }),
                 );
+              },
+            ),
+          ],
+        );
+      });
+    } else if (data.last['level'] == '19') {
+      setState(() {
+        expan = ExpansionTile(
+          collapsedIconColor: Colors.white,
+          collapsedTextColor: Colors.white,
+          title: const Text(
+            "Menu",
+          ),
+          leading: const Icon(Icons.receipt),
+          textColor: const Color.fromARGB(255, 5, 98, 173),
+          children: [
+            ListTile(
+              iconColor: Colors.white70,
+              textColor: Colors.white70,
+              leading: const Icon(Icons.circle_outlined),
+              title: const Text("Internal Memo Office IOM"),
+              onTap: () async {
+                await genRandom();
+
+                Future.delayed(const Duration(seconds: 1), () async {
+                  String baseUrl =
+                      'https://lgapvfncacc.com/IOMCharterWeb/CreateIOM/';
+                  String nik = data.last['nik'];
+                  String tranKey = randomID;
+
+                  String urlWithParameters = baseUrl +
+                      '?NIK=' +
+                      Uri.encodeComponent(nik) +
+                      '&TranKey=' +
+                      Uri.encodeComponent(tranKey);
+
+                  if (await canLaunch(urlWithParameters)) {
+                    await launch(urlWithParameters, webOnlyWindowName: '_self');
+                  } else {
+                    StatusAlert.show(
+                      context,
+                      duration: const Duration(seconds: 1),
+                      configuration: const IconConfiguration(
+                        icon: Icons.error,
+                        color: Colors.red,
+                      ),
+                      title: "Error while opening URL",
+                      backgroundColor: Colors.grey[300],
+                    );
+
+                    throw 'Error while opening $urlWithParameters';
+                  }
+                });
               },
             ),
           ],

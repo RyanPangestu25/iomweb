@@ -95,3 +95,6 @@ const url_DelCharter =
 
 const url_ResetCharter =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetCharter';
+
+const url_AddTranKey =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddTranKey';

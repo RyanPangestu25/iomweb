@@ -176,6 +176,7 @@ class _VerificationState extends State<Verification> {
                 title: "No Data",
                 backgroundColor: Colors.grey[300],
               );
+
               if (mounted) {
                 setState(() {
                   loading = false;
