@@ -99,18 +99,6 @@ class _CekOTPState extends State<CekOTP> {
             setState(() {
               loading = false;
             });
-
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return CekOTP(
-                  nik: nik,
-                  email: email,
-                  kodeOTP: kodeOTP,
-                );
-              },
-            );
           }
         });
       } else {
