@@ -1452,7 +1452,7 @@ class _VerificationState extends State<Verification> {
                 ),
               ],
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6.0),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             LoadingWidget(

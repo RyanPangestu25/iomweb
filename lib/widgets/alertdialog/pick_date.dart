@@ -758,7 +758,7 @@ class _PickDateState extends State<PickDate> {
       ),
       iconColor: Colors.green,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(6.0),
+        borderRadius: BorderRadius.circular(10),
       ),
       actions: [
         TextButton(

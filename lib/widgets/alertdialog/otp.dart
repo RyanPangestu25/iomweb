@@ -308,8 +308,9 @@ class _CekOTPState extends State<CekOTP> {
                   : const Text("Close"),
             ),
           ],
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       ),
     );

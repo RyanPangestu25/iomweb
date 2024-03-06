@@ -45,7 +45,8 @@ class _TryAgainState extends State<TryAgain> {
                 ),
               ),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6.0)),
+                borderRadius: BorderRadius.circular(10),
+              ),
               actions: [
                 TextButton(
                   onPressed: () async {
