@@ -626,24 +626,7 @@ class _ConfirmationState extends State<Confirmation> {
           );
 
           Future.delayed(const Duration(seconds: 1), () async {
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) {
-                  return TryAgain(
-                    submit: (value) async {
-                      if (value) {
-                        await updateAPB();
-                      }
-                    },
-                  );
-                });
+            await resetApproval();
           });
         } else {
           Future.delayed(const Duration(seconds: 1), () async {
@@ -919,6 +902,148 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
+      });
+    }
+  }
+
+  Future<void> resetApproval() async {
+    try {
+      setState(() {
+        loading = true;
+        status = 'Resetting Approval';
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<ResetApproval xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '</ResetApproval>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_ResetApproval),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/ResetApproval',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData =
+            document.findAllElements('ResetApprovalResult').isEmpty
+                ? 'No Data'
+                : document.findAllElements('ResetApprovalResult').first.text;
+
+        if (statusData == 'GAGAL') {
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: 'Failed Reset Approval',
+            backgroundColor: Colors.grey[300],
+          );
+
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          });
+        } else {
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 3),
+            configuration: const IconConfiguration(
+              icon: Icons.done,
+              color: Colors.green,
+            ),
+            title: 'Success Reset Approval',
+            backgroundColor: Colors.grey[300],
+          );
+
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+
+            if (level == '12') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Verification',
+                  );
+                },
+              ));
+            } else if (level == '10') {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'IOM Approval',
+                  );
+                },
+              ));
+            } else {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const ViewIOM(
+                    title: 'View IOM',
+                  );
+                },
+              ));
+            }
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Failed Reset Approval",
+          backgroundColor: Colors.grey[300],
+        );
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed Reset Approval",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
       });
     }
   }
