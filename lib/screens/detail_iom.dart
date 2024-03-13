@@ -1631,9 +1631,9 @@ class _DetailIOMState extends State<DetailIOM> {
                     )
                   ]
             : level == 10
-                ? widget.iom.last['status'] == 'APPROVED' ||
-                        // widget.iom.last['status'] == 'REJECTED' ||
-                        widget.iom.last['status'] == 'NONE'
+                ? widget.iom.last['status'] == 'APPROVED' //||
+                    // widget.iom.last['status'] == 'REJECTED' ||
+                    // widget.iom.last['status'] == 'NONE'
                     ? [
                         Center(
                           child: Text(

@@ -72,6 +72,12 @@ const url_SendToIssued =
 const url_CekAPBEmbark =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbark';
 
+const url_CekAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBIOM';
+
+const url_CreateAPBIOM =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBIOM';
+
 const url_UpdateAPBIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBIOM';
 

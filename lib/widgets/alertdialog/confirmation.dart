@@ -411,7 +411,8 @@ class _ConfirmationState extends State<Confirmation> {
 
       Future.delayed(const Duration(seconds: 1), () async {
         if (noAPBEmbark.isEmpty) {
-          await updateAPB();
+          // await updateAPB();
+          await cekAPBIOM();
         } else {
           await createAPB();
         }
@@ -446,6 +447,132 @@ class _ConfirmationState extends State<Confirmation> {
                 submit: (value) async {
                   if (value) {
                     await cekAPBEmbark();
+                  }
+                },
+              );
+            });
+      });
+    }
+  }
+
+  Future<void> cekAPBIOM() async {
+    try {
+      setState(() {
+        loading = true;
+        status = 'Checking APB IOM';
+      });
+
+      for (int index = 0; index < widget.iomItem.length; index++) {
+        final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+            '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+            '<soap:Body>' +
+            '<CekAPBIOM xmlns="http://tempuri.org/">' +
+            '<FlightNumber>${widget.iomItem[index]['flightNumber']}</FlightNumber>' +
+            '<FlightDate>${DateTime.parse(widget.iomItem[index]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
+            '<Airlines>${widget.iomItem[index]['airlineCode']}</Airlines>' +
+            '<Routes>${widget.iomItem[index]['rute']}</Routes>' +
+            '</CekAPBIOM>' +
+            '</soap:Body>' +
+            '</soap:Envelope>';
+
+        final response = await http.post(Uri.parse(url_CekAPBIOM),
+            headers: <String, String>{
+              "Access-Control-Allow-Origin": "*",
+              'SOAPAction': 'http://tempuri.org/CekAPBIOM',
+              'Access-Control-Allow-Credentials': 'true',
+              'Content-type': 'text/xml; charset=utf-8'
+            },
+            body: soapEnvelope);
+
+        if (response.statusCode == 200) {
+          final document = xml.XmlDocument.parse(response.body);
+          final listResultAll = document.findAllElements('Table');
+
+          for (final listResult in listResultAll) {
+            final statusData = listResult.findAllElements('StatusData').isEmpty
+                ? 'No Data'
+                : listResult.findAllElements('StatusData').first.text;
+
+            if (statusData == "GAGAL") {
+              if (!noAPBIOM.contains(index)) {
+                noAPBIOM.add(index);
+              }
+            }
+          }
+        } else {
+          debugPrint('Error: ${response.statusCode}');
+          debugPrint('Desc: ${response.body}');
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Failed Check APB IOM",
+            backgroundColor: Colors.grey[300],
+          );
+
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) {
+                  return TryAgain(
+                    submit: (value) async {
+                      if (value) {
+                        await cekAPBIOM();
+                      }
+                    },
+                  );
+                });
+          });
+          break;
+        }
+      }
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (noAPBIOM.isEmpty) {
+          await updateAPB();
+        } else {
+          await createAPBIOM();
+        }
+      });
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed Check APB IOM",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await cekAPBIOM();
                   }
                 },
               );
@@ -527,11 +654,13 @@ class _ConfirmationState extends State<Confirmation> {
         });
 
         if (noAPBFailed.isEmpty) {
-          await updateAPB();
+          // await updateAPB();
+          await cekAPBIOM();
         } else {
           setState(() {
             noAPBEmbark = noAPBFailed;
           });
+
           await createAPB();
         }
       });
@@ -565,6 +694,124 @@ class _ConfirmationState extends State<Confirmation> {
                 submit: (value) async {
                   if (value) {
                     await createAPB();
+                  }
+                },
+              );
+            });
+      });
+    }
+  }
+
+  Future<void> createAPBIOM() async {
+    List<int> noAPBFailed = [];
+
+    try {
+      setState(() {
+        loading = true;
+        status = 'Creating APB IOM';
+      });
+
+      for (int index = 0; index < noAPBIOM.length; index++) {
+        final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+            '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+            '<soap:Body>' +
+            '<CreateAPBIOM xmlns="http://tempuri.org/">' +
+            '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+            '<Airlines>${widget.iomItem[noAPBIOM[index]]['airlineCode']}</Airlines>' +
+            '<FlightDate>${DateTime.parse(widget.iomItem[noAPBIOM[index]]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
+            '<FlightNumber>${widget.iomItem[noAPBIOM[index]]['flightNumber']}</FlightNumber>' +
+            '<Routes>${widget.iomItem[noAPBIOM[index]]['rute']}</Routes>' +
+            '</CreateAPBIOM>' +
+            '</soap:Body>' +
+            '</soap:Envelope>';
+
+        final response = await http.post(Uri.parse(url_CreateAPBIOM),
+            headers: <String, String>{
+              "Access-Control-Allow-Origin": "*",
+              'SOAPAction': 'http://tempuri.org/CreateAPBIOM',
+              'Access-Control-Allow-Credentials': 'true',
+              'Content-type': 'text/xml; charset=utf-8'
+            },
+            body: soapEnvelope);
+
+        if (response.statusCode == 200) {
+          final document = xml.XmlDocument.parse(response.body);
+          final statusData =
+              document.findAllElements('CreateAPBIOMResult').isEmpty
+                  ? 'No Data'
+                  : document.findAllElements('CreateAPBIOMResult').first.text;
+
+          if (statusData == "GAGAL") {
+            if (!noAPBFailed.contains(index)) {
+              noAPBFailed.add(index);
+            }
+          }
+        } else {
+          debugPrint('Error: ${response.statusCode}');
+          debugPrint('Desc: ${response.body}');
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Failed Create APB IOM",
+            backgroundColor: Colors.grey[300],
+          );
+
+          Future.delayed(const Duration(seconds: 1), () async {
+            if (!noAPBFailed.contains(index)) {
+              noAPBFailed.add(index);
+            }
+          });
+        }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          setState(() {
+            noAPBIOM.clear();
+          });
+
+          if (noAPBFailed.isEmpty) {
+            await updateAPB();
+          } else {
+            setState(() {
+              noAPBIOM = noAPBFailed;
+            });
+
+            await createAPBIOM();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Failed Create APB IOM",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await createAPBIOM();
                   }
                 },
               );
@@ -918,6 +1165,7 @@ class _ConfirmationState extends State<Confirmation> {
           '<soap:Body>' +
           '<ResetApproval xmlns="http://tempuri.org/">' +
           '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<server>${widget.iom.last['server']}</server>' +
           '</ResetApproval>' +
           '</soap:Body>' +
           '</soap:Envelope>';
