@@ -2,7 +2,10 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:iomweb/widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
 import '../screens/change_pass.dart';
@@ -25,9 +28,11 @@ class Sidebar extends StatefulWidget {
 
 class _SidebarState extends State<Sidebar> {
   bool loading = false;
+  bool isSave = false;
 
   String randomID = '';
   List data = [];
+  List report = [];
   Widget expan = const ExpansionTile(
     collapsedIconColor: Colors.white,
     collapsedTextColor: Colors.white,
@@ -148,6 +153,415 @@ class _SidebarState extends State<Sidebar> {
     }
   }
 
+  Future<void> getReportOverdue() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetReportOverdue xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetReportOverdue),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetReportOverdue',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (int index = 0; index < listResultAll.length; index++) {
+          final listResult = listResultAll.toList()[index];
+
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.innerText;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.innerText;
+            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglIOM').first.innerText;
+            final dari = listResult.findElements('Dari').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Dari').first.innerText;
+            final kepadaYth = listResult.findElements('KepadaYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('KepadaYth').first.innerText;
+            final ccYth = listResult.findElements('CCYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CCYth').first.innerText;
+            final perihal = listResult.findElements('Perihal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Perihal').first.innerText;
+            final currency = listResult.findElements('Currency').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Currency').first.innerText;
+            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
+                ? '0'
+                : listResult.findElements('BiayaCharter').first.innerText;
+            final createdDate = listResult.findElements('CreatedDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedDate').first.innerText;
+            final createdBy = listResult.findElements('CreatedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedBy').first.innerText;
+            final description = listResult.findElements('Description').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Description').first.innerText;
+            final item = listResult.findElements('Item').isEmpty
+                ? '0'
+                : listResult.findElements('Item').first.innerText;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.innerText;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.innerText;
+            final amount = listResult.findElements('Amount').isEmpty
+                ? '0'
+                : listResult.findElements('Amount').first.innerText;
+            final tglVerifikasi =
+                listResult.findElements('Tgl_Verifikasi').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('Tgl_Verifikasi').first.innerText;
+            final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('VerifiedBy').first.innerText;
+            final payNo = listResult.findElements('PayNo').isEmpty
+                ? '0'
+                : listResult.findElements('PayNo').first.innerText;
+            final currPembayaran =
+                listResult.findElements('CurrPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('CurrPembayaran').first.innerText;
+            final amountPembayaran = listResult
+                    .findElements('AmountPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('AmountPembayaran').first.innerText;
+            final namaBankPenerima = listResult
+                    .findElements('NamaBankPenerima')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('NamaBankPenerima').first.innerText;
+            final tglTerimapembayaran =
+                listResult.findElements('Tgl_TerimaPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_TerimaPembayaran')
+                        .first
+                        .innerText;
+            final tglKonfirmasiDireksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ConfirmedBy').first.innerText;
+            final statusKonfirmasiDireksi =
+                listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Status_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final logNo = listResult.findElements('LogNo').isEmpty
+                ? '0'
+                : listResult.findElements('LogNo').first.innerText;
+            final userInsert = listResult.findElements('UserInsert').isEmpty
+                ? 'No Data'
+                : listResult.findElements('UserInsert').first.innerText;
+            final insertDate = listResult.findElements('InsertDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('InsertDate').first.innerText;
+            final status = listResult.findElements('Status').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Status').first.innerText;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.innerText;
+
+            setState(() {
+              if (!report.any((e) => e['no'] == index + 1)) {
+                report.add({
+                  'no': index,
+                  'server': server,
+                  'noIOM': noIOM,
+                  'tglIom': tglIOM,
+                  'dari': dari,
+                  'kepadaYTH': kepadaYth,
+                  'ccYTH': ccYth,
+                  'perihal': perihal,
+                  'curr': currency,
+                  'biayaCharter': biayaCharter,
+                  'createdDate': createdDate,
+                  'createdBy': createdBy,
+                  'desc': description,
+                  'item': item,
+                  'tanggal': tanggal,
+                  'rute': rute,
+                  'amount': amount,
+                  'tglVerifikasi': tglVerifikasi,
+                  'verifiedBy': verifiedBy,
+                  'payNo': payNo,
+                  'currPembayaran': currPembayaran,
+                  'amountPembayaran': amountPembayaran,
+                  'namaBankPenerima': namaBankPenerima,
+                  'tglTerimaPembayaran': tglTerimapembayaran,
+                  'tglKonfirmasiDireksi': tglKonfirmasiDireksi,
+                  'confirmedBy': confirmedBy,
+                  'statusKonfirmasiDireksi': statusKonfirmasiDireksi,
+                  'logNo': logNo,
+                  'userInsert': userInsert,
+                  'insertDate': insertDate,
+                  'status': status,
+                });
+              }
+            });
+
+            debugPrint(jsonEncode(report));
+          }
+        }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (report.isNotEmpty) {
+            await downReport();
+          }
+        });
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 1),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "${response.statusCode}",
+          subtitle: "Error Get Overdue Report",
+          backgroundColor: Colors.grey[300],
+        );
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Get Overdue Report",
+        subtitle: "$e",
+        subtitleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> downReport() async {
+    try {
+      var excel = Excel.createExcel();
+      var sheet = excel['IOMCharterWeb'];
+      sheet.appendRow([
+        'Company',
+        'NoIom',
+        'TglIom',
+        'Dari',
+        'KepadaYTH',
+        'CCYTH',
+        'Perihal',
+        'Curr',
+        'BiayaCharter',
+        'TglCreate',
+        'UserCreate',
+        'NamaPencharter',
+        'Item',
+        'Tanggal',
+        'Rute',
+        'Currency',
+        'Nilaipersegment',
+        'TglVerifikasi',
+        'UserVerifikasi',
+        'PayNo',
+        'CurrPaymentVerifikasi',
+        'NilaiPaymentVerifikasi',
+        'BankPaymentVerifikasi',
+        'TglPaymentVerifikasi',
+        'TglApproval',
+        'UserApproval',
+        'StatusApproval',
+        'LogNo',
+        'UserInsert',
+        'InsertDate',
+        'Status',
+      ]);
+      sheet.appendRow(List.generate(31, (index) => '========'));
+      for (var data in report) {
+        sheet.appendRow([
+          data['server'],
+          data['noIOM'],
+          data['tglIom'] == 'No Data'
+              ? data['tglIom']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglIom']).toLocal()),
+          data['dari'],
+          data['kepadaYTH'],
+          data['ccYTH'],
+          data['perihal'],
+          data['curr'],
+          data['biayaCharter'],
+          data['createdDate'] == 'No Data'
+              ? data['createdDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['createdDate']).toLocal()),
+          data['createdBy'],
+          data['desc'],
+          data['item'],
+          data['tanggal'] == 'No Data'
+              ? data['tanggal']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tanggal']).toLocal()),
+          data['rute'],
+          data['curr'],
+          data['amount'],
+          data['tglVerifikasi'] == 'No Data'
+              ? data['tglVerifikasi']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
+          data['verifiedBy'],
+          data['payNo'],
+          data['currPembayaran'],
+          data['amountPembayaran'],
+          data['namaBankPenerima'],
+          data['tglTerimaPembayaran'] == 'No Data'
+              ? data['tglTerimaPembayaran']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglTerimaPembayaran']).toLocal()),
+          data['tglKonfirmasiDireksi'] == 'No Data'
+              ? data['tglKonfirmasiDireksi']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
+          data['confirmedBy'],
+          data['statusKonfirmasiDireksi'],
+          data['logNo'],
+          data['userInsert'],
+          data['insertDate'] == 'No Data'
+              ? data['insertDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['insertDate']).toLocal()),
+          data['status'],
+        ]);
+      }
+
+      String fileName =
+          'OVERDUEIOMTo${DateFormat('ddMMyy').format(DateTime.now().toLocal())}';
+
+      //Simpan data byte ke file excel
+      excel.save(fileName: '$fileName.xlsx');
+
+      setState(() {
+        isSave = true;
+      });
+
+      if (isSave) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            showCloseIcon: false,
+            duration: Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            padding: EdgeInsets.all(20),
+            elevation: 10,
+            content: Center(
+              child: Text(
+                'File Saved in Download',
+                textAlign: TextAlign.justify,
+              ),
+            ),
+          ),
+        );
+      }
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        Navigator.of(context).pop();
+      });
+
+      Future.delayed(const Duration(seconds: 3), () async {
+        if (mounted) {
+          setState(() {
+            isSave = false;
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Download Overdue Report",
+        subtitle: "$e",
+        titleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
   Future<Widget> cekLevel() async {
     if (data.last['level'] == '12') {
       setState(() {
@@ -188,6 +602,19 @@ class _SidebarState extends State<Sidebar> {
                     return const PickDate();
                   },
                 );
+              },
+            ),
+            ListTile(
+              iconColor: Colors.white70,
+              textColor: Colors.white70,
+              leading: const Icon(Icons.circle_outlined),
+              title: const Text("Download Overdue Report"),
+              onTap: () async {
+                setState(() {
+                  loading = true;
+                });
+
+                await getReportOverdue();
               },
             ),
           ],
@@ -311,6 +738,21 @@ class _SidebarState extends State<Sidebar> {
                 });
               },
             ),
+            ListTile(
+              iconColor: Colors.white70,
+              textColor: Colors.white70,
+              leading: const Icon(Icons.circle_outlined),
+              title: const Text("View IOM"),
+              onTap: () async {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (BuildContext context) {
+                    return const ViewIOM(
+                      title: 'View IOM',
+                    );
+                  }),
+                );
+              },
+            ),
           ],
         );
       });
@@ -395,132 +837,142 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return SizedBox(
-      width: size.width * 0.6,
-      child: Drawer(
-        backgroundColor: const Color(0xFF2E2E48),
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            SizedBox(
-              height: size.height * 0.18,
-              child: DrawerHeader(
-                child: InkWell(
-                  onTap: () async {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (BuildContext context) {
-                        return const HomeScreen();
-                      }),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: Colors.red,
-                          boxShadow: const [
-                            BoxShadow(
-                              spreadRadius: 1,
-                              blurRadius: 2,
-                              offset: Offset(2, 1),
-                            )
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            const SizedBox(
-                              height: 2,
+
+    return Stack(
+      children: [
+        SizedBox(
+          width: size.width * 0.6,
+          child: Drawer(
+            backgroundColor: const Color(0xFF2E2E48),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                SizedBox(
+                  height: size.height * 0.18,
+                  child: DrawerHeader(
+                    child: InkWell(
+                      onTap: () async {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (BuildContext context) {
+                            return const HomeScreen();
+                          }),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.red,
+                              boxShadow: const [
+                                BoxShadow(
+                                  spreadRadius: 1,
+                                  blurRadius: 2,
+                                  offset: Offset(2, 1),
+                                )
+                              ],
                             ),
-                            SizedBox(
-                              width: 45,
-                              height: 45,
-                              child: Image.asset(
-                                'assets/images/logo.png',
-                                color: Colors.white,
-                              ),
+                            child: Column(
+                              children: [
+                                const SizedBox(
+                                  height: 2,
+                                ),
+                                SizedBox(
+                                  width: 45,
+                                  height: 45,
+                                  child: Image.asset(
+                                    'assets/images/logo.png',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            'IOMCharter',
+                            style: TextStyle(
+                              color: Colors.red[800],
+                              fontWeight: FontWeight.bold,
+                              fontSize:
+                                  MediaQuery.of(context).textScaleFactor * 20,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        'IOMCharter',
-                        style: TextStyle(
-                          color: Colors.red[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: MediaQuery.of(context).textScaleFactor * 20,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            expan,
-            ListTile(
-              onTap: () async {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return ChangePass(
-                      nik: data.last['nik'],
-                      email: data.last['email'],
-                    );
+                expan,
+                ListTile(
+                  onTap: () async {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return ChangePass(
+                          nik: data.last['nik'],
+                          email: data.last['email'],
+                        );
+                      },
+                    ));
                   },
-                ));
-              },
-              leading: const Icon(
-                Icons.lock_person,
-                color: Colors.white,
-              ),
-              title: const Text(
-                'Change Password',
-                style: TextStyle(
-                  color: Colors.white,
+                  leading: const Icon(
+                    Icons.lock_person,
+                    color: Colors.white,
+                  ),
+                  title: const Text(
+                    'Change Password',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            ListTile(
-              onTap: () async {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const About();
+                ListTile(
+                  onTap: () async {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return const About();
+                      },
+                    ));
                   },
-                ));
-              },
-              leading: const Icon(
-                Icons.info,
-                color: Colors.white,
-              ),
-              title: const Text(
-                'About',
-                style: TextStyle(
-                  color: Colors.white,
+                  leading: const Icon(
+                    Icons.info,
+                    color: Colors.white,
+                  ),
+                  title: const Text(
+                    'About',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            ListTile(
-              onTap: () async {
-                await logout();
-              },
-              leading: const Icon(
-                Icons.logout,
-                color: Colors.red,
-              ),
-              title: const Text(
-                'Logout',
-                style: TextStyle(
-                  color: Colors.red,
+                ListTile(
+                  onTap: () async {
+                    await logout();
+                  },
+                  leading: const Icon(
+                    Icons.logout,
+                    color: Colors.red,
+                  ),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        LoadingWidget(
+          isLoading: loading,
+          title: 'Loading',
+        ),
+      ],
     );
   }
 }

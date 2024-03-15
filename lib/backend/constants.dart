@@ -107,3 +107,6 @@ const url_AddTranKey =
 
 const url_ResetApproval =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetApproval';
+
+const url_GetReportOverdue =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportOverdue';

@@ -80,7 +80,7 @@ class _PickDateState extends State<PickDate> {
   Future<void> DownloadReport() async {
     try {
       var excel = Excel.createExcel();
-      var sheet = excel['Sheet1'];
+      var sheet = excel['IOMCharterWeb'];
       sheet.appendRow([
         if (airlines == 'ALL')
           {
