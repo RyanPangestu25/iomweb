@@ -717,10 +717,11 @@ class _ConfirmationState extends State<Confirmation> {
             '<soap:Body>' +
             '<CreateAPBIOM xmlns="http://tempuri.org/">' +
             '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-            '<Airlines>${widget.iomItem[noAPBIOM[index]]['airlineCode']}</Airlines>' +
-            '<FlightDate>${DateTime.parse(widget.iomItem[noAPBIOM[index]]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
             '<FlightNumber>${widget.iomItem[noAPBIOM[index]]['flightNumber']}</FlightNumber>' +
+            '<FlightDate>${DateTime.parse(widget.iomItem[noAPBIOM[index]]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
+            '<Airlines>${widget.iomItem[noAPBIOM[index]]['airlineCode']}</Airlines>' +
             '<Routes>${widget.iomItem[noAPBIOM[index]]['rute']}</Routes>' +
+            '<server>${widget.iom.last['server']}</server>' +
             '</CreateAPBIOM>' +
             '</soap:Body>' +
             '</soap:Envelope>';
@@ -765,23 +766,23 @@ class _ConfirmationState extends State<Confirmation> {
             }
           });
         }
+      }
 
-        Future.delayed(const Duration(seconds: 1), () async {
+      Future.delayed(const Duration(seconds: 1), () async {
+        setState(() {
+          noAPBIOM.clear();
+        });
+
+        if (noAPBFailed.isEmpty) {
+          await updateAPB();
+        } else {
           setState(() {
-            noAPBIOM.clear();
+            noAPBIOM = noAPBFailed;
           });
 
-          if (noAPBFailed.isEmpty) {
-            await updateAPB();
-          } else {
-            setState(() {
-              noAPBIOM = noAPBFailed;
-            });
-
-            await createAPBIOM();
-          }
-        });
-      }
+          await createAPBIOM();
+        }
+      });
     } catch (e) {
       debugPrint('$e');
       StatusAlert.show(
