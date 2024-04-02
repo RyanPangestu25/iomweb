@@ -133,10 +133,10 @@ packages:
     dependency: "direct main"
     description:
       name: data_table_2
-      sha256: fdb0551f103f1daf837bddfde14619fd9e683408833a618c9afabeb533fce88c
+      sha256: e403de6d9a58dddf27700114b614ea8ea5aa8442d7fbdfbe8b3d11b0512e7a49
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.11"
+    version: "2.5.12"
   dbus:
     dependency: transitive
     description:
@@ -205,10 +205,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: caa6bc229eab3e32eb2f37b53a5f9d22a6981474afd210c512a7546c1e1a04f6
+      sha256: "1bbf65dd997458a08b531042ec3794112a6c39c07c37ff22113d2e7e4f81d4e4"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.2.1"
   fixnum:
     dependency: transitive
     description:
@@ -825,10 +825,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: "8cb58b45c47dcb42ab3651533626161d6b67a2921917d8d429791f76972b3480"
+      sha256: "0a989dc7ca2bb51eac91e8fd00851297cfffd641aa7538b165c62637ca0eaa4a"
       url: "https://pub.dev"
     source: hosted
-    version: "5.3.0"
+    version: "5.4.0"
   win32_registry:
     dependency: transitive
     description:
