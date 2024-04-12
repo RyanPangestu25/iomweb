@@ -582,7 +582,9 @@ class _ConfirmationState extends State<Confirmation> {
   }
 
   Future<void> createAPB() async {
+    bool isLoop = false;
     List<int> noAPBFailed = [];
+    int loop = 0;
 
     try {
       setState(() {
@@ -630,15 +632,39 @@ class _ConfirmationState extends State<Confirmation> {
         } else {
           debugPrint('Error: ${response.statusCode}');
           debugPrint('Desc: ${response.body}');
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed Create APB",
-            backgroundColor: Colors.grey[300],
-          );
+
+          if (loop == 0 && !isLoop) {
+            setState(() {
+              isLoop = true;
+            });
+
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "${response.statusCode}",
+              subtitle:
+                  "Failed Create APB, Please wait while we are trying again",
+              subtitleOptions:
+                  StatusAlertTextConfiguration(overflow: TextOverflow.visible),
+              backgroundColor: Colors.grey[300],
+            );
+          } else if (loop == 2 && isLoop) {
+            setState(() {
+              isLoop = false;
+            });
+
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "${response.statusCode}",
+              subtitle: "Failed Create APB",
+              backgroundColor: Colors.grey[300],
+            );
+          }
 
           Future.delayed(const Duration(seconds: 1), () async {
             if (!noAPBFailed.contains(index)) {
@@ -651,17 +677,22 @@ class _ConfirmationState extends State<Confirmation> {
       Future.delayed(const Duration(seconds: 1), () async {
         setState(() {
           noAPBEmbark.clear();
+          loop += 1;
         });
 
         if (noAPBFailed.isEmpty) {
           // await updateAPB();
           await cekAPBIOM();
         } else {
-          setState(() {
-            noAPBEmbark = noAPBFailed;
-          });
+          if (loop < 2) {
+            setState(() {
+              noAPBEmbark = noAPBFailed;
+            });
 
-          await createAPB();
+            await createAPB();
+          } else {
+            await resetApproval();
+          }
         }
       });
     } catch (e) {
@@ -703,7 +734,9 @@ class _ConfirmationState extends State<Confirmation> {
   }
 
   Future<void> createAPBIOM() async {
+    bool isLoop = false;
     List<int> noAPBFailed = [];
+    int loop = 0;
 
     try {
       setState(() {
@@ -750,15 +783,39 @@ class _ConfirmationState extends State<Confirmation> {
         } else {
           debugPrint('Error: ${response.statusCode}');
           debugPrint('Desc: ${response.body}');
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed Create APB IOM",
-            backgroundColor: Colors.grey[300],
-          );
+
+          if (loop == 0 && !isLoop) {
+            setState(() {
+              isLoop = true;
+            });
+
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "${response.statusCode}",
+              subtitle:
+                  "Failed Create APB IOM, Please wait while we are trying again",
+              subtitleOptions:
+                  StatusAlertTextConfiguration(overflow: TextOverflow.visible),
+              backgroundColor: Colors.grey[300],
+            );
+          } else if (loop == 2 && isLoop) {
+            setState(() {
+              isLoop = false;
+            });
+
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "${response.statusCode}",
+              subtitle: "Failed Create APB IOM",
+              backgroundColor: Colors.grey[300],
+            );
+          }
 
           Future.delayed(const Duration(seconds: 1), () async {
             if (!noAPBFailed.contains(index)) {
@@ -771,16 +828,21 @@ class _ConfirmationState extends State<Confirmation> {
       Future.delayed(const Duration(seconds: 1), () async {
         setState(() {
           noAPBIOM.clear();
+          loop += 1;
         });
 
         if (noAPBFailed.isEmpty) {
           await updateAPB();
         } else {
-          setState(() {
-            noAPBIOM = noAPBFailed;
-          });
+          if (loop < 2) {
+            setState(() {
+              noAPBIOM = noAPBFailed;
+            });
 
-          await createAPBIOM();
+            await createAPBIOM();
+          } else {
+            await resetApproval();
+          }
         }
       });
     } catch (e) {
