@@ -856,19 +856,23 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: IconButton(
-              onPressed: () async {
-                edit(index);
-              },
-              icon: const Icon(
+              onPressed: status == 'APPROVED'
+                  ? null
+                  : () async {
+                      edit(index);
+                    },
+              icon: Icon(
                 Icons.edit_square,
-                color: Colors.green,
+                color: status == 'APPROVED' ? null : Colors.green,
                 size: 30,
-                shadows: [
-                  Shadow(
-                    offset: Offset(2, 1),
-                    blurRadius: 10,
-                  )
-                ],
+                shadows: status == 'APPROVED'
+                    ? null
+                    : const [
+                        Shadow(
+                          offset: Offset(2, 1),
+                          blurRadius: 10,
+                        )
+                      ],
               ),
             ),
           ),
@@ -876,19 +880,23 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: IconButton(
-              onPressed: () async {
-                delete(index);
-              },
-              icon: const Icon(
+              onPressed: status == 'APPROVED'
+                  ? null
+                  : () async {
+                      delete(index);
+                    },
+              icon: Icon(
                 Icons.delete,
-                color: Colors.red,
+                color: status == 'APPROVED' ? null : Colors.red,
                 size: 30,
-                shadows: [
-                  Shadow(
-                    offset: Offset(2, 1),
-                    blurRadius: 10,
-                  )
-                ],
+                shadows: status == 'APPROVED'
+                    ? null
+                    : const [
+                        Shadow(
+                          offset: Offset(2, 1),
+                          blurRadius: 10,
+                        )
+                      ],
               ),
             ),
           ),
