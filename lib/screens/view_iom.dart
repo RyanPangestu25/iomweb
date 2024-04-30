@@ -1116,7 +1116,13 @@ class _ViewIOMState extends State<ViewIOM> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
+                                                          filteredIOM.value[
+                                                                          index]
+                                                                      [
+                                                                      'tanggal'] ==
+                                                                  'No Data'
+                                                              ? ': ${filteredIOM.value[index]['tanggal']}'
+                                                              : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
                                                         ),
                                                         SizedBox(
                                                           width:
@@ -1133,8 +1139,12 @@ class _ViewIOMState extends State<ViewIOM> {
                                                         ),
                                                         Text(
                                                             ': ${filteredIOM.value[index]['rute']}'),
-                                                        Text(
-                                                            ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
+                                                        Text(filteredIOM.value[
+                                                                        index][
+                                                                    'tanggalRute'] ==
+                                                                'No Data'
+                                                            ? ': ${filteredIOM.value[index]['tanggalRute']}'
+                                                            : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
                                                         SizedBox(
                                                           width:
                                                               size.width * 0.45,

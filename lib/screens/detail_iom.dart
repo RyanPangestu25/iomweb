@@ -902,8 +902,11 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: DateFormat('dd-MMM-yyyy').format(
-                        DateTime.parse(widget.iom.last['tanggal']).toLocal()),
+                    initialValue: widget.iom.last['tanggal'] == 'No Data'
+                        ? widget.iom.last['tanggal']
+                        : DateFormat('dd-MMM-yyyy').format(
+                            DateTime.parse(widget.iom.last['tanggal'])
+                                .toLocal()),
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
