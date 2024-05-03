@@ -706,10 +706,12 @@ class TableData extends DataTableSource {
           ),
         ),
         DataCell(
-          Center(
-            child: Text(
-              data['fileName'],
-              textAlign: TextAlign.center,
+          SingleChildScrollView(
+            child: Center(
+              child: Text(
+                data['fileName'],
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),
@@ -731,10 +733,12 @@ class TableData extends DataTableSource {
           ),
         ),
         DataCell(
-          Center(
-            child: Text(
-              data['attachmentType'],
-              textAlign: TextAlign.center,
+          SingleChildScrollView(
+            child: Center(
+              child: Text(
+                data['attachmentType'],
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
         ),

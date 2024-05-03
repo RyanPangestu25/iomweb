@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import '../backend/constants.dart';
 import '../screens/attachment.dart';
 import '../screens/payment.dart';
-import '../screens/view_iom.dart';
 import '../widgets/alertdialog/confirmation.dart';
 import '../widgets/alertdialog/income_tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,10 +19,12 @@ import '../widgets/loading.dart';
 import 'package:excel/excel.dart';
 
 class DetailIOM extends StatefulWidget {
+  final Function(bool) isRefresh;
   final List iom;
 
   const DetailIOM({
     super.key,
+    required this.isRefresh,
     required this.iom,
   });
 
@@ -720,31 +721,8 @@ class _DetailIOMState extends State<DetailIOM> {
 
     return WillPopScope(
       onWillPop: () {
-        if (level == 12) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) {
-              return const ViewIOM(
-                title: 'IOM Verification',
-              );
-            },
-          ));
-        } else if (level == 10) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) {
-              return const ViewIOM(
-                title: 'IOM Approval',
-              );
-            },
-          ));
-        } else {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (BuildContext context) {
-              return const ViewIOM(
-                title: 'View IOM',
-              );
-            },
-          ));
-        }
+        widget.isRefresh(true);
+        Navigator.of(context).pop();
 
         return Future(() => true);
       },
@@ -759,31 +737,8 @@ class _DetailIOMState extends State<DetailIOM> {
           elevation: 3,
           leading: IconButton(
             onPressed: () async {
-              if (level == 12) {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'IOM Verification',
-                    );
-                  },
-                ));
-              } else if (level == 10) {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'IOM Approval',
-                    );
-                  },
-                ));
-              } else {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const ViewIOM(
-                      title: 'View IOM',
-                    );
-                  },
-                ));
-              }
+              widget.isRefresh(true);
+              Navigator.of(context).pop();
             },
             icon: const Icon(
               Icons.arrow_back,
@@ -1040,7 +995,8 @@ class _DetailIOMState extends State<DetailIOM> {
                               ? Colors.blue
                               : widget.iom.last['status'] == 'APPROVED'
                                   ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED'
+                                  : widget.iom.last['status'] == 'REJECTED' ||
+                                          widget.iom.last['status'] == 'VOID'
                                       ? Colors.red
                                       : Colors.black,
                         ),
@@ -1490,169 +1446,61 @@ class _DetailIOMState extends State<DetailIOM> {
             ),
           ],
         ),
-        persistentFooterButtons: level == 12
-            ? (widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
-                        widget.iom.last['status'] == 'APPROVED' ||
-                        widget.iom.last['status'] == 'REJECTED') &&
-                    isBalance
-                ? (widget.iom.last['status'] == 'APPROVED' ||
+        persistentFooterButtons: widget.iom.last['status'] == 'VOID'
+            ? [
+                Center(
+                  child: Text(
+                    widget.iom.last['status'],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ]
+            : level == 12
+                ? (widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
+                            widget.iom.last['status'] == 'APPROVED' ||
                             widget.iom.last['status'] == 'REJECTED') &&
-                        !isBalance
-                    ? [
-                        Center(
-                          child: Text(
-                            widget.iom.last['status'],
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: widget.iom.last['status'] ==
-                                      'VERIFIED PAYMENT'
-                                  ? Colors.blue
-                                  : widget.iom.last['status'] == 'APPROVED'
-                                      ? Colors.green
-                                      : Colors.red,
-                              fontWeight: FontWeight.bold,
+                        isBalance
+                    ? (widget.iom.last['status'] == 'APPROVED' ||
+                                widget.iom.last['status'] == 'REJECTED') &&
+                            !isBalance
+                        ? [
+                            Center(
+                              child: Text(
+                                widget.iom.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.iom.last['status'] ==
+                                          'VERIFIED PAYMENT'
+                                      ? Colors.blue
+                                      : widget.iom.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ]
-                    : [
-                        Center(
-                          child: Text(
-                            widget.iom.last['status'],
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: widget.iom.last['status'] ==
-                                      'VERIFIED PAYMENT'
-                                  ? Colors.blue
-                                  : widget.iom.last['status'] == 'APPROVED'
-                                      ? Colors.green
-                                      : Colors.red,
-                              fontWeight: FontWeight.bold,
+                          ]
+                        : [
+                            Center(
+                              child: Text(
+                                widget.iom.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.iom.last['status'] ==
+                                          'VERIFIED PAYMENT'
+                                      ? Colors.blue
+                                      : widget.iom.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ]
-                : [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            fixedSize:
-                                Size(size.width * 0.4, size.height * 0.08),
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: loading
-                              ? null
-                              : () async {
-                                  if (double.parse(widget.iom.last['biaya']
-                                          .replaceAll(',', '.')) ==
-                                      0.00) {
-                                    StatusAlert.show(
-                                      context,
-                                      duration: const Duration(seconds: 1),
-                                      configuration: const IconConfiguration(
-                                        icon: Icons.error,
-                                        color: Colors.red,
-                                      ),
-                                      title: "Verified Failed",
-                                      subtitle: "0 IOM Cost",
-                                      backgroundColor: Colors.grey[300],
-                                    );
-                                  } else {
-                                    await showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (BuildContext context) {
-                                        return Verification(
-                                          item: (value) {
-                                            setState(() {
-                                              item = value;
-                                            });
-                                          },
-                                          iom: widget.iom,
-                                          lastItem: item,
-                                        );
-                                      },
-                                    );
-                                  }
-                                },
-                          child: const Text('Verification'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            fixedSize:
-                                Size(size.width * 0.4, size.height * 0.08),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: loading
-                              ? null
-                              : () async {
-                                  if (double.parse(widget.iom.last['biaya']
-                                          .replaceAll(',', '.')) ==
-                                      0.00) {
-                                    StatusAlert.show(
-                                      context,
-                                      duration: const Duration(seconds: 1),
-                                      configuration: const IconConfiguration(
-                                        icon: Icons.error,
-                                        color: Colors.red,
-                                      ),
-                                      title: "Failed",
-                                      subtitle: "0 IOM Cost",
-                                      backgroundColor: Colors.grey[300],
-                                    );
-                                  } else {
-                                    await showDialog(
-                                      context: context,
-                                      barrierDismissible: false,
-                                      builder: (BuildContext context) {
-                                        return IncomeTax(
-                                          pphAmount: (value) {
-                                            setState(() {
-                                              pphAmount.text = value;
-                                            });
-                                          },
-                                          iom: widget.iom,
-                                        );
-                                      },
-                                    );
-                                  }
-                                },
-                          child: const Text('Income Tax'),
-                        ),
-                      ],
-                    )
-                  ]
-            : level == 10
-                ? widget.iom.last['status'] == 'APPROVED' //||
-                    // widget.iom.last['status'] == 'REJECTED' ||
-                    // widget.iom.last['status'] == 'NONE'
-                    ? [
-                        Center(
-                          child: Text(
-                            widget.iom.last['status'],
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: widget.iom.last['status'] == 'APPROVED'
-                                  ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED'
-                                      ? Colors.red
-                                      : Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ]
+                          ]
                     : [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1671,38 +1519,46 @@ class _DetailIOMState extends State<DetailIOM> {
                               onPressed: loading
                                   ? null
                                   : () async {
-                                      setState(() {
-                                        status = 'APPROVE';
-                                      });
-
-                                      await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          List flightDate = [];
-
-                                          for (var data in jadwal) {
-                                            String tanggal = data['tanggal'];
-                                            if (!flightDate.contains(tanggal)) {
-                                              flightDate.add(tanggal);
-                                            }
-                                          }
-
-                                          return Confirmation(
-                                            text: status,
-                                            iom: widget.iom,
-                                            iomItem: jadwal,
-                                            flightDate: flightDate,
-                                          );
-                                        },
-                                      );
+                                      if (double.parse(widget.iom.last['biaya']
+                                              .replaceAll(',', '.')) ==
+                                          0.00) {
+                                        StatusAlert.show(
+                                          context,
+                                          duration: const Duration(seconds: 1),
+                                          configuration:
+                                              const IconConfiguration(
+                                            icon: Icons.error,
+                                            color: Colors.red,
+                                          ),
+                                          title: "Verified Failed",
+                                          subtitle: "0 IOM Cost",
+                                          backgroundColor: Colors.grey[300],
+                                        );
+                                      } else {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return Verification(
+                                              item: (value) {
+                                                setState(() {
+                                                  item = value;
+                                                });
+                                              },
+                                              iom: widget.iom,
+                                              lastItem: item,
+                                            );
+                                          },
+                                        );
+                                      }
                                     },
-                              child: const Text('Approval'),
+                              child: const Text('Verification'),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 fixedSize:
                                     Size(size.width * 0.4, size.height * 0.08),
-                                backgroundColor: Colors.red,
+                                backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -1711,48 +1567,165 @@ class _DetailIOMState extends State<DetailIOM> {
                               onPressed: loading
                                   ? null
                                   : () async {
-                                      setState(() {
-                                        status = 'REJECT';
-                                      });
-
-                                      await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return Confirmation(
-                                            text: status,
-                                            iom: widget.iom,
-                                            iomItem: jadwal,
-                                            flightDate: const [],
-                                          );
-                                        },
-                                      );
+                                      if (double.parse(widget.iom.last['biaya']
+                                              .replaceAll(',', '.')) ==
+                                          0.00) {
+                                        StatusAlert.show(
+                                          context,
+                                          duration: const Duration(seconds: 1),
+                                          configuration:
+                                              const IconConfiguration(
+                                            icon: Icons.error,
+                                            color: Colors.red,
+                                          ),
+                                          title: "Failed",
+                                          subtitle: "0 IOM Cost",
+                                          backgroundColor: Colors.grey[300],
+                                        );
+                                      } else {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return IncomeTax(
+                                              pphAmount: (value) {
+                                                setState(() {
+                                                  pphAmount.text = value;
+                                                });
+                                              },
+                                              iom: widget.iom,
+                                            );
+                                          },
+                                        );
+                                      }
                                     },
-                              child: const Text('Rejection'),
+                              child: const Text('Income Tax'),
                             ),
                           ],
-                        ),
+                        )
                       ]
-                : [
-                    Center(
-                      child: Text(
-                        widget.iom.last['status'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: widget.iom.last['status'] == 'NONE'
-                              ? Colors.black
-                              : widget.iom.last['status'] ==
-                                          'VERIFIED PAYMENT' ||
-                                      widget.iom.last['status'] ==
-                                          'VERIFIED PENDING PAYMENT'
-                                  ? Colors.blue
-                                  : widget.iom.last['status'] == 'APPROVED'
+                : level == 10
+                    ? widget.iom.last['status'] == 'APPROVED' //||
+                        // widget.iom.last['status'] == 'REJECTED' ||
+                        // widget.iom.last['status'] == 'NONE'
+                        ? [
+                            Center(
+                              child: Text(
+                                widget.iom.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.iom.last['status'] == 'APPROVED'
                                       ? Colors.green
-                                      : Colors.red,
-                          fontWeight: FontWeight.bold,
+                                      : widget.iom.last['status'] == 'REJECTED'
+                                          ? Colors.red
+                                          : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ]
+                        : [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    fixedSize: Size(
+                                        size.width * 0.4, size.height * 0.08),
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            status = 'APPROVE';
+                                          });
+
+                                          await showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              List flightDate = [];
+
+                                              for (var data in jadwal) {
+                                                String tanggal =
+                                                    data['tanggal'];
+                                                if (!flightDate
+                                                    .contains(tanggal)) {
+                                                  flightDate.add(tanggal);
+                                                }
+                                              }
+
+                                              return Confirmation(
+                                                text: status,
+                                                iom: widget.iom,
+                                                iomItem: jadwal,
+                                                flightDate: flightDate,
+                                              );
+                                            },
+                                          );
+                                        },
+                                  child: const Text('Approval'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    fixedSize: Size(
+                                        size.width * 0.4, size.height * 0.08),
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            status = 'REJECT';
+                                          });
+
+                                          await showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Confirmation(
+                                                text: status,
+                                                iom: widget.iom,
+                                                iomItem: jadwal,
+                                                flightDate: const [],
+                                              );
+                                            },
+                                          );
+                                        },
+                                  child: const Text('Rejection'),
+                                ),
+                              ],
+                            ),
+                          ]
+                    : [
+                        Center(
+                          child: Text(
+                            widget.iom.last['status'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.iom.last['status'] == 'NONE'
+                                  ? Colors.black
+                                  : widget.iom.last['status'] ==
+                                              'VERIFIED PAYMENT' ||
+                                          widget.iom.last['status'] ==
+                                              'VERIFIED PENDING PAYMENT'
+                                      ? Colors.blue
+                                      : widget.iom.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
         persistentFooterAlignment: AlignmentDirectional.center,
       ),
     );

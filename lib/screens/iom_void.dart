@@ -5,50 +5,35 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '/widgets/alertdialog/void_reason.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
 import '../widgets/sidebar.dart';
-import 'detail_iom.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 
-class ViewIOM extends StatefulWidget {
-  final String title;
-
-  const ViewIOM({
-    super.key,
-    required this.title,
-  });
+class IOMVoid extends StatefulWidget {
+  const IOMVoid({super.key});
 
   @override
-  State<ViewIOM> createState() => _ViewIOMState();
+  State<IOMVoid> createState() => _IOMVoidState();
 }
 
-class _ViewIOMState extends State<ViewIOM> {
+class _IOMVoidState extends State<IOMVoid> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
-  final ScrollController _scrollController1 = ScrollController();
 
   bool loading = false;
   bool _isConnected = false;
   bool visible = true;
-  bool isStatus = false;
   bool isCompany = false;
   bool isHelp = false;
   bool isPeriod = false;
   bool isAttach = false;
   bool isOpen = false;
   List iom = [];
-  List status = [
-    'NONE',
-    'VERIFIED PENDING PAYMENT',
-    'VERIFIED PAYMENT',
-    'APPROVED',
-    'REJECTED',
-    'VOID',
-  ];
   List company = [
     'LION',
     'SAJ',
@@ -56,14 +41,6 @@ class _ViewIOMState extends State<ViewIOM> {
     'ANGKASA',
     'BATIK',
   ];
-  ValueNotifier<List<dynamic>> filteredStatus = ValueNotifier([
-    'NONE',
-    'VERIFIED PENDING PAYMENT',
-    'VERIFIED PAYMENT',
-    'APPROVED',
-    'REJECTED',
-    'VOID',
-  ]);
   ValueNotifier<List<dynamic>> filteredCompany = ValueNotifier([
     'LION',
     'SAJ',
@@ -100,14 +77,14 @@ class _ViewIOMState extends State<ViewIOM> {
     }); //for button SAVE
 
     iom.clear();
-    await getIOM();
+    await getVoid();
 
     Future.delayed(const Duration(seconds: 1), () async {
       await filterDate(dateRange.start, dateRange.end);
     });
   }
 
-  Future<void> getIOM() async {
+  Future<void> getVoid() async {
     try {
       setState(() {
         loading = true;
@@ -116,14 +93,14 @@ class _ViewIOMState extends State<ViewIOM> {
       const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOM xmlns="http://tempuri.org/" />' +
+          '<GetVoid xmlns="http://tempuri.org/" />' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOM),
+      final response = await http.post(Uri.parse(url_GetVoid),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOM',
+            'SOAPAction': 'http://tempuri.org/GetVoid',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -239,22 +216,7 @@ class _ViewIOMState extends State<ViewIOM> {
                   'biaya': biayaCharter,
                   'pembayaran': pembayaran,
                   'note': lainLain,
-                  'status': tglFinanceverifikasiBelumterimapembayaran ==
-                          'No Data'
-                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? statusKonfirmasiDireksi == 'No Data'
-                              ? 'NONE'
-                              : statusKonfirmasiDireksi.toUpperCase()
-                          : statusKonfirmasiDireksi == 'No Data'
-                              ? 'VERIFIED PAYMENT'
-                              : statusKonfirmasiDireksi.toUpperCase()
-                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? statusKonfirmasiDireksi == 'No Data'
-                              ? 'VERIFIED PENDING PAYMENT'
-                              : statusKonfirmasiDireksi.toUpperCase()
-                          : statusKonfirmasiDireksi == 'No Data'
-                              ? 'VERIFIED PAYMENT'
-                              : statusKonfirmasiDireksi.toUpperCase(),
+                  'status': statusKonfirmasiDireksi.toUpperCase(),
                   'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
                   'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
                   'approveDate': tglKonfirmasiDireksi,
@@ -332,74 +294,32 @@ class _ViewIOMState extends State<ViewIOM> {
     }
   }
 
-  Future<void> filterStatus(DateTime startDate, DateTime endDate) async {
-    if (isStatus && !isCompany && !isPeriod && searchController.text.isEmpty) {
-      setState(() {
-        filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
-          return status;
-        }).toList();
-      });
-    } else if (isStatus && isPeriod) {
-      filterDate(startDate, endDate);
-    } else if (!isStatus && isPeriod) {
-      filterDate(startDate, endDate);
-    } else if (isStatus && searchController.text.isNotEmpty) {
-      filterSearch(searchController.text);
-    } else if (!isStatus && searchController.text.isNotEmpty) {
-      filterSearch(searchController.text);
-    } else if (isStatus && isCompany) {
-      filterCompany(startDate, endDate);
-    } else if (!isStatus && isCompany) {
-      filterCompany(startDate, endDate);
-    } else {
-      setState(() {
-        filteredIOM.value = iom;
-      });
-    }
-  }
-
   Future<void> filterCompany(DateTime startDate, DateTime endDate) async {
-    if (!isStatus && isCompany && !isPeriod && searchController.text.isEmpty) {
+    if (isCompany && !isPeriod && searchController.text.isEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
           final server = data['server'] == filteredCompany.value.last;
           return server;
         }).toList();
       });
-    } else if (!isStatus && isCompany && isPeriod) {
+    } else if (isCompany && isPeriod) {
       filterDate(startDate, endDate);
-    } else if (!isStatus && !isCompany && isPeriod) {
+    } else if (!isCompany && isPeriod) {
       filterDate(startDate, endDate);
-    } else if (!isStatus &&
-        isCompany &&
-        !isPeriod &&
-        searchController.text.isNotEmpty) {
+    } else if (isCompany && !isPeriod && searchController.text.isNotEmpty) {
       filterSearch(searchController.text);
-    } else if (!isStatus &&
-        !isCompany &&
-        !isPeriod &&
-        searchController.text.isNotEmpty) {
+    } else if (!isCompany && !isPeriod && searchController.text.isNotEmpty) {
       filterSearch(searchController.text);
-    } else if (isStatus &&
-        isCompany &&
-        !isPeriod &&
-        searchController.text.isEmpty) {
+    } else if (isCompany && !isPeriod && searchController.text.isEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          return status && server;
+          return server;
         }).toList();
       });
-    } else if (isStatus &&
-        !isCompany &&
-        !isPeriod &&
-        searchController.text.isEmpty) {
-      filterStatus(startDate, endDate);
-    } else if (isStatus && !isCompany && isPeriod) {
+    } else if (!isCompany && isPeriod) {
       filterDate(startDate, endDate);
-    } else if (isStatus && isCompany && isPeriod) {
+    } else if (isCompany && isPeriod) {
       filterDate(startDate, endDate);
     } else {
       setState(() {
@@ -420,98 +340,38 @@ class _ViewIOMState extends State<ViewIOM> {
       }).toList();
     });
 
-    if (isStatus && !isCompany && searchController.text.isNotEmpty) {
+    if (!isCompany && searchController.text.isNotEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
           final noIOM = data['noIOM'].toLowerCase();
           final charter = data['charter'].toLowerCase();
           period = DateTime.parse(data['tanggal']);
-          return status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+          return noIOM.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
-              status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+              noIOM.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
-              status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+              noIOM.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
-              status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+              charter.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
-              status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+              charter.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
-              status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+              charter.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
-    } else if (isStatus && !isCompany && searchController.text.isEmpty) {
+    } else if (!isCompany && searchController.text.isEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
           period = DateTime.parse(data['tanggal']);
-          return status &&
-                  period.isAfter(startDate) &&
-                  period.isBefore(endDate) ||
-              status && period.isAtSameMomentAs(startDate) ||
-              status && period.isAtSameMomentAs(endDate);
+          return period.isAfter(startDate) && period.isBefore(endDate) ||
+              period.isAtSameMomentAs(startDate) ||
+              period.isAtSameMomentAs(endDate);
         }).toList();
       });
-    } else if (isStatus && isCompany && searchController.text.isNotEmpty) {
-      setState(() {
-        filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
-          final server = data['server'] == filteredCompany.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']);
-          return status &&
-                  server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
-                  period.isAfter(startDate) &&
-                  period.isBefore(endDate) ||
-              status &&
-                  server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
-                  period.isAtSameMomentAs(startDate) ||
-              status &&
-                  server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
-                  period.isAtSameMomentAs(endDate) ||
-              status &&
-                  server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
-                  period.isAfter(startDate) &&
-                  period.isBefore(endDate) ||
-              status &&
-                  server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
-                  period.isAtSameMomentAs(startDate) ||
-              status &&
-                  server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
-                  period.isAtSameMomentAs(endDate);
-        }).toList();
-      });
-    } else if (isStatus && isCompany && searchController.text.isEmpty) {
-      setState(() {
-        filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
-          final server = data['server'] == filteredCompany.value.last;
-          period = DateTime.parse(data['tanggal']);
-          return status &&
-                  server &&
-                  period.isAfter(startDate) &&
-                  period.isBefore(endDate) ||
-              status && server && period.isAtSameMomentAs(startDate) ||
-              status && server && period.isAtSameMomentAs(endDate);
-        }).toList();
-      });
-    } else if (!isStatus && isCompany && searchController.text.isNotEmpty) {
+    } else if (isCompany && searchController.text.isNotEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
           final server = data['server'] == filteredCompany.value.last;
@@ -540,7 +400,7 @@ class _ViewIOMState extends State<ViewIOM> {
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
-    } else if (!isStatus && isCompany && searchController.text.isEmpty) {
+    } else if (isCompany && searchController.text.isEmpty) {
       setState(() {
         filteredIOM.value = iom.where((data) {
           final server = data['server'] == filteredCompany.value.last;
@@ -552,7 +412,48 @@ class _ViewIOMState extends State<ViewIOM> {
               server && period.isAtSameMomentAs(endDate);
         }).toList();
       });
-    } else if (!isStatus && !isCompany && searchController.text.isNotEmpty) {
+    } else if (isCompany && searchController.text.isNotEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          final noIOM = data['noIOM'].toLowerCase();
+          final charter = data['charter'].toLowerCase();
+          period = DateTime.parse(data['tanggal']);
+          return server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              server &&
+                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(startDate) ||
+              server &&
+                  charter.contains(searchController.text.toLowerCase()) &&
+                  period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (isCompany && searchController.text.isEmpty) {
+      setState(() {
+        filteredIOM.value = iom.where((data) {
+          final server = data['server'] == filteredCompany.value.last;
+          period = DateTime.parse(data['tanggal']);
+          return server &&
+                  period.isAfter(startDate) &&
+                  period.isBefore(endDate) ||
+              server && period.isAtSameMomentAs(startDate) ||
+              server && period.isAtSameMomentAs(endDate);
+        }).toList();
+      });
+    } else if (!isCompany && searchController.text.isNotEmpty) {
       filteredIOM.value = iom.where((data) {
         final noIOM = data['noIOM'].toLowerCase();
         final charter = data['charter'].toLowerCase();
@@ -585,15 +486,15 @@ class _ViewIOMState extends State<ViewIOM> {
       }).toList();
     });
 
-    if (isStatus) {
+    if (isCompany) {
       setState(() {
         filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
+          final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
           final charter = data['charter'].toLowerCase();
-          return status &&
+          return server &&
                   noIOM.contains(searchController.text.toLowerCase()) ||
-              status && charter.contains(searchController.text.toLowerCase());
+              server && charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isCompany) {
@@ -607,19 +508,13 @@ class _ViewIOMState extends State<ViewIOM> {
               server && charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
-    } else if (isStatus && isCompany) {
+    } else {
       setState(() {
         filteredIOM.value = iom.where((data) {
-          final status = data['status'] == filteredStatus.value.last;
-          final server = data['server'] == filteredCompany.value.last;
           final noIOM = data['noIOM'].toLowerCase();
           final charter = data['charter'].toLowerCase();
-          return status &&
-                  server &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
-              status &&
-                  server &&
-                  charter.contains(searchController.text.toLowerCase());
+          return noIOM.contains(searchController.text.toLowerCase()) ||
+              charter.contains(searchController.text.toLowerCase());
         }).toList();
       });
     }
@@ -682,7 +577,7 @@ class _ViewIOMState extends State<ViewIOM> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
       await getUser();
-      await getIOM();
+      await getVoid();
     });
 
     date.text =
@@ -722,7 +617,7 @@ class _ViewIOMState extends State<ViewIOM> {
           centerTitle: true,
           backgroundColor: Colors.redAccent,
           foregroundColor: Colors.white,
-          title: Text(widget.title),
+          title: const Text('IOM Void'),
           elevation: 3,
           actions: [
             IconButton(
@@ -737,15 +632,14 @@ class _ViewIOMState extends State<ViewIOM> {
                         );
                         date.text =
                             '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                        isStatus = false;
+
                         isPeriod = false;
                         isCompany = false;
                         searchController.clear();
-                        filteredStatus.value = status;
                         filteredCompany.value = company;
                       });
                       iom.clear();
-                      await getIOM();
+                      await getVoid();
                     },
               icon: const Icon(Icons.refresh),
             ),
@@ -778,7 +672,7 @@ class _ViewIOMState extends State<ViewIOM> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Filter by Status:'),
+                      const Text('Filter by Company:'),
                       SizedBox(
                         height: size.height * 0.1,
                         width: size.width,
@@ -786,66 +680,10 @@ class _ViewIOMState extends State<ViewIOM> {
                           controller: _scrollController,
                           child: ListView.separated(
                             shrinkWrap: true,
-                            itemCount: filteredStatus.value.length,
-                            scrollDirection: Axis.horizontal,
-                            clipBehavior: Clip.antiAlias,
-                            controller: _scrollController,
-                            separatorBuilder:
-                                (BuildContext context, int index) {
-                              return SizedBox(width: size.width * 0.02);
-                            },
-                            itemBuilder: (BuildContext context, index) {
-                              return Row(
-                                children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          isStatus ? Colors.green : null,
-                                      foregroundColor:
-                                          isStatus ? Colors.white : null,
-                                    ),
-                                    onPressed: loading
-                                        ? null
-                                        : () async {
-                                            setState(() {
-                                              isStatus = !isStatus;
-                                              filteredStatus.value = isStatus
-                                                  ? [status[index]]
-                                                  : status;
-                                            });
-
-                                            await filterStatus(
-                                                dateRange.start, dateRange.end);
-                                          },
-                                    child: isStatus
-                                        ? Row(
-                                            children: [
-                                              Text(filteredStatus.value[index]),
-                                              SizedBox(
-                                                  width: size.width * 0.01),
-                                              const Icon(Icons.done),
-                                            ],
-                                          )
-                                        : Text(filteredStatus.value[index]),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      const Text('Filter by Company:'),
-                      SizedBox(
-                        height: size.height * 0.1,
-                        width: size.width,
-                        child: Scrollbar(
-                          controller: _scrollController1,
-                          child: ListView.separated(
-                            shrinkWrap: true,
                             itemCount: filteredCompany.value.length,
                             scrollDirection: Axis.horizontal,
                             clipBehavior: Clip.antiAlias,
-                            controller: _scrollController1,
+                            controller: _scrollController,
                             separatorBuilder:
                                 (BuildContext context, int index) {
                               return SizedBox(width: size.width * 0.02);
@@ -957,10 +795,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                     onPressed: () async {
                                       searchController.clear();
 
-                                      if (!isPeriod) {
-                                        filterStatus(
-                                            dateRange.start, dateRange.end);
-                                      } else {
+                                      if (isPeriod) {
                                         filterDate(
                                             dateRange.start, dateRange.end);
                                       }
@@ -973,9 +808,7 @@ class _ViewIOMState extends State<ViewIOM> {
                           ),
                           onChanged: (value) {
                             if (value.isEmpty) {
-                              if (!isPeriod) {
-                                filterStatus(dateRange.start, dateRange.end);
-                              } else {
+                              if (isPeriod) {
                                 filterDate(dateRange.start, dateRange.end);
                               }
                             } else {
@@ -988,9 +821,7 @@ class _ViewIOMState extends State<ViewIOM> {
                           },
                           onEditingComplete: () {
                             if (searchController.text.isEmpty) {
-                              if (!isPeriod) {
-                                filterStatus(dateRange.start, dateRange.end);
-                              } else {
+                              if (isPeriod) {
                                 filterDate(dateRange.start, dateRange.end);
                               }
                             } else {
@@ -1045,49 +876,64 @@ class _ViewIOMState extends State<ViewIOM> {
                                           onPressed: loading
                                               ? null
                                               : () async {
-                                                  Navigator.of(context)
-                                                      .push(MaterialPageRoute(
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return DetailIOM(
-                                                        isRefresh:
-                                                            (value) async {
-                                                          if (value) {
-                                                            setState(() {
-                                                              loading = true;
-                                                              dateRange =
-                                                                  DateTimeRange(
-                                                                start: DateTime
-                                                                    .now(),
-                                                                end: DateTime
-                                                                    .now(),
-                                                              );
-                                                              date.text =
-                                                                  '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                              isStatus = false;
-                                                              isPeriod = false;
-                                                              isCompany = false;
-                                                              searchController
-                                                                  .clear();
-                                                              filteredStatus
-                                                                      .value =
-                                                                  status;
-                                                              filteredCompany
-                                                                      .value =
-                                                                  company;
-                                                            });
+                                                  setState(() {
+                                                    loading = true;
+                                                  });
 
-                                                            iom.clear();
-                                                            await getIOM();
-                                                          }
-                                                        },
-                                                        iom: [
-                                                          filteredIOM
-                                                              .value[index]
-                                                        ],
-                                                      );
-                                                    },
-                                                  ));
+                                                  Future.delayed(
+                                                      const Duration(
+                                                          seconds: 1),
+                                                      () async {
+                                                    if (mounted) {
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    }
+
+                                                    await showDialog(
+                                                        context: context,
+                                                        barrierDismissible:
+                                                            false,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return VoidReason(
+                                                            isSuccess:
+                                                                (value) async {
+                                                              if (value) {
+                                                                setState(() {
+                                                                  loading =
+                                                                      true;
+                                                                  dateRange =
+                                                                      DateTimeRange(
+                                                                    start: DateTime
+                                                                        .now(),
+                                                                    end: DateTime
+                                                                        .now(),
+                                                                  );
+                                                                  date.text =
+                                                                      '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+
+                                                                  isPeriod =
+                                                                      false;
+                                                                  isCompany =
+                                                                      false;
+                                                                  searchController
+                                                                      .clear();
+                                                                  filteredCompany
+                                                                          .value =
+                                                                      company;
+                                                                });
+                                                                iom.clear();
+                                                                await getVoid();
+                                                              }
+                                                            },
+                                                            iom: [
+                                                              filteredIOM
+                                                                  .value[index]
+                                                            ],
+                                                          );
+                                                        });
+                                                  });
                                                 },
                                           child: CupertinoListTile.notched(
                                             leading: filteredIOM.value[index]
@@ -1149,13 +995,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                          filteredIOM.value[
-                                                                          index]
-                                                                      [
-                                                                      'tanggal'] ==
-                                                                  'No Data'
-                                                              ? ': ${filteredIOM.value[index]['tanggal']}'
-                                                              : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
+                                                          ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
                                                         ),
                                                         SizedBox(
                                                           width:
@@ -1172,12 +1012,8 @@ class _ViewIOMState extends State<ViewIOM> {
                                                         ),
                                                         Text(
                                                             ': ${filteredIOM.value[index]['rute']}'),
-                                                        Text(filteredIOM.value[
-                                                                        index][
-                                                                    'tanggalRute'] ==
-                                                                'No Data'
-                                                            ? ': ${filteredIOM.value[index]['tanggalRute']}'
-                                                            : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
+                                                        Text(
+                                                            ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
                                                         SizedBox(
                                                           width:
                                                               size.width * 0.45,
@@ -1194,25 +1030,15 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                       .toString()
                                                                       .toUpperCase(),
                                                                   style:
-                                                                      TextStyle(
+                                                                      const TextStyle(
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .bold,
-                                                                    color: filteredIOM.value[index]['status'] ==
-                                                                                'VERIFIED PENDING PAYMENT' ||
-                                                                            filteredIOM.value[index]['status'] ==
-                                                                                'VERIFIED PAYMENT'
-                                                                        ? Colors
-                                                                            .blue
-                                                                        : filteredIOM.value[index]['status'] ==
-                                                                                'APPROVED'
-                                                                            ? Colors.green
-                                                                            : filteredIOM.value[index]['status'] == 'REJECTED' || filteredIOM.value[index]['status'] == 'VOID'
-                                                                                ? Colors.red
-                                                                                : Colors.black,
+                                                                    color: Colors
+                                                                        .green,
                                                                   ),
                                                                 )
                                                               ],
@@ -1223,105 +1049,10 @@ class _ViewIOMState extends State<ViewIOM> {
                                                     ),
                                                   ],
                                                 ),
-                                                // isOpen
-                                                //     ? DateTime.parse(filteredIOM
-                                                //                             .value[
-                                                //                         index][
-                                                //                     'tanggalRute'])
-                                                //                 .toLocal()
-                                                //                 .year ==
-                                                //             2024
-                                                //         ? ElevatedButton(
-                                                //             onPressed:
-                                                //                 () async {
-                                                //               await showDialog(
-                                                //                   context:
-                                                //                       context,
-                                                //                   builder:
-                                                //                       (BuildContext
-                                                //                           context) {
-                                                //                     return ResetConfirmation(
-                                                //                       isSuccess:
-                                                //                           (value) async {
-                                                //                         if (value) {
-                                                //                           setState(
-                                                //                               () {
-                                                //                             loading =
-                                                //                                 true;
-                                                //                             dateRange =
-                                                //                                 DateTimeRange(
-                                                //                               start: DateTime.now(),
-                                                //                               end: DateTime.now(),
-                                                //                             );
-                                                //                             date.text =
-                                                //                                 '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                //                             isStatus =
-                                                //                                 false;
-                                                //                             isPeriod =
-                                                //                                 false;
-                                                //                             isCompany =
-                                                //                                 false;
-                                                //                             searchController.clear();
-                                                //                             filteredStatus.value =
-                                                //                                 status;
-                                                //                             filteredCompany.value =
-                                                //                                 company;
-                                                //                           });
-
-                                                //                           iom.clear();
-                                                //                           await getIOM();
-                                                //                         }
-                                                //                       },
-                                                //                       noIOM: filteredIOM
-                                                //                               .value[index]
-                                                //                           [
-                                                //                           'noIOM'],
-                                                //                       server: filteredIOM
-                                                //                               .value[index]
-                                                //                           [
-                                                //                           'server'],
-                                                //                       status: filteredIOM
-                                                //                               .value[index]
-                                                //                           [
-                                                //                           'status'],
-                                                //                     );
-                                                //                   });
-                                                //             },
-                                                //             style:
-                                                //                 ElevatedButton
-                                                //                     .styleFrom(
-                                                //               fixedSize: Size(
-                                                //                 size.width,
-                                                //                 size.height *
-                                                //                     0.05,
-                                                //               ),
-                                                //               backgroundColor:
-                                                //                   Colors.red,
-                                                //               foregroundColor:
-                                                //                   Colors.white,
-                                                //             ),
-                                                //             child: const Text(
-                                                //                 'RESET'),
-                                                //           )
-                                                //         : const SizedBox
-                                                //             .shrink()
-                                                //     : const SizedBox.shrink(),
                                               ],
                                             ),
-                                            trailing: filteredIOM.value[index]
-                                                            ['status'] ==
-                                                        'VERIFIED PAYMENT' ||
-                                                    filteredIOM.value[index]
-                                                            ['status'] ==
-                                                        'APPROVED' ||
-                                                    filteredIOM.value[index]
-                                                            ['status'] ==
-                                                        'REJECTED' ||
-                                                    filteredIOM.value[index]
-                                                            ['status'] ==
-                                                        'VOID'
-                                                ? const Icon(Icons.attach_file)
-                                                : null,
+                                            trailing:
+                                                const Icon(Icons.attach_file),
                                             padding: const EdgeInsets.all(10),
                                           ),
                                         ),

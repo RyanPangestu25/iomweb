@@ -10,6 +10,7 @@ import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
 import '../screens/change_pass.dart';
 import '../screens/home.dart';
+import '../screens/iom_void.dart';
 import '../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/about.dart';
@@ -627,6 +628,19 @@ class _SidebarState extends State<Sidebar> {
                     return const ViewIOM(
                       title: 'IOM Verification',
                     );
+                  }),
+                );
+              },
+            ),
+            ListTile(
+              iconColor: Colors.white70,
+              textColor: Colors.white70,
+              leading: const Icon(Icons.circle_outlined),
+              title: const Text("IOM Void"),
+              onTap: () async {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (BuildContext context) {
+                    return const IOMVoid();
                   }),
                 );
               },

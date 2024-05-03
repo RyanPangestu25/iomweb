@@ -856,16 +856,18 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: IconButton(
-              onPressed: status == 'APPROVED'
+              onPressed: status == 'APPROVED' || status == 'VOID'
                   ? null
                   : () async {
                       edit(index);
                     },
               icon: Icon(
                 Icons.edit_square,
-                color: status == 'APPROVED' ? null : Colors.green,
+                color: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : Colors.green,
                 size: 30,
-                shadows: status == 'APPROVED'
+                shadows: status == 'APPROVED' || status == 'VOID'
                     ? null
                     : const [
                         Shadow(
@@ -880,16 +882,18 @@ class TableData extends DataTableSource {
         DataCell(
           Center(
             child: IconButton(
-              onPressed: status == 'APPROVED'
+              onPressed: status == 'APPROVED' || status == 'VOID'
                   ? null
                   : () async {
                       delete(index);
                     },
               icon: Icon(
                 Icons.delete,
-                color: status == 'APPROVED' ? null : Colors.red,
+                color: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : Colors.red,
                 size: 30,
-                shadows: status == 'APPROVED'
+                shadows: status == 'APPROVED' || status == 'VOID'
                     ? null
                     : const [
                         Shadow(

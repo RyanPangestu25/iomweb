@@ -110,3 +110,9 @@ const url_ResetApproval =
 
 const url_GetReportOverdue =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportOverdue';
+
+const url_GetVoid =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetVoid';
+
+const url_AddReason =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddReason';
