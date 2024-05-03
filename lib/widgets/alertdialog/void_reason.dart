@@ -278,6 +278,7 @@ class _VoidReasonState extends State<VoidReason> {
                       focusNode: _focusNode1,
                       controller: reason,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
+                      maxLines: 2,
                       decoration: const InputDecoration(
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(width: 2),
