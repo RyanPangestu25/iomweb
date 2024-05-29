@@ -827,7 +827,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.015),
                   const Text(
-                    "Charter",
+                    "Charter Name",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
@@ -850,7 +850,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.015),
                   const Text(
-                    "Date",
+                    "IOM Date",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
@@ -915,6 +915,29 @@ class _DetailIOMState extends State<DetailIOM> {
                             .toString(),
                     autocorrect: false,
                     readOnly: true,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: const InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.015),
+                  const Text(
+                    "Revenue",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: size.height * 0.01),
+                  TextFormField(
+                    initialValue: widget.iom.last['revenue'],
+                    autocorrect: false,
+                    readOnly: true,
+                    maxLines: 2,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(

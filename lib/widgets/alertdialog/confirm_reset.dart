@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
 
 import 'package:flutter/material.dart';
-import '../loading.dart';
+import '../../widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
@@ -12,14 +12,14 @@ class ResetConfirmation extends StatefulWidget {
   final Function(bool) isSuccess;
   final String noIOM;
   final String server;
-  final String status;
+  final bool isIOM;
 
   const ResetConfirmation({
     super.key,
     required this.isSuccess,
     required this.noIOM,
     required this.server,
-    required this.status,
+    required this.isIOM,
   });
 
   @override
@@ -84,23 +84,19 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
           });
         } else {
           Future.delayed(const Duration(seconds: 1), () async {
-            if (widget.status.toUpperCase().contains('VERIFIED')) {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                  icon: Icons.done,
-                  color: Colors.green,
-                ),
-                title: "Success Reset IOM",
-                backgroundColor: Colors.grey[300],
-              );
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success Reset IOM",
+              backgroundColor: Colors.grey[300],
+            );
 
-              widget.isSuccess(true);
-              Navigator.of(context).pop();
-            } else {
-              await delAPB();
-            }
+            widget.isSuccess(true);
+            Navigator.of(context).pop();
           });
         }
       } else {
@@ -175,276 +171,27 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
     }
   }
 
-  Future<void> delAPB() async {
+  Future<void> resetApproval() async {
     try {
       setState(() {
         loading = true;
-        status = 'Deletting APB';
+        status = 'Resetting Approval';
       });
 
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<DelAPB xmlns="http://tempuri.org/">' +
-          '<IOMNumber>${widget.noIOM}</IOMNumber>' +
-          '</DelAPB>' +
+          '<ResetApproval xmlns="http://tempuri.org/">' +
+          '<NoIOM>${widget.noIOM}</NoIOM>' +
+          '<server>${widget.server}</server>' +
+          '</ResetApproval>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_DelAPB),
+      final response = await http.post(Uri.parse(url_ResetApproval),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/DelAPB',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final statusData = document.findAllElements('DelAPBResult').isEmpty
-            ? 'GAGAL'
-            : document.findAllElements('DelAPBResult').first.text;
-
-        if (statusData == "GAGAL") {
-          Future.delayed(const Duration(seconds: 1), () async {
-            await resetCharter();
-          });
-        } else {
-          Future.delayed(const Duration(seconds: 1), () async {
-            await delCharter();
-          });
-        }
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Delete APB",
-          backgroundColor: Colors.grey[300],
-        );
-
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) {
-                return TryAgain(
-                  submit: (value) async {
-                    if (value) {
-                      await delAPB();
-                    }
-                  },
-                );
-              });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Delete APB",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) {
-              return TryAgain(
-                submit: (value) async {
-                  if (value) {
-                    await delAPB();
-                  }
-                },
-              );
-            });
-      });
-    }
-  }
-
-  Future<void> delCharter() async {
-    try {
-      setState(() {
-        loading = true;
-        status = 'Deletting Charter';
-      });
-
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<DelCharter xmlns="http://tempuri.org/">' +
-          '<IOMNumber>${widget.noIOM}</IOMNumber>' +
-          '</DelCharter>' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_DelCharter),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/DelCharter',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final statusData = document.findAllElements('DelCharterResult').isEmpty
-            ? 'GAGAL'
-            : document.findAllElements('DelCharterResult').first.text;
-
-        if (statusData == "GAGAL") {
-          Future.delayed(const Duration(seconds: 1), () async {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
-              backgroundColor: Colors.grey[300],
-            );
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-          });
-        } else {
-          Future.delayed(const Duration(seconds: 1), () async {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration: const IconConfiguration(
-                icon: Icons.done,
-                color: Colors.green,
-              ),
-              title: "Success Reset IOM",
-              backgroundColor: Colors.grey[300],
-            );
-
-            widget.isSuccess(true);
-            Navigator.of(context).pop();
-          });
-        }
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Delete Charter",
-          backgroundColor: Colors.grey[300],
-        );
-
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) {
-                return TryAgain(
-                  submit: (value) async {
-                    if (value) {
-                      await delCharter();
-                    }
-                  },
-                );
-              });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Delete Charter",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) {
-              return TryAgain(
-                submit: (value) async {
-                  if (value) {
-                    await delCharter();
-                  }
-                },
-              );
-            });
-      });
-    }
-  }
-
-  Future<void> resetCharter() async {
-    try {
-      setState(() {
-        loading = true;
-        status = 'Resetting Charter';
-      });
-
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<ResetCharter xmlns="http://tempuri.org/">' +
-          '<IOMNumber>${widget.noIOM}</IOMNumber>' +
-          '</ResetCharter>' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_ResetCharter),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/ResetCharter',
+            'SOAPAction': 'http://tempuri.org/ResetApproval',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -454,9 +201,9 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('ResetCharterResult').isEmpty
+            document.findAllElements('ResetApprovalResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('ResetCharterResult').first.text;
+                : document.findAllElements('ResetApprovalResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () async {
@@ -468,6 +215,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
               title: "Failed",
               backgroundColor: Colors.grey[300],
             );
+
             if (mounted) {
               setState(() {
                 loading = false;
@@ -483,7 +231,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                 icon: Icons.done,
                 color: Colors.green,
               ),
-              title: "Success Reset IOM",
+              title: "Success Reset Approval",
               backgroundColor: Colors.grey[300],
             );
 
@@ -500,7 +248,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
           title: "${response.statusCode}",
-          subtitle: "Failed Reset Charter",
+          subtitle: "Failed Reset Approval",
           backgroundColor: Colors.grey[300],
         );
 
@@ -518,7 +266,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await resetCharter();
+                      await resetApproval();
                     }
                   },
                 );
@@ -532,7 +280,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
         duration: const Duration(seconds: 2),
         configuration:
             const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Reset Charter",
+        title: "Failed Reset Approval",
         subtitle: "$e",
         subtitleOptions: StatusAlertTextConfiguration(
           overflow: TextOverflow.visible,
@@ -554,7 +302,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await resetCharter();
+                    await resetApproval();
                   }
                 },
               );
@@ -597,9 +345,18 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    const Text('Do you really want to reset this IOM Number?'),
+                    Text(widget.isIOM
+                        ? 'Do you want to reset this IOM Number?'
+                        : 'Do you want to undo the approval of this IOM Number?'),
+                    SizedBox(height: size.height * 0.01),
                     const Text('IOM Number:'),
-                    Text(widget.noIOM),
+                    Text(
+                      widget.noIOM,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: MediaQuery.of(context).textScaler.scale(15),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -613,7 +370,11 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                           loading = true;
                         });
 
-                        await delAPB();
+                        if (widget.isIOM) {
+                          await resetIOM();
+                        } else {
+                          await resetApproval();
+                        }
                       },
                 child: Text(
                   "Yes",

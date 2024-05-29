@@ -93,15 +93,6 @@ const url_GetReportAll =
 const url_ResetIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetIOM';
 
-const url_DelAPB =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DelAPB';
-
-const url_DelCharter =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DelCharter';
-
-const url_ResetCharter =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetCharter';
-
 const url_AddTranKey =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddTranKey';
 

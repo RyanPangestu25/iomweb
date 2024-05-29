@@ -235,6 +235,9 @@ class _SidebarState extends State<Sidebar> {
             final createdBy = listResult.findElements('CreatedBy').isEmpty
                 ? 'No Data'
                 : listResult.findElements('CreatedBy').first.innerText;
+            final namaResmi = listResult.findElements('NamaResmi').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NamaResmi').first.innerText;
             final description = listResult.findElements('Description').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Description').first.innerText;
@@ -329,6 +332,7 @@ class _SidebarState extends State<Sidebar> {
                   'biayaCharter': biayaCharter,
                   'createdDate': createdDate,
                   'createdBy': createdBy,
+                  'namaResmi': namaResmi,
                   'desc': description,
                   'item': item,
                   'tanggal': tanggal,
@@ -417,6 +421,7 @@ class _SidebarState extends State<Sidebar> {
         'BiayaCharter',
         'TglCreate',
         'UserCreate',
+        'Username',
         'NamaPencharter',
         'Item',
         'Tanggal',
@@ -458,6 +463,7 @@ class _SidebarState extends State<Sidebar> {
               : DateFormat('dd-MMM-yyyy')
                   .format(DateTime.parse(data['createdDate']).toLocal()),
           data['createdBy'],
+          data['namaResmi'],
           data['desc'],
           data['item'],
           data['tanggal'] == 'No Data'

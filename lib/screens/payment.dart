@@ -253,7 +253,7 @@ class _PaymentState extends State<Payment> {
                 'noIOM': noIOM,
                 'filename': filename,
                 'pdf': pdfFile,
-                'ext': ext,
+                'ext': ext.toLowerCase(),
                 'attachmentType': attachmentType,
               });
             });
