@@ -401,7 +401,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                               });
                             }
 
-                            await showDialog(
+                            showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return Attachment(
@@ -422,7 +422,10 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                                 });
                           });
                         },
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                  ),
                 )
               : const SizedBox.shrink(),
           IconButton(
