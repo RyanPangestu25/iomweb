@@ -107,3 +107,6 @@ const url_GetVoid =
 
 const url_AddReason =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddReason';
+
+const url_AddAttachment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddAttachment';

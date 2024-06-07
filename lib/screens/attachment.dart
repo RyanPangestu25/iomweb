@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iomweb/widgets/alertdialog/attach.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/loading.dart';
@@ -383,14 +384,57 @@ class _IOMAttachmentState extends State<IOMAttachment> {
         ),
         elevation: 3,
         actions: [
+          level == '12' || level == '19'
+              ? IconButton(
+                  tooltip: 'Add Attachment',
+                  onPressed: loading
+                      ? null
+                      : () async {
+                          setState(() {
+                            loading = true;
+                          });
+
+                          Future.delayed(const Duration(seconds: 1), () async {
+                            if (mounted) {
+                              setState(() {
+                                loading = false;
+                              });
+                            }
+
+                            await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return Attachment(
+                                    isSuccess: (value) async {
+                                      if (value) {
+                                        Navigator.of(context).pop();
+
+                                        setState(() {
+                                          loading = true;
+                                          att.clear();
+                                        });
+
+                                        await getAttName();
+                                      }
+                                    },
+                                    iom: widget.iom,
+                                  );
+                                });
+                          });
+                        },
+                  icon: const Icon(Icons.add),
+                )
+              : const SizedBox.shrink(),
           IconButton(
+            tooltip: 'Refresh',
             onPressed: loading
                 ? null
                 : () async {
                     setState(() {
                       loading = true;
+                      att.clear();
                     });
-                    att.clear();
+
                     await getAttName();
                   },
             icon: const Icon(Icons.refresh),

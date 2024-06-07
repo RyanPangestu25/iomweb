@@ -1422,13 +1422,15 @@ class _ViewIOMState extends State<ViewIOM> {
                                     child: isYear
                                         ? Row(
                                             children: [
-                                              Text(filteredYear.value[index]),
+                                              Text(filteredYear.value[index]
+                                                  .toString()),
                                               SizedBox(
                                                   width: size.width * 0.01),
                                               const Icon(Icons.done),
                                             ],
                                           )
-                                        : Text(filteredYear.value[index]),
+                                        : Text(filteredYear.value[index]
+                                            .toString()),
                                   ),
                                 ],
                               );
