@@ -134,7 +134,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 backgroundColor: Colors.grey[300],
               );
 
-              if (password == '123') {
+              String pattern =
+                  r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$%^&*()_+{}\[\]:;<>,.?~])';
+              RegExp regExp = RegExp(pattern);
+
+              if (password == '123' ||
+                  (!regExp.hasMatch(password) && password.length < 11)) {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                     builder: (context) => ChangePass(

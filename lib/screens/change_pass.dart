@@ -258,10 +258,16 @@ class _ChangePassState extends State<ChangePass> {
                           ),
                         ),
                         validator: (value) {
+                          String pattern =
+                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$%^&*()_+{}\[\]:;<>,.?~])';
+                          RegExp regExp = RegExp(pattern);
+
                           if (value!.isEmpty) {
                             return "Text can't be empty";
-                          } else if (value.length < 3) {
-                            return 'Password must be greater than or equal to 3 characters';
+                          } else if (!regExp.hasMatch(value)) {
+                            return "Minimum 1 upper text, 1 lower text, 1 number, 1 special character";
+                          } else if (value.length < 11) {
+                            return "Minimum 11 characters";
                           } else {
                             return null;
                           }
