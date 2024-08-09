@@ -216,8 +216,10 @@ class _OTPLoginState extends State<OTPLogin> {
                     shape: PinCodeFieldShape.underline,
                     borderRadius: BorderRadius.circular(5),
                     fieldHeight: 50,
-                    fieldWidth:
-                        (size.width > 600 && size.width < 1000) ? 55 : 50,
+                    fieldWidth: size.width < 600 ||
+                            (size.width > 600 && size.width < 1000)
+                        ? size.width * 0.07
+                        : 50,
                     activeFillColor: Colors.white,
                     inactiveFillColor: Colors.white,
                     fieldOuterPadding: const EdgeInsets.all(5),
@@ -272,10 +274,10 @@ class _OTPLoginState extends State<OTPLogin> {
                       Navigator.of(context).pop();
                     },
               child: loading
-                  ? SizedBox(
-                      height: size.height * 0.028,
-                      width: size.width * 0.06,
-                      child: const CircularProgressIndicator(),
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(),
                     )
                   : const Text("Close"),
             ),

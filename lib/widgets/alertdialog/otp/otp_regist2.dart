@@ -290,8 +290,10 @@ class _OTPRegist2State extends State<OTPRegist2> {
                     shape: PinCodeFieldShape.underline,
                     borderRadius: BorderRadius.circular(5),
                     fieldHeight: 50,
-                    fieldWidth:
-                        (size.width > 600 && size.width < 1000) ? 55 : 50,
+                    fieldWidth: size.width < 600 ||
+                            (size.width > 600 && size.width < 1000)
+                        ? 55
+                        : 50,
                     activeFillColor: Colors.white,
                     inactiveFillColor: Colors.white,
                     fieldOuterPadding: const EdgeInsets.all(5),

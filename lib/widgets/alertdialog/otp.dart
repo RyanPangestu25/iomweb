@@ -189,17 +189,18 @@ class _CekOTPState extends State<CekOTP> {
       onTap: () {
         _focusNode.unfocus();
       },
-      child: SizedBox(
-        height: size.height,
-        width: size.width,
-        child: AlertDialog(
-          icon: const Icon(
-            Icons.chat,
-            size: 50,
-          ),
-          iconColor: Colors.blue,
-          title: const Text('VALIDATE OTP'),
-          content: SingleChildScrollView(
+      child: AlertDialog(
+        icon: const Icon(
+          Icons.chat,
+          size: 50,
+        ),
+        iconColor: Colors.blue,
+        title: const Text('VALIDATE OTP'),
+        content: SizedBox(
+          width: size.width < 600 || (size.width > 600 && size.width < 1000)
+              ? size.width * 0.5
+              : size.width * 0.4,
+          child: SingleChildScrollView(
             clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -213,9 +214,13 @@ class _CekOTPState extends State<CekOTP> {
                     shape: PinCodeFieldShape.underline,
                     borderRadius: BorderRadius.circular(5),
                     fieldHeight: 50,
-                    fieldWidth: size.width * 0.05,
+                    fieldWidth: size.width < 600 ||
+                            (size.width > 600 && size.width < 1500)
+                        ? size.width * 0.04
+                        : 50,
                     activeFillColor: Colors.white,
                     inactiveFillColor: Colors.white,
+                    fieldOuterPadding: const EdgeInsets.all(5),
                   ),
                   animationDuration: const Duration(milliseconds: 300),
                   backgroundColor: Colors.blue.shade50,
@@ -240,6 +245,7 @@ class _CekOTPState extends State<CekOTP> {
                         setState(() {
                           loading = false;
                         });
+
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (context) => ChangePass(
@@ -277,40 +283,40 @@ class _CekOTPState extends State<CekOTP> {
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: isWait
-                  ? null
-                  : loading
-                      ? null
-                      : () async {
-                          setState(() {
-                            loading = true;
-                            isWait = true;
-                          });
+        ),
+        actions: [
+          TextButton(
+            onPressed: isWait
+                ? null
+                : loading
+                    ? null
+                    : () async {
+                        setState(() {
+                          loading = true;
+                          isWait = true;
+                        });
 
-                          await requestOTP(widget.nik, widget.email);
-                        },
-              child: isWait ? Text('$no') : const Text("Resend OTP"),
-            ),
-            TextButton(
-              onPressed: loading
-                  ? null
-                  : () {
-                      Navigator.of(context).pop();
-                    },
-              child: loading
-                  ? SizedBox(
-                      height: size.height * 0.028,
-                      width: size.width * 0.05,
-                      child: const CircularProgressIndicator(),
-                    )
-                  : const Text("Close"),
-            ),
-          ],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+                        await requestOTP(widget.nik, widget.email);
+                      },
+            child: isWait ? Text('$no') : const Text("Resend OTP"),
           ),
+          TextButton(
+            onPressed: loading
+                ? null
+                : () {
+                    Navigator.of(context).pop();
+                  },
+            child: loading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(),
+                  )
+                : const Text("Close"),
+          ),
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
     );
