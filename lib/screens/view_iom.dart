@@ -51,13 +51,7 @@ class _ViewIOMState extends State<ViewIOM> {
     'REJECTED',
     'VOID',
   ];
-  List company = [
-    'LION',
-    'SAJ',
-    'WINGS',
-    'ANGKASA',
-    'BATIK',
-  ];
+  List<String> company = [];
   List year = [];
   ValueNotifier<List<dynamic>> filteredStatus = ValueNotifier([
     'NONE',
@@ -67,13 +61,7 @@ class _ViewIOMState extends State<ViewIOM> {
     'REJECTED',
     'VOID',
   ]);
-  ValueNotifier<List<dynamic>> filteredCompany = ValueNotifier([
-    'LION',
-    'SAJ',
-    'WINGS',
-    'ANGKASA',
-    'BATIK',
-  ]);
+  ValueNotifier<List<dynamic>> filteredCompany = ValueNotifier([]);
   ValueNotifier<List<dynamic>> filteredYear = ValueNotifier([]);
   ValueNotifier<List<dynamic>> filteredIOM = ValueNotifier([]);
 
@@ -289,6 +277,12 @@ class _ViewIOMState extends State<ViewIOM> {
 
             Future.delayed(const Duration(seconds: 1), () async {
               for (var data in iom) {
+                if (!company.contains(data['server'])) {
+                  company.add(data['server']);
+                }
+              }
+
+              for (var data in iom) {
                 if (!year
                     .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
                   year.add(DateTime.parse(data['tanggal']).toLocal().year);
@@ -296,6 +290,7 @@ class _ViewIOMState extends State<ViewIOM> {
               }
 
               setState(() {
+                filteredCompany.value = company;
                 filteredIOM.value = iom;
                 filteredYear.value = year;
               });
@@ -1661,271 +1656,295 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                 'BATIK'
                                                             ? Image.asset('assets/images/logobatik.png')
                                                             : const Icon(Icons.business),
-                                            title: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  filteredIOM.value[index]
-                                                      ['noIOM'],
-                                                  textAlign: TextAlign.left,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                            title: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    filteredIOM.value[index]
+                                                        ['noIOM'],
+                                                    textAlign: TextAlign.left,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
-                                                ),
-                                                isOpen
-                                                    ? DateTime.parse(filteredIOM
-                                                                            .value[
-                                                                        index][
-                                                                    'tanggalRute'])
-                                                                .toLocal()
-                                                                .year ==
-                                                            DateTime.now().year
-                                                        ? IconButton(
-                                                            onPressed:
-                                                                () async {
-                                                              await showDialog(
-                                                                  context:
-                                                                      context,
-                                                                  builder:
-                                                                      (BuildContext
-                                                                          context) {
-                                                                    return ResetConfirmation(
-                                                                      isSuccess:
-                                                                          (value) async {
-                                                                        if (value) {
-                                                                          setState(
-                                                                              () {
-                                                                            loading =
-                                                                                true;
-                                                                            dateRange =
-                                                                                DateTimeRange(
-                                                                              start: DateTime.now(),
-                                                                              end: DateTime.now(),
-                                                                            );
-                                                                            date.text =
-                                                                                '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                                            isStatus =
-                                                                                false;
-                                                                            isPeriod =
-                                                                                false;
-                                                                            isCompany =
-                                                                                false;
-                                                                            isYear =
-                                                                                false;
-                                                                            searchController.clear();
-                                                                            filteredStatus.value =
-                                                                                status;
-                                                                            filteredCompany.value =
-                                                                                company;
-                                                                          });
+                                                  // isOpen
+                                                  //     ? DateTime.parse(filteredIOM
+                                                  //                             .value[
+                                                  //                         index][
+                                                  //                     'tanggalRute'])
+                                                  //                 .toLocal()
+                                                  //                 .year ==
+                                                  //             DateTime.now().year
+                                                  //         ? IconButton(
+                                                  //             onPressed:
+                                                  //                 () async {
+                                                  //               await showDialog(
+                                                  //                   context:
+                                                  //                       context,
+                                                  //                   builder:
+                                                  //                       (BuildContext
+                                                  //                           context) {
+                                                  //                     return ResetConfirmation(
+                                                  //                       isSuccess:
+                                                  //                           (value) async {
+                                                  //                         if (value) {
+                                                  //                           setState(
+                                                  //                               () {
+                                                  //                             loading =
+                                                  //                                 true;
+                                                  //                             dateRange =
+                                                  //                                 DateTimeRange(
+                                                  //                               start: DateTime.now(),
+                                                  //                               end: DateTime.now(),
+                                                  //                             );
+                                                  //                             date.text =
+                                                  //                                 '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                                                  //                             isStatus =
+                                                  //                                 false;
+                                                  //                             isPeriod =
+                                                  //                                 false;
+                                                  //                             isCompany =
+                                                  //                                 false;
+                                                  //                             isYear =
+                                                  //                                 false;
+                                                  //                             searchController.clear();
+                                                  //                             filteredStatus.value =
+                                                  //                                 status;
+                                                  //                             filteredCompany.value =
+                                                  //                                 company;
+                                                  //                           });
 
-                                                                          iom.clear();
-                                                                          await getIOM();
-                                                                        }
-                                                                      },
-                                                                      noIOM: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'noIOM'],
-                                                                      server: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'server'],
-                                                                      isIOM:
-                                                                          true,
-                                                                    );
-                                                                  });
-                                                            },
-                                                            tooltip:
-                                                                'Reset IOM',
-                                                            icon: const Icon(
-                                                              Icons.history,
-                                                              color: Colors.red,
-                                                            ),
-                                                          )
-                                                        : const SizedBox
-                                                            .shrink()
-                                                    : const SizedBox.shrink(),
-                                                isOpen
-                                                    ? DateTime.parse(filteredIOM
-                                                                            .value[
-                                                                        index][
-                                                                    'tanggalRute'])
-                                                                .toLocal()
-                                                                .year ==
-                                                            DateTime.now().year
-                                                        ? IconButton(
-                                                            onPressed:
-                                                                () async {
-                                                              await showDialog(
-                                                                  context:
-                                                                      context,
-                                                                  builder:
-                                                                      (BuildContext
-                                                                          context) {
-                                                                    return ResetConfirmation(
-                                                                      isSuccess:
-                                                                          (value) async {
-                                                                        if (value) {
-                                                                          setState(
-                                                                              () {
-                                                                            loading =
-                                                                                true;
-                                                                            dateRange =
-                                                                                DateTimeRange(
-                                                                              start: DateTime.now(),
-                                                                              end: DateTime.now(),
-                                                                            );
-                                                                            date.text =
-                                                                                '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                                            isStatus =
-                                                                                false;
-                                                                            isPeriod =
-                                                                                false;
-                                                                            isCompany =
-                                                                                false;
-                                                                            isYear =
-                                                                                false;
-                                                                            searchController.clear();
-                                                                            filteredStatus.value =
-                                                                                status;
-                                                                            filteredCompany.value =
-                                                                                company;
-                                                                          });
+                                                  //                           iom.clear();
+                                                  //                           await getIOM();
+                                                  //                         }
+                                                  //                       },
+                                                  //                       noIOM: filteredIOM
+                                                  //                               .value[index]
+                                                  //                           [
+                                                  //                           'noIOM'],
+                                                  //                       server: filteredIOM
+                                                  //                               .value[index]
+                                                  //                           [
+                                                  //                           'server'],
+                                                  //                       isIOM:
+                                                  //                           true,
+                                                  //                     );
+                                                  //                   });
+                                                  //             },
+                                                  //             tooltip:
+                                                  //                 'Reset IOM',
+                                                  //             icon: const Icon(
+                                                  //               Icons.history,
+                                                  //               color: Colors.red,
+                                                  //             ),
+                                                  //           )
+                                                  //         : const SizedBox
+                                                  //             .shrink()
+                                                  //     : const SizedBox.shrink(),
+                                                  isOpen
+                                                      ? DateTime.parse(filteredIOM
+                                                                              .value[
+                                                                          index]
+                                                                      [
+                                                                      'tanggalRute'])
+                                                                  .toLocal()
+                                                                  .year ==
+                                                              DateTime.now()
+                                                                  .year
+                                                          ? IconButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (BuildContext
+                                                                            context) {
+                                                                      return ResetConfirmation(
+                                                                        isSuccess:
+                                                                            (value) async {
+                                                                          if (value) {
+                                                                            setState(() {
+                                                                              loading = true;
+                                                                              dateRange = DateTimeRange(
+                                                                                start: DateTime.now(),
+                                                                                end: DateTime.now(),
+                                                                              );
+                                                                              date.text = '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                                                                              isStatus = false;
+                                                                              isPeriod = false;
+                                                                              isCompany = false;
+                                                                              isYear = false;
+                                                                              searchController.clear();
+                                                                              filteredStatus.value = status;
+                                                                              filteredCompany.value = company;
+                                                                            });
 
-                                                                          iom.clear();
-                                                                          await getIOM();
-                                                                        }
-                                                                      },
-                                                                      noIOM: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'noIOM'],
-                                                                      server: filteredIOM
-                                                                              .value[index]
-                                                                          [
-                                                                          'server'],
-                                                                      isIOM:
-                                                                          false,
-                                                                    );
-                                                                  });
-                                                            },
-                                                            tooltip:
-                                                                'Reset Approval',
-                                                            icon: const Icon(
-                                                              Icons.approval,
-                                                              color: Colors.red,
-                                                            ),
-                                                          )
-                                                        : const SizedBox
-                                                            .shrink()
-                                                    : const SizedBox.shrink(),
-                                              ],
+                                                                            iom.clear();
+                                                                            await getIOM();
+                                                                          }
+                                                                        },
+                                                                        noIOM: filteredIOM.value[index]
+                                                                            [
+                                                                            'noIOM'],
+                                                                        server: filteredIOM.value[index]
+                                                                            [
+                                                                            'server'],
+                                                                        isIOM:
+                                                                            false,
+                                                                      );
+                                                                    });
+                                                              },
+                                                              tooltip:
+                                                                  'Reset Approval',
+                                                              icon: const Icon(
+                                                                Icons.approval,
+                                                                color:
+                                                                    Colors.red,
+                                                              ),
+                                                            )
+                                                          : const SizedBox
+                                                              .shrink()
+                                                      : const SizedBox.shrink(),
+                                                ],
+                                              ),
                                             ),
                                             subtitle: Column(
                                               children: [
-                                                Row(
-                                                  children: [
-                                                    const Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text('IOM Date '),
-                                                        Text('Charter Name '),
-                                                        Text('Route '),
-                                                        Text('Charter Date '),
-                                                        Text('Status '),
-                                                      ],
-                                                    ),
-                                                    Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          filteredIOM.value[
+                                                SizedBox(
+                                                  width: size.width * 0.65,
+                                                  child: Row(
+                                                    children: [
+                                                      const Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text('IOM Date '),
+                                                          Text('Charter Name '),
+                                                          Text('Route '),
+                                                          Text('Charter Date '),
+                                                          Text('Status '),
+                                                        ],
+                                                      ),
+                                                      const Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(': '),
+                                                          Text(': '),
+                                                          Text(': '),
+                                                          Text(': '),
+                                                          Text(': '),
+                                                        ],
+                                                      ),
+                                                      Expanded(
+                                                        child: SizedBox(
+                                                          width:
+                                                              size.width * 0.1,
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                filteredIOM.value[index]
+                                                                            [
+                                                                            'tanggal'] ==
+                                                                        'No Data'
+                                                                    ? '${filteredIOM.value[index]['tanggal']}'
+                                                                    : DateFormat(
+                                                                            'dd MMM yyyy')
+                                                                        .format(
+                                                                            DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal()),
+                                                              ),
+                                                              SingleChildScrollView(
+                                                                scrollDirection:
+                                                                    Axis.horizontal,
+                                                                child: Text(
+                                                                  filteredIOM.value[
                                                                           index]
                                                                       [
-                                                                      'tanggal'] ==
-                                                                  'No Data'
-                                                              ? ': ${filteredIOM.value[index]['tanggal']}'
-                                                              : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal())}',
-                                                        ),
-                                                        SizedBox(
-                                                          width:
-                                                              size.width * 0.45,
-                                                          child: Text(
-                                                            ': ${filteredIOM.value[index]['charter']}',
-                                                            style:
-                                                                const TextStyle(
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                            ': ${filteredIOM.value[index]['rute']}'),
-                                                        Text(filteredIOM.value[
-                                                                        index][
-                                                                    'tanggalRute'] ==
-                                                                'No Data'
-                                                            ? ': ${filteredIOM.value[index]['tanggalRute']}'
-                                                            : ': ${DateFormat('dd MMM yyyy').format(DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal())}'),
-                                                        SizedBox(
-                                                          width:
-                                                              size.width * 0.45,
-                                                          child: Text.rich(
-                                                            TextSpan(
-                                                              text: ': ',
-                                                              children: [
-                                                                TextSpan(
-                                                                  text: filteredIOM
-                                                                      .value[
-                                                                          index]
-                                                                          [
-                                                                          'status']
-                                                                      .toString()
-                                                                      .toUpperCase(),
-                                                                  style:
-                                                                      TextStyle(
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: filteredIOM.value[index]['status'] ==
-                                                                                'VERIFIED PENDING PAYMENT' ||
-                                                                            filteredIOM.value[index]['status'] ==
-                                                                                'VERIFIED PAYMENT'
-                                                                        ? Colors
-                                                                            .blue
-                                                                        : filteredIOM.value[index]['status'] ==
-                                                                                'APPROVED'
-                                                                            ? Colors.green
-                                                                            : filteredIOM.value[index]['status'] == 'REJECTED' || filteredIOM.value[index]['status'] == 'VOID'
-                                                                                ? Colors.red
-                                                                                : Colors.black,
+                                                                      'charter'],
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                filteredIOM.value[
+                                                                        index]
+                                                                    ['rute'],
+                                                              ),
+                                                              Text(
+                                                                filteredIOM.value[index]
+                                                                            [
+                                                                            'tanggalRute'] ==
+                                                                        'No Data'
+                                                                    ? filteredIOM
+                                                                            .value[index]
+                                                                        [
+                                                                        'tanggalRute']
+                                                                    : DateFormat(
+                                                                            'dd MMM yyyy')
+                                                                        .format(
+                                                                            DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal()),
+                                                              ),
+                                                              SizedBox(
+                                                                width:
+                                                                    size.width *
+                                                                        0.45,
+                                                                child:
+                                                                    Text.rich(
+                                                                  TextSpan(
+                                                                    text: filteredIOM
+                                                                        .value[
+                                                                            index]
+                                                                            [
+                                                                            'status']
+                                                                        .toString()
+                                                                        .toUpperCase(),
+                                                                    style:
+                                                                        TextStyle(
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: filteredIOM.value[index]['status'] == 'VERIFIED PENDING PAYMENT' ||
+                                                                              filteredIOM.value[index]['status'] ==
+                                                                                  'VERIFIED PAYMENT'
+                                                                          ? Colors
+                                                                              .blue
+                                                                          : filteredIOM.value[index]['status'] == 'APPROVED'
+                                                                              ? Colors.green
+                                                                              : filteredIOM.value[index]['status'] == 'REJECTED' || filteredIOM.value[index]['status'] == 'VOID'
+                                                                                  ? Colors.red
+                                                                                  : Colors.black,
+                                                                    ),
                                                                   ),
-                                                                )
-                                                              ],
-                                                            ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ],
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ],
                                             ),

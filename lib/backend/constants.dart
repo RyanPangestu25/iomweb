@@ -110,3 +110,9 @@ const url_AddReason =
 
 const url_AddAttachment =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=AddAttachment';
+
+const url_UpdateAuth =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAuth';
+
+const url_CekNIK =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekNIK';

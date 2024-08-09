@@ -44,6 +44,7 @@ class _AttachmentState extends State<Attachment> {
     'Bukti Transfer',
     'NPWP/KTP',
     'IOM Signed',
+    'Agreement',
   ];
 
   DropdownMenuItem<String> buildmenuItem(String item) => DropdownMenuItem(

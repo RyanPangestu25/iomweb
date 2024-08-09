@@ -1,22 +1,22 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
+// ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
 import 'package:flutter/material.dart';
+import '/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/login.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../backend/constants.dart';
 
 class ChangePass extends StatefulWidget {
-  String nik;
-  String email;
+  final String nik;
+  final String email;
 
-  ChangePass({
-    Key? key,
+  const ChangePass({
+    super.key,
     required this.nik,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   State<ChangePass> createState() => _ChangePassState();
@@ -65,8 +65,9 @@ class _ChangePassState extends State<ChangePass> {
         final responseBody = response.body;
         final parsedResponse = xml.XmlDocument.parse(responseBody);
         final result =
-            parsedResponse.findAllElements('ResetPassResult').single.text;
+            parsedResponse.findAllElements('ResetPassResult').single.innerText;
         debugPrint('Result: $result');
+
         if (result == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
             StatusAlert.show(
@@ -96,50 +97,60 @@ class _ChangePassState extends State<ChangePass> {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.clear();
 
-            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-              builder: (BuildContext context) {
-                return const LoginScreen();
-              },
-            ), (route) => false);
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                builder: (BuildContext context) {
+                  return const LoginScreen();
+                },
+              ), (route) => false);
 
-            setState(() {
-              loading = false;
-            });
+              setState(() {
+                loading = false;
+              });
+            }
           });
         }
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
+
+        if (mounted) {
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Failed Update Password",
+            backgroundColor: Colors.grey[300],
+          );
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+
+      if (mounted) {
         StatusAlert.show(
           context,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(seconds: 2),
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Update Password",
+          title: "Failed Update Password",
+          subtitle: "$e",
+          subtitleOptions: StatusAlertTextConfiguration(
+            overflow: TextOverflow.visible,
+          ),
           backgroundColor: Colors.grey[300],
         );
+
         setState(() {
           loading = false;
         });
       }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Update Password",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      setState(() {
-        loading = false;
-      });
     }
   }
 
@@ -211,7 +222,7 @@ class _ChangePassState extends State<ChangePass> {
                   style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
-                    fontSize: MediaQuery.of(context).textScaleFactor * 28,
+                    fontSize: MediaQuery.of(context).textScaler.scale(28),
                   ),
                 ),
                 Text(
@@ -219,7 +230,7 @@ class _ChangePassState extends State<ChangePass> {
                   style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
-                    fontSize: MediaQuery.of(context).textScaleFactor * 28,
+                    fontSize: MediaQuery.of(context).textScaler.scale(28),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -343,6 +354,43 @@ class _ChangePassState extends State<ChangePass> {
                                             _formKey.currentState!.save();
 
                                             await updatePass(password.text);
+                                            // await showDialog(
+                                            //   context: context,
+                                            //   barrierDismissible: false,
+                                            //   builder: (BuildContext context) {
+                                            //     return OTPLogin(
+                                            //       isValid: (value) async {
+                                            //         if (value) {
+                                            //           await updatePass(
+                                            //               password.text);
+                                            //         }
+                                            //       },
+                                            //       data: [
+                                            //         {
+                                            //           'userEmail': widget.email,
+                                            //           'nik': widget.nik,
+                                            //         },
+                                            //       ],
+                                            //       otpStream: Stream<
+                                            //               dynamic>.periodic(
+                                            //           const Duration(
+                                            //               seconds: 0),
+                                            //           (val) => OTP.generateTOTPCodeString(
+                                            //               base32.encodeString(
+                                            //                   widget.nik +
+                                            //                       'IC'),
+                                            //               DateTime.now()
+                                            //                   .millisecondsSinceEpoch,
+                                            //               length: 6,
+                                            //               interval: 30,
+                                            //               algorithm:
+                                            //                   Algorithm.SHA1,
+                                            //               isGoogle:
+                                            //                   true)).asBroadcastStream(),
+                                            //       isUpdate: true,
+                                            //     );
+                                            //   },
+                                            // );
                                           }
                                         },
                                   icon: const Icon(

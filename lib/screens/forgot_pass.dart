@@ -1,11 +1,11 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
 import 'package:flutter/material.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
-import '../widgets/alertdialog/otp.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
+import 'change_pass.dart';
 
 class ForgotPass extends StatefulWidget {
   const ForgotPass({Key? key}) : super(key: key);
@@ -26,7 +26,7 @@ class _ForgotPassState extends State<ForgotPass> {
   TextEditingController nik = TextEditingController();
   TextEditingController email = TextEditingController();
 
-  Future<void> requestOTP(String nik, String email) async {
+  Future<void> cekNIK(String nik, String email) async {
     try {
       setState(() {
         loading = true;
@@ -35,104 +35,115 @@ class _ForgotPassState extends State<ForgotPass> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<LupaPass xmlns="http://tempuri.org/">' +
+          '<CekNIK xmlns="http://tempuri.org/">' +
           '<nik>$nik</nik>' +
           '<UserEmail>$email</UserEmail>' +
-          '</LupaPass>' +
+          '</CekNIK>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_LupaPass),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/LupaPass',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
+      final response = await http
+          .post(Uri.parse(url_CekNIK),
+              headers: <String, String>{
+                "Access-Control-Allow-Origin": "*",
+                'SOAPAction': 'http://tempuri.org/CekNIK',
+                'Access-Control-Allow-Credentials': 'true',
+                'Content-type': 'text/xml; charset=utf-8'
+              },
+              body: soapEnvelope)
+          .timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {
+          // Request Timeout response status code
+          return http.Response('Timeout Check NIK', 408);
+        },
+      );
 
       if (response.statusCode == 200) {
-        final responseBody = response.body;
-        final parsedResponse = xml.XmlDocument.parse(responseBody);
-        final result =
-            parsedResponse.findAllElements('LupaPassResult').single.text;
-        debugPrint('Result: $result');
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (result == "GAGAL") {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Email/User ID seems don't match",
-              backgroundColor: Colors.grey[300],
-            );
-            setState(() {
-              loading = false;
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (final listResult in listResultAll) {
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.innerText;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              if (mounted) {
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "Email/User ID seems don't match",
+                  backgroundColor: Colors.grey[300],
+                );
+
+                setState(() {
+                  loading = false;
+                });
+              }
             });
           } else {
-            setState(() {
-              kodeOTP = result;
-            });
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
 
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration: const IconConfiguration(
-                  icon: Icons.done, color: Colors.green),
-              title: "OTP has been sent to your Email",
-              backgroundColor: Colors.grey[300],
-            );
-            setState(() {
-              loading = false;
-            });
-
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return CekOTP(
-                  nik: nik,
-                  email: email,
-                  kodeOTP: kodeOTP,
-                );
-              },
-            );
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ChangePass(
+                    nik: nik,
+                    email: email,
+                  ),
+                ),
+              );
+            }
           }
-        });
+        }
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
+
+        if (mounted) {
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Error Request OTP",
+            backgroundColor: Colors.grey[300],
+          );
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+
+      if (mounted) {
         StatusAlert.show(
           context,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(seconds: 2),
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Request OTP",
+          title: "Error Request OTP",
+          subtitle: "$e",
+          subtitleOptions: StatusAlertTextConfiguration(
+            overflow: TextOverflow.visible,
+          ),
           backgroundColor: Colors.grey[300],
         );
+
         setState(() {
           loading = false;
         });
       }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Request OTP",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      setState(() {
-        loading = false;
-      });
     }
   }
 
@@ -204,7 +215,7 @@ class _ForgotPassState extends State<ForgotPass> {
                   style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
-                    fontSize: MediaQuery.of(context).textScaleFactor * 28,
+                    fontSize: MediaQuery.of(context).textScaler.scale(28),
                   ),
                 ),
                 Text(
@@ -212,7 +223,7 @@ class _ForgotPassState extends State<ForgotPass> {
                   style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.w500,
-                    fontSize: MediaQuery.of(context).textScaleFactor * 28,
+                    fontSize: MediaQuery.of(context).textScaler.scale(28),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -280,6 +291,16 @@ class _ForgotPassState extends State<ForgotPass> {
                             return null;
                           }
                         },
+                        onFieldSubmitted: (value) async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            setState(() {
+                              loading = true;
+                            });
+
+                            await cekNIK(nik.text, value);
+                          }
+                        },
                       ),
                       const SizedBox(height: 30),
                       loading
@@ -312,7 +333,7 @@ class _ForgotPassState extends State<ForgotPass> {
                                         loading = true;
                                       });
 
-                                      await requestOTP(nik.text, email.text);
+                                      await cekNIK(nik.text, email.text);
                                     }
                                   },
                                   child: const Row(

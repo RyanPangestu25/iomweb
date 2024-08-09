@@ -103,20 +103,29 @@ class _DisplayPDFState extends State<DisplayPDF> {
           ? const Center(
               child: Text('No Data'),
             )
-          : ListView.builder(
-              itemCount: widget.pdf.length,
-              shrinkWrap: true,
-              itemBuilder: (BuildContext context, index) {
-                List<int> byteArray = base64.decode(widget.pdf[index]['pdf']);
-                Uint8List uint8List = Uint8List.fromList(byteArray);
+          : Center(
+              child: SizedBox(
+                width:
+                    size.width < 600 || (size.width > 600 && size.width < 1000)
+                        ? size.width
+                        : size.width * 0.6,
+                child: ListView.builder(
+                  itemCount: widget.pdf.length,
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext context, index) {
+                    List<int> byteArray =
+                        base64.decode(widget.pdf[index]['pdf']);
+                    Uint8List uint8List = Uint8List.fromList(byteArray);
 
-                return Container(
-                  height: size.height,
-                  width: size.width,
-                  color: Colors.white,
-                  child: SfPdfViewer.memory(uint8List),
-                );
-              },
+                    return Container(
+                      height: size.height,
+                      width: size.width,
+                      color: Colors.white,
+                      child: SfPdfViewer.memory(uint8List),
+                    );
+                  },
+                ),
+              ),
             ),
     );
   }

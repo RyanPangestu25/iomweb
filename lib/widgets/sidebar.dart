@@ -30,7 +30,6 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar> {
   bool loading = false;
   bool isSave = false;
-
   String randomID = '';
   List data = [];
   List report = [];

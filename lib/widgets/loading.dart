@@ -25,22 +25,26 @@ class _LoadingWidgetState extends State<LoadingWidget> {
     const duration = Duration(seconds: 1);
     timer = Timer.periodic(duration, (Timer t) {
       setState(() {
-        if (!titik1) {
-          titik1 = true;
-          titik2 = false;
-          titik3 = false;
-        } else if (titik1 && !titik2 && !titik3) {
-          titik1 = true;
-          titik2 = true;
-          titik3 = false;
-        } else if (titik2 && !titik3) {
-          titik1 = true;
-          titik2 = true;
-          titik3 = true;
-        } else if (titik3) {
-          titik1 = false;
-          titik2 = false;
-          titik3 = false;
+        if (widget.isLoading) {
+          if (!titik1) {
+            titik1 = true;
+            titik2 = false;
+            titik3 = false;
+          } else if (titik1 && !titik2 && !titik3) {
+            titik1 = true;
+            titik2 = true;
+            titik3 = false;
+          } else if (titik2 && !titik3) {
+            titik1 = true;
+            titik2 = true;
+            titik3 = true;
+          } else if (titik3) {
+            titik1 = false;
+            titik2 = false;
+            titik3 = false;
+          }
+        } else {
+          timer?.cancel();
         }
       });
     });

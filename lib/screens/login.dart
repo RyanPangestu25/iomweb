@@ -1,18 +1,19 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, prefer_typing_uninitialized_variables
+// ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, prefer_typing_uninitialized_variables
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../screens/forgot_pass.dart';
-import '../screens/home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '/screens/forgot_pass.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import 'change_pass.dart';
 
+import 'home.dart';
+
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -23,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool loading = false;
   bool _viewPass = true;
-
   List hasilResult = [];
   var hasilJson;
 
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController nik = TextEditingController();
   TextEditingController password = TextEditingController();
 
-  Future<void> _cekUser(String nik, String password) async {
+  Future<void> loginApp(String nik, String password) async {
     try {
       final temporaryList = [];
 
@@ -68,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
@@ -92,21 +92,29 @@ class _LoginScreenState extends State<LoginScreen> {
           } else {
             final userName = listResult.findElements('UserName').isEmpty
                 ? 'No Data'
-                : listResult.findElements('UserName').first.text;
-            final iomCharterLevel =
-                listResult.findElements('IOMCharterLevel').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('IOMCharterLevel').first.text;
+                : listResult.findElements('UserName').first.innerText;
+            final iomCharterLevel = listResult
+                    .findElements('IOMCharterLevel')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('IOMCharterLevel').first.innerText;
             final iomOpenAccess =
                 listResult.findElements('IOMOpenAccess').isEmpty
                     ? 'No Data'
-                    : listResult.findElements('IOMOpenAccess').first.text;
+                    : listResult.findElements('IOMOpenAccess').first.innerText;
             final userEmail = listResult.findElements('UserEmail').isEmpty
                 ? 'No Data'
-                : listResult.findElements('UserEmail').first.text;
+                : listResult.findElements('UserEmail').first.innerText;
             final nik = listResult.findElements('NIK').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NIK').first.text;
+                : listResult.findElements('NIK').first.innerText;
+            // final isAuth = listResult.findElements('isAuth').isEmpty
+            //     ? '0'
+            //     : listResult.findElements('isAuth').first.innerText;
+            final passRange = listResult.findElements('PassRange').isEmpty
+                ? '0'
+                : listResult.findElements('PassRange').first.innerText;
+
             temporaryList.add({
               'userName': userName,
               'userLevel': iomCharterLevel.toUpperCase() == 'VIEW'
@@ -125,22 +133,13 @@ class _LoginScreenState extends State<LoginScreen> {
             debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.done, color: Colors.green),
-                title: "Success Login",
-                backgroundColor: Colors.grey[300],
-              );
-
               String pattern =
                   r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$%^&*()_+{}\[\]:;<>,.?~])';
               RegExp regExp = RegExp(pattern);
 
               if (password == '123' ||
                   (!regExp.hasMatch(password) && password.length < 11)) {
-                Navigator.of(context).pushReplacement(
+                Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => ChangePass(
                       nik: nik,
@@ -149,19 +148,111 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               } else {
-                await saveData(
-                  userName,
-                  temporaryList.last['userLevel'],
-                  iomOpenAccess,
-                  userEmail,
-                  nik,
-                );
+                if (double.parse(passRange) < 4) {
+                  await saveData(
+                    userName,
+                    temporaryList.last['userLevel'],
+                    iomOpenAccess,
+                    userEmail,
+                    nik,
+                  );
 
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (BuildContext context) {
-                    return const HomeScreen();
-                  },
-                ));
+                  if (mounted) {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return const HomeScreen();
+                      },
+                    ));
+                  }
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChangePass(
+                        nik: nik,
+                        email: userEmail,
+                      ),
+                    ),
+                  );
+                }
+
+                // if (double.parse(isAuth) == 1) {
+                //   if (double.parse(passRange) < 4) {
+                //     await showDialog(
+                //       context: context,
+                //       barrierDismissible: false,
+                //       builder: (BuildContext context) {
+                //         final now =
+                //             tz.TZDateTime.now(tz.getLocation('Asia/Jakarta'));
+
+                //         return OTPLogin(
+                //           isValid: (value) {
+                //             return false;
+                //           },
+                //           data: [
+                //             {
+                //               'userName': userName,
+                //               'userLevel': temporaryList.last['userLevel'],
+                //               'userOpen': iomOpenAccess,
+                //               'userEmail': userEmail,
+                //               'nik': nik,
+                //             },
+                //           ],
+                //           otpStream: Stream<dynamic>.periodic(
+                //               const Duration(seconds: 0),
+                //               (val) => OTP.generateTOTPCodeString(
+                //                   base32.encodeString(nik + 'IC'),
+                //                   now.millisecondsSinceEpoch,
+                //                   length: 6,
+                //                   interval: 30,
+                //                   algorithm: Algorithm.SHA1,
+                //                   isGoogle: true)).asBroadcastStream(),
+                //           isUpdate: false,
+                //         );
+                //       },
+                //     );
+                //   } else {
+                //     Navigator.of(context).pushReplacement(
+                //       MaterialPageRoute(
+                //         builder: (context) => ChangePass(
+                //           nik: nik,
+                //           email: userEmail,
+                //         ),
+                //       ),
+                //     );
+                //   }
+                // } else {
+                //   await showDialog(
+                //     context: context,
+                //     barrierDismissible: false,
+                //     builder: (BuildContext context) {
+                //       final now =
+                //           tz.TZDateTime.now(tz.getLocation('Asia/Jakarta'));
+
+                //       return OTPRegist(
+                //         data: [
+                //           {
+                //             'userName': userName,
+                //             'userLevel': temporaryList.last['userLevel'],
+                //             'userOpen': iomOpenAccess,
+                //             'userEmail': userEmail,
+                //             'nik': nik,
+                //           },
+                //         ],
+                //         otpStream: Stream<dynamic>.periodic(
+                //           const Duration(seconds: 0),
+                //           (val) => OTP.generateTOTPCodeString(
+                //             base32.encodeString(nik + 'IC'),
+                //             now.millisecondsSinceEpoch,
+                //             length: 6,
+                //             interval: 30,
+                //             algorithm: Algorithm.SHA1,
+                //             isGoogle: true,
+                //           ),
+                //         ).asBroadcastStream(),
+                //       );
+                //     },
+                //   );
+                // }
               }
 
               if (mounted) {
@@ -175,16 +266,18 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Login",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          StatusAlert.show(
+            context,
+            duration: const Duration(seconds: 1),
+            configuration:
+                const IconConfiguration(icon: Icons.error, color: Colors.red),
+            title: "${response.statusCode}",
+            subtitle: "Error Login",
+            backgroundColor: Colors.grey[300],
+          );
+
           setState(() {
             loading = false;
           });
@@ -196,19 +289,21 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Login",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        StatusAlert.show(
+          context,
+          duration: const Duration(seconds: 2),
+          configuration:
+              const IconConfiguration(icon: Icons.error, color: Colors.red),
+          title: "Error Login",
+          subtitle: "$e",
+          subtitleOptions: StatusAlertTextConfiguration(
+            overflow: TextOverflow.visible,
+          ),
+          backgroundColor: Colors.grey[300],
+        );
+
         setState(() {
           loading = false;
         });
@@ -224,27 +319,11 @@ class _LoginScreenState extends State<LoginScreen> {
     String nik,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userName1 = prefs.getString('userName') ?? 'No Data';
-
-    if (userName1 != 'No Data') {
-      await prefs.clear();
-
-      await prefs.setString('userName', userName);
-      await prefs.setString('userLevel', userLevel);
-      await prefs.setString('userOpen', userOpen);
-      await prefs.setString('userEmail', userEmail);
-      await prefs.setString('userlevel', userLevel);
-      await prefs.setString('nik', nik);
-      debugPrint('Updated local');
-    } else {
-      await prefs.setString('userName', userName);
-      await prefs.setString('userLevel', userLevel);
-      await prefs.setString('userOpen', userOpen);
-      await prefs.setString('userEmail', userEmail);
-      await prefs.setString('userlevel', userLevel);
-      await prefs.setString('nik', nik);
-      debugPrint('New local');
-    }
+    await prefs.setString('userName', userName);
+    await prefs.setString('userLevel', userLevel);
+    await prefs.setString('userOpen', userOpen);
+    await prefs.setString('userEmail', userEmail);
+    await prefs.setString('nik', nik);
   }
 
   @override
@@ -254,15 +333,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    super.dispose();
     nik.dispose();
     password.dispose();
     _focusNode.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     return GestureDetector(
       onTap: () {
         _focusNode.unfocus();
@@ -296,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red[800],
-                      fontSize: MediaQuery.of(context).textScaleFactor * 30,
+                      fontSize: MediaQuery.of(context).textScaler.scale(30),
                     ),
                   ),
                   Text(
@@ -305,7 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red[800],
-                      fontSize: MediaQuery.of(context).textScaleFactor * 30,
+                      fontSize: MediaQuery.of(context).textScaler.scale(30),
                     ),
                   ),
                 ],
@@ -410,6 +490,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           }
                         },
+                        onFieldSubmitted: (value) async {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            setState(() {
+                              loading = true;
+                            });
+
+                            await loginApp(nik.text, value);
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -420,7 +510,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     : MaterialButton(
                         elevation: 10,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         disabledColor: Colors.grey,
                         color: Colors.redAccent,
                         onPressed: () async {
@@ -430,12 +521,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               loading = true;
                             });
 
-                            await _cekUser(nik.text, password.text);
+                            await loginApp(nik.text, password.text);
                           }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 80,
+                            horizontal: 100,
                             vertical: 15,
                           ),
                           child: const Text(
