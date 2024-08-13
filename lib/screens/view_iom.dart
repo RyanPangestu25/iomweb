@@ -1320,7 +1320,9 @@ class _ViewIOMState extends State<ViewIOM> {
                       ),
                       const Text('Filter by Company:'),
                       SizedBox(
-                        height: size.height * 0.1,
+                        height: filteredCompany.value.isEmpty
+                            ? 0
+                            : size.height * 0.1,
                         width: size.width,
                         child: Scrollbar(
                           controller: _scrollController1,
@@ -1655,7 +1657,9 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                     ['server'] ==
                                                                 'BATIK'
                                                             ? Image.asset('assets/images/logobatik.png')
-                                                            : const Icon(Icons.business),
+                                                            : filteredIOM.value[index]['server'] == 'THAI'
+                                                                ? Image.asset('assets/images/logothai.png')
+                                                                : const Icon(Icons.business),
                                             title: SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: Row(
