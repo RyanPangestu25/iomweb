@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
 import '../widgets/alertdialog/confirm_reset.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '../widgets/loading.dart';
 import '../widgets/sidebar.dart';
 import 'detail_iom.dart';
@@ -304,38 +305,41 @@ class _ViewIOMState extends State<ViewIOM> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -1111,7 +1115,7 @@ class _ViewIOMState extends State<ViewIOM> {
 
   Future<void> initConnection() async {
     Connectivity().checkConnectivity().then((value) {
-      debugPrint('$value');
+      //debugprint('$value');
       if (value != ConnectivityResult.none) {
         setState(() {
           _isConnected = (value != ConnectivityResult.none);
@@ -1156,7 +1160,7 @@ class _ViewIOMState extends State<ViewIOM> {
 
     setState(() {
       isOpen = userOpen == 'true' ? true : false;
-      debugPrint('$isOpen');
+      //debugprint('$isOpen');
     });
   }
 

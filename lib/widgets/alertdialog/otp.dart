@@ -9,6 +9,8 @@ import '../../screens/change_pass.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 
+import 'log_error.dart';
+
 class CekOTP extends StatefulWidget {
   final String nik;
   final String email;
@@ -67,7 +69,7 @@ class _CekOTPState extends State<CekOTP> {
         final parsedResponse = xml.XmlDocument.parse(responseBody);
         final result =
             parsedResponse.findAllElements('LupaPassResult').single.text;
-        debugPrint('Result: $result');
+        //debugPrint('Result: $result');
         Future.delayed(const Duration(seconds: 1), () async {
           if (result == "GAGAL") {
             StatusAlert.show(
@@ -102,38 +104,45 @@ class _CekOTPState extends State<CekOTP> {
           }
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Request OTP",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
+        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Request OTP',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      //debugPrint('$e');
+
+      if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Request OTP',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
       }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Request OTP",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-      setState(() {
-        loading = false;
-      });
     }
   }
 
@@ -274,7 +283,7 @@ class _CekOTPState extends State<CekOTP> {
                     fontWeight: FontWeight.bold,
                   ),
                   beforeTextPaste: (text) {
-                    debugPrint("Paste $text");
+                    //debugPrint("Paste $text");
                     //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
                     //but you can show anything you want here, like your pop up saying wrong paste format or etc
                     return true;

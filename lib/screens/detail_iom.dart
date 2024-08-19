@@ -11,6 +11,7 @@ import '../screens/payment.dart';
 import '../widgets/alertdialog/confirmation.dart';
 import '../widgets/alertdialog/income_tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '../widgets/alertdialog/verification.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
@@ -184,16 +185,19 @@ class _DetailIOMState extends State<DetailIOM> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM Item",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM Item',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -201,19 +205,19 @@ class _DetailIOMState extends State<DetailIOM> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM Item",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM Item',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -302,16 +306,19 @@ class _DetailIOMState extends State<DetailIOM> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Check IOM Balance",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Check IOM Balance',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -319,19 +326,19 @@ class _DetailIOMState extends State<DetailIOM> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Check IOM Balance",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Check IOM Balance',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -433,16 +440,19 @@ class _DetailIOMState extends State<DetailIOM> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM Payment",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM Payment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -450,19 +460,19 @@ class _DetailIOMState extends State<DetailIOM> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM Payment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM Payment',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

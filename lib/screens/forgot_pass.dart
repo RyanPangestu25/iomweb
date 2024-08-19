@@ -5,6 +5,7 @@ import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
+import '../widgets/alertdialog/log_error.dart';
 import '../widgets/alertdialog/otp.dart';
 
 class ForgotPass extends StatefulWidget {
@@ -120,15 +121,16 @@ class _ForgotPassState extends State<ForgotPass> {
         // debugPrint('Desc: ${response.body}');
 
         if (mounted) {
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Error Request OTP",
-            backgroundColor: Colors.grey[300],
-          );
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Request OTP',
+                  error: response.body.toString(),
+                );
+              });
 
           setState(() {
             loading = false;
@@ -139,18 +141,16 @@ class _ForgotPassState extends State<ForgotPass> {
       // debugPrint('$e');
 
       if (mounted) {
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 2),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "Error Request OTP",
-          subtitle: "$e",
-          subtitleOptions: StatusAlertTextConfiguration(
-            overflow: TextOverflow.visible,
-          ),
-          backgroundColor: Colors.grey[300],
-        );
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Request OTP',
+                error: e.toString(),
+              );
+            });
 
         setState(() {
           loading = false;

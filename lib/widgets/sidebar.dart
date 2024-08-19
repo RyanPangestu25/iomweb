@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
-import 'dart:convert';
 import 'dart:math';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import '../screens/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/about.dart';
 import '../screens/login.dart';
+import 'alertdialog/log_error.dart';
 import 'alertdialog/pick_date.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -51,7 +51,7 @@ class _SidebarState extends State<Sidebar> {
       randomID = 'FC' + random.toString();
     });
 
-    debugPrint(randomID);
+    //debugprint(randomID);
 
     await addTranKey();
   }
@@ -114,38 +114,41 @@ class _SidebarState extends State<Sidebar> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Add TranKey",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Add TranKey',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Add TranKey",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Add TranKey',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -355,7 +358,7 @@ class _SidebarState extends State<Sidebar> {
               }
             });
 
-            debugPrint(jsonEncode(report));
+            //debugprint(jsonEncode(report));
           }
         }
 
@@ -365,38 +368,41 @@ class _SidebarState extends State<Sidebar> {
           }
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Overdue Report",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Overdue Report',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Overdue Report",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Overdue Report',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -407,8 +413,25 @@ class _SidebarState extends State<Sidebar> {
   Future<void> downReport() async {
     try {
       var excel = Excel.createExcel();
-      var sheet = excel['IOMCharterWeb'];
+      var sheet = excel['IOM'];
+      var sheet1 = excel['DetailIOM'];
       sheet.appendRow([
+        'Company',
+        'NoIom',
+        'TglIom',
+        'Curr',
+        'BiayaCharter',
+        'TglCreate',
+        'UserCreate',
+        'Username',
+        'NamaPencharter',
+        'TglVerifikasi',
+        'UserVerifikasi',
+        'TglApproval',
+        'UserApproval',
+        'StatusApproval',
+      ]);
+      sheet1.appendRow([
         'Company',
         'NoIom',
         'TglIom',
@@ -442,9 +465,38 @@ class _SidebarState extends State<Sidebar> {
         'InsertDate',
         'Status',
       ]);
-      sheet.appendRow(List.generate(31, (index) => '========'));
+      sheet.appendRow(List.generate(13, (index) => '================'));
+      sheet1.appendRow(List.generate(31, (index) => '================'));
       for (var data in report) {
         sheet.appendRow([
+          data['server'],
+          data['noIOM'],
+          data['tglIom'] == 'No Data'
+              ? data['tglIom']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglIom']).toLocal()),
+          data['curr'],
+          data['biayaCharter'],
+          data['createdDate'] == 'No Data'
+              ? data['createdDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['createdDate']).toLocal()),
+          data['createdBy'],
+          data['namaResmi'],
+          data['desc'],
+          data['tglVerifikasi'] == 'No Data'
+              ? data['tglVerifikasi']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
+          data['verifiedBy'],
+          data['tglKonfirmasiDireksi'] == 'No Data'
+              ? data['tglKonfirmasiDireksi']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
+          data['confirmedBy'],
+          data['statusKonfirmasiDireksi'],
+        ]);
+        sheet1.appendRow([
           data['server'],
           data['noIOM'],
           data['tglIom'] == 'No Data'
@@ -547,7 +599,7 @@ class _SidebarState extends State<Sidebar> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
+      //debugprint('$e');
       StatusAlert.show(
         context,
         duration: const Duration(seconds: 2),
@@ -905,7 +957,7 @@ class _SidebarState extends State<Sidebar> {
           'level': userLevel,
         }
       ];
-      debugPrint(jsonEncode(data));
+      //debugprint(jsonEncode(data));
     });
 
     await cekLevel();

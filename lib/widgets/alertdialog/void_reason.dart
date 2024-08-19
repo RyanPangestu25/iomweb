@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
+import 'log_error.dart';
 
 class VoidReason extends StatefulWidget {
   final Function(bool) isSuccess;
@@ -110,17 +111,19 @@ class _VoidReasonState extends State<VoidReason> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Add Reason",
-          backgroundColor: Colors.grey[300],
-        );
 
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Add Reason',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -128,20 +131,19 @@ class _VoidReasonState extends State<VoidReason> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Add Reason",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Add Reason',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

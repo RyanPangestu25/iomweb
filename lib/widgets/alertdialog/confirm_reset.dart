@@ -6,6 +6,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
+import 'log_error.dart';
 import 'try_again.dart';
 
 class ResetConfirmation extends StatefulWidget {
@@ -102,24 +103,9 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Reset IOM",
-          backgroundColor: Colors.grey[300],
-        );
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
+        if (mounted) {
+          showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) {
@@ -131,31 +117,28 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                   },
                 );
               });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Reset IOM",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Reset IOM',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
+      }
+    } catch (e) {
+      debugPrint('$e');
 
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -167,7 +150,22 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Reset IOM',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -242,24 +240,9 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Reset Approval",
-          backgroundColor: Colors.grey[300],
-        );
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
+        if (mounted) {
+          showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) {
@@ -271,31 +254,28 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                   },
                 );
               });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Reset Approval",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Reset Approval',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
+      }
+    } catch (e) {
+      debugPrint('$e');
 
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -307,7 +287,22 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Reset Approval',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 

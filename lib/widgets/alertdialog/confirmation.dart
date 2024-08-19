@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../../screens/view_iom.dart';
+import 'log_error.dart';
 import 'try_again.dart';
 
 class Confirmation extends StatefulWidget {
@@ -145,41 +146,48 @@ class _ConfirmationState extends State<Confirmation> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed to ${widget.text}",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed to ${widget.text}',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
+
+          await resetApproval();
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed to ${widget.text}",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed to ${widget.text}',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
+
+        await resetApproval();
       }
     }
   }
@@ -252,29 +260,14 @@ class _ConfirmationState extends State<Confirmation> {
                 });
           });
         } else {
-          debugPrint('Success Send Log');
+          //debugprint('Success Send Log');
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Send Log",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
+        if (mounted) {
+          showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) {
@@ -286,31 +279,28 @@ class _ConfirmationState extends State<Confirmation> {
                   },
                 );
               });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Send Log",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Send Log',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
+      }
+    } catch (e) {
+      //debugprint('$e');
 
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -322,7 +312,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Send Log',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -372,26 +377,11 @@ class _ConfirmationState extends State<Confirmation> {
             }
           }
         } else {
-          debugPrint('Error: ${response.statusCode}');
-          debugPrint('Desc: ${response.body}');
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed Check APB Embark",
-            backgroundColor: Colors.grey[300],
-          );
+          //debugprint('Error: ${response.statusCode}');
+          //debugprint('Desc: ${response.body}');
 
-          Future.delayed(const Duration(seconds: 1), () async {
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            await showDialog(
+          if (mounted) {
+            showDialog(
                 context: context,
                 barrierDismissible: false,
                 builder: (context) {
@@ -403,7 +393,22 @@ class _ConfirmationState extends State<Confirmation> {
                     },
                   );
                 });
-          });
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed Check APB Embark',
+                    error: response.body.toString(),
+                  );
+                });
+
+            setState(() {
+              loading = false;
+            });
+          }
 
           break;
         }
@@ -418,28 +423,10 @@ class _ConfirmationState extends State<Confirmation> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Check APB Embark",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -451,7 +438,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Check APB Embark',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -500,26 +502,11 @@ class _ConfirmationState extends State<Confirmation> {
             }
           }
         } else {
-          debugPrint('Error: ${response.statusCode}');
-          debugPrint('Desc: ${response.body}');
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed Check APB IOM",
-            backgroundColor: Colors.grey[300],
-          );
+          //debugprint('Error: ${response.statusCode}');
+          //debugprint('Desc: ${response.body}');
 
-          Future.delayed(const Duration(seconds: 1), () async {
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            await showDialog(
+          if (mounted) {
+            showDialog(
                 context: context,
                 barrierDismissible: false,
                 builder: (context) {
@@ -531,7 +518,23 @@ class _ConfirmationState extends State<Confirmation> {
                     },
                   );
                 });
-          });
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed Check APB IOM',
+                    error: response.body.toString(),
+                  );
+                });
+
+            setState(() {
+              loading = false;
+            });
+          }
+
           break;
         }
       }
@@ -544,28 +547,10 @@ class _ConfirmationState extends State<Confirmation> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Check APB IOM",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -577,7 +562,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Check APB IOM',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -630,8 +630,8 @@ class _ConfirmationState extends State<Confirmation> {
             }
           }
         } else {
-          debugPrint('Error: ${response.statusCode}');
-          debugPrint('Desc: ${response.body}');
+          //debugprint('Error: ${response.statusCode}');
+          //debugprint('Desc: ${response.body}');
 
           if (loop == 0 && !isLoop) {
             setState(() {
@@ -655,15 +655,16 @@ class _ConfirmationState extends State<Confirmation> {
               isLoop = false;
             });
 
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "${response.statusCode}",
-              subtitle: "Failed Create APB",
-              backgroundColor: Colors.grey[300],
-            );
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed Create APB',
+                    error: response.body.toString(),
+                  );
+                });
           }
 
           Future.delayed(const Duration(seconds: 1), () async {
@@ -696,28 +697,10 @@ class _ConfirmationState extends State<Confirmation> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Create APB",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -729,7 +712,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Create APB',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -781,8 +779,8 @@ class _ConfirmationState extends State<Confirmation> {
             }
           }
         } else {
-          debugPrint('Error: ${response.statusCode}');
-          debugPrint('Desc: ${response.body}');
+          //debugprint('Error: ${response.statusCode}');
+          //debugprint('Desc: ${response.body}');
 
           if (loop == 0 && !isLoop) {
             setState(() {
@@ -806,15 +804,16 @@ class _ConfirmationState extends State<Confirmation> {
               isLoop = false;
             });
 
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "${response.statusCode}",
-              subtitle: "Failed Create APB IOM",
-              backgroundColor: Colors.grey[300],
-            );
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed Create APB IOM',
+                    error: response.body.toString(),
+                  );
+                });
           }
 
           Future.delayed(const Duration(seconds: 1), () async {
@@ -846,28 +845,10 @@ class _ConfirmationState extends State<Confirmation> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Create APB IOM",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -879,7 +860,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Create APB IOM',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -890,12 +886,12 @@ class _ConfirmationState extends State<Confirmation> {
         status = 'Updating APB IOM';
       });
 
-      double amount =
-          (double.parse(widget.iom.last['biaya'].replaceAll(',', '.')) /
-                  widget.iomItem.length)
-              .roundToDouble();
+      // double amount =
+      //     (double.parse(widget.iom.last['biaya'].replaceAll(',', '.')) /
+      //             widget.iomItem.length)
+      //         .roundToDouble();
 
-      debugPrint('$amount');
+      //debugprint('$amount');
 
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
@@ -944,26 +940,11 @@ class _ConfirmationState extends State<Confirmation> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Update Charter",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
+        if (mounted) {
+          showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) {
@@ -975,31 +956,27 @@ class _ConfirmationState extends State<Confirmation> {
                   },
                 );
               });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Update Charter",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Update Charter',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
-
-        await showDialog(
+      }
+    } catch (e) {
+      //debugprint('$e');
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -1011,7 +988,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Update Charter',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -1051,7 +1043,7 @@ class _ConfirmationState extends State<Confirmation> {
               ? 'GAGAL'
               : document.findAllElements('_x002D_').first.text;
 
-          debugPrint(statusData);
+          //debugprint(statusData);
 
           if (statusData == "ERROR:IOM_NOT_FOUND" || statusData == 'GAGAL') {
             StatusAlert.show(
@@ -1144,26 +1136,11 @@ class _ConfirmationState extends State<Confirmation> {
             });
           }
         } else {
-          debugPrint('Error: ${response.statusCode}');
-          debugPrint('Desc: ${response.body}');
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed SendToIssued",
-            backgroundColor: Colors.grey[300],
-          );
+          //debugprint('Error: ${response.statusCode}');
+          //debugprint('Desc: ${response.body}');
 
-          Future.delayed(const Duration(seconds: 1), () async {
-            if (mounted) {
-              setState(() {
-                loading = false;
-              });
-            }
-
-            await showDialog(
+          if (mounted) {
+            showDialog(
                 context: context,
                 barrierDismissible: false,
                 builder: (context) {
@@ -1175,32 +1152,29 @@ class _ConfirmationState extends State<Confirmation> {
                     },
                   );
                 });
-          });
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed SendToIssued',
+                    error: response.body.toString(),
+                  );
+                });
+
+            setState(() {
+              loading = false;
+            });
+          }
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed SendToIssued",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugprint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -1212,7 +1186,22 @@ class _ConfirmationState extends State<Confirmation> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed SendToIssued',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -1314,48 +1303,45 @@ class _ConfirmationState extends State<Confirmation> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Reset Approval",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Reset Approval",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
-
-      Future.delayed(const Duration(seconds: 1), () async {
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Reset Approval',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
-      });
+      }
+    } catch (e) {
+      //debugprint('$e');
+
+      if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Reset Approval',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -1366,10 +1352,10 @@ class _ConfirmationState extends State<Confirmation> {
 
     setState(() {
       this.userName = userName ?? 'No Data';
-      debugPrint(userName);
+      //debugprint(userName);
 
       level = userLevel ?? 'No Data';
-      debugPrint(level);
+      //debugprint(level);
     });
   }
 

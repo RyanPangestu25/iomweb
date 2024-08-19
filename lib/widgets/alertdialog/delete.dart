@@ -6,6 +6,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
+import 'log_error.dart';
 import 'try_again.dart';
 
 class Delete extends StatefulWidget {
@@ -83,38 +84,41 @@ class _DeleteState extends State<Delete> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed to Delete Payment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed to Delete Payment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed to Delete Payment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed to Delete Payment',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -195,62 +199,46 @@ class _DeleteState extends State<Delete> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed to Delete Attachment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
 
         Future.delayed(const Duration(seconds: 1), () async {
           if (mounted) {
+            showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) {
+                  return TryAgain(
+                    submit: (value) async {
+                      if (value) {
+                        await deleteAtt();
+                      }
+                    },
+                  );
+                });
+
+            await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return LogError(
+                    statusCode: response.statusCode.toString(),
+                    fail: 'Failed to Delete Attachment',
+                    error: response.body.toString(),
+                  );
+                });
+
             setState(() {
               loading = false;
             });
           }
-
-          await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) {
-                return TryAgain(
-                  submit: (value) async {
-                    if (value) {
-                      await deleteAtt();
-                    }
-                  },
-                );
-              });
         });
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed to Delete Attachment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
-          setState(() {
-            loading = false;
-          });
-        }
-
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -262,7 +250,22 @@ class _DeleteState extends State<Delete> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed to Delete Attachment',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 

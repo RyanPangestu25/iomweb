@@ -13,6 +13,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
 import '../loading.dart';
+import 'log_error.dart';
 import 'try_again.dart';
 
 class Edit extends StatefulWidget {
@@ -97,7 +98,7 @@ class _EditState extends State<Edit> {
         _image = filePath;
       });
     } else {
-      debugPrint("No File Choosen");
+      //debugPrint("No File Choosen");
     }
   }
 
@@ -172,8 +173,8 @@ class _EditState extends State<Edit> {
               listNamaBank.add(namaBank);
             });
 
-            var hasilJson = jsonEncode(listNamaBank);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(listNamaBank);
+            //debugPrint(hasilJson);
 
             if (mounted) {
               setState(() {
@@ -189,38 +190,41 @@ class _EditState extends State<Edit> {
           filteredBank.value = listNamaBank;
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Bank",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Bank',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Bank",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Bank',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -284,8 +288,8 @@ class _EditState extends State<Edit> {
               listCurr.add('$currCode - $currName');
             });
 
-            var hasilJson = jsonEncode(listCurr);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(listCurr);
+            //debugPrint(hasilJson);
 
             if (mounted) {
               setState(() {
@@ -299,38 +303,41 @@ class _EditState extends State<Edit> {
           filteredCurr.value = listCurr;
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Currency",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Currency',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Currency",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Currency',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -422,38 +429,41 @@ class _EditState extends State<Edit> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Verification Payment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Verification Payment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Verification Payment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Verification Payment',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -539,26 +549,11 @@ class _EditState extends State<Edit> {
           });
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Add Attachment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
 
-        Future.delayed(const Duration(seconds: 1), () async {
-          if (mounted) {
-            setState(() {
-              loading = false;
-            });
-          }
-
-          await showDialog(
+        if (mounted) {
+          showDialog(
               context: context,
               barrierDismissible: false,
               builder: (context) {
@@ -570,31 +565,28 @@ class _EditState extends State<Edit> {
                   },
                 );
               });
-        });
-      }
-    } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Add Attachment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
 
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Add Attachment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
+      }
+    } catch (e) {
+      //debugPrint('$e');
 
-        await showDialog(
+      if (mounted) {
+        showDialog(
             context: context,
             barrierDismissible: false,
             builder: (context) {
@@ -606,7 +598,22 @@ class _EditState extends State<Edit> {
                 },
               );
             });
-      });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Add Attachment',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -691,8 +698,8 @@ class _EditState extends State<Edit> {
               });
             });
 
-            var hasilJson = jsonEncode(attFile);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(attFile);
+            //debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -706,38 +713,41 @@ class _EditState extends State<Edit> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM Attachment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM Attachment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM Attachment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM Attachment',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -752,10 +762,10 @@ class _EditState extends State<Edit> {
 
     setState(() {
       this.userName = userName ?? 'No Data';
-      debugPrint(userName);
+      //debugPrint(userName);
 
       level = userLevel ?? 'No Data';
-      debugPrint(level);
+      //debugPrint(level);
     });
   }
 

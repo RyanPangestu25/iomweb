@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously, non_constant_identifier_names, prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
-import 'dart:convert';
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +7,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
+import 'log_error.dart';
 
 class PickDate extends StatefulWidget {
   const PickDate({super.key});
@@ -79,13 +79,29 @@ class _PickDateState extends State<PickDate> {
 
   Future<void> DownloadReport() async {
     try {
+      List<String> noIOM = [];
+
       var excel = Excel.createExcel();
-      var sheet = excel['IOMCharterWeb'];
+      var sheet = excel['IOM'];
+      var sheet1 = excel['DetailIOM'];
       sheet.appendRow([
-        if (airlines == 'ALL')
-          {
-            'Company',
-          },
+        'Company',
+        'NoIom',
+        'TglIom',
+        'Curr',
+        'BiayaCharter',
+        'TglCreate',
+        'UserCreate',
+        'Username',
+        'NamaPencharter',
+        'TglVerifikasi',
+        'UserVerifikasi',
+        'TglApproval',
+        'UserApproval',
+        'StatusApproval',
+      ]);
+      sheet1.appendRow([
+        'Company',
         'NoIom',
         'TglIom',
         'Dari',
@@ -118,13 +134,44 @@ class _PickDateState extends State<PickDate> {
         'InsertDate',
         'Status',
       ]);
-      sheet.appendRow(List.generate(31, (index) => '========'));
+      sheet.appendRow(List.generate(13, (index) => '================'));
+      sheet1.appendRow(List.generate(31, (index) => '================'));
       for (var data in iom) {
-        sheet.appendRow([
-          if (airlines == 'ALL')
-            {
-              data['server'],
-            },
+        if (!noIOM.contains(data['noIOM'])) {
+          sheet.appendRow([
+            data['server'],
+            data['noIOM'],
+            data['tglIom'] == 'No Data'
+                ? data['tglIom']
+                : DateFormat('dd-MMM-yyyy')
+                    .format(DateTime.parse(data['tglIom']).toLocal()),
+            data['curr'],
+            data['biayaCharter'],
+            data['createdDate'] == 'No Data'
+                ? data['createdDate']
+                : DateFormat('dd-MMM-yyyy')
+                    .format(DateTime.parse(data['createdDate']).toLocal()),
+            data['createdBy'],
+            data['namaResmi'],
+            data['desc'],
+            data['tglVerifikasi'] == 'No Data'
+                ? data['tglVerifikasi']
+                : DateFormat('dd-MMM-yyyy')
+                    .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
+            data['verifiedBy'],
+            data['tglKonfirmasiDireksi'] == 'No Data'
+                ? data['tglKonfirmasiDireksi']
+                : DateFormat('dd-MMM-yyyy').format(
+                    DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
+            data['confirmedBy'],
+            data['statusKonfirmasiDireksi'],
+          ]);
+
+          noIOM.add(data['noIOM']);
+        }
+
+        sheet1.appendRow([
+          data['server'],
           data['noIOM'],
           data['tglIom'] == 'No Data'
               ? data['tglIom']
@@ -208,7 +255,7 @@ class _PickDateState extends State<PickDate> {
         }
       });
     } catch (e) {
-      debugPrint('$e');
+      //debugPrint('$e');
       StatusAlert.show(
         context,
         duration: const Duration(seconds: 2),
@@ -392,6 +439,9 @@ class _PickDateState extends State<PickDate> {
             final status = listResult.findElements('Status').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Status').first.innerText;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.innerText;
 
             setState(() {
               if (!iom.any((e) => e['no'] == index + 1)) {
@@ -427,11 +477,12 @@ class _PickDateState extends State<PickDate> {
                   'userInsert': userInsert,
                   'insertDate': insertDate,
                   'status': status,
+                  'server': server,
                 });
               }
             });
 
-            debugPrint(jsonEncode(iom));
+            //debugPrint(jsonEncode(iom));
           }
         }
 
@@ -441,38 +492,41 @@ class _PickDateState extends State<PickDate> {
           }
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Report",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Report',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Report",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Report',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -685,7 +739,7 @@ class _PickDateState extends State<PickDate> {
               }
             });
 
-            debugPrint(jsonEncode(iom));
+            //debugPrint(jsonEncode(iom));
           }
         }
 
@@ -695,38 +749,41 @@ class _PickDateState extends State<PickDate> {
           }
         });
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Report",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Report All',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Report",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Report All',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

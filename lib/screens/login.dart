@@ -1,15 +1,14 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, prefer_typing_uninitialized_variables
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '/screens/forgot_pass.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import 'change_pass.dart';
-
 import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -129,8 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
               'nik': nik,
             });
 
-            hasilJson = jsonEncode(temporaryList);
-            debugPrint(hasilJson);
+            // hasilJson = jsonEncode(temporaryList);
+            //debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               String pattern =
@@ -264,19 +263,20 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
 
         if (mounted) {
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Error Login",
-            backgroundColor: Colors.grey[300],
-          );
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Login',
+                  error: response.body.toString(),
+                );
+              });
 
           setState(() {
             loading = false;
@@ -288,21 +288,19 @@ class _LoginScreenState extends State<LoginScreen> {
         hasilResult = temporaryList;
       });
     } catch (e) {
-      debugPrint('$e');
+      //debugPrint('$e');
 
       if (mounted) {
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 2),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "Error Login",
-          subtitle: "$e",
-          subtitleOptions: StatusAlertTextConfiguration(
-            overflow: TextOverflow.visible,
-          ),
-          backgroundColor: Colors.grey[300],
-        );
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Login',
+                error: e.toString(),
+              );
+            });
 
         setState(() {
           loading = false;

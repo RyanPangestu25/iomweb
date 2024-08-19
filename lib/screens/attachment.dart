@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
-import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:iomweb/widgets/alertdialog/attach.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '../widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
@@ -119,8 +119,8 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               });
             });
 
-            var hasilJson = jsonEncode(att);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(att);
+            //debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -132,38 +132,41 @@ class _IOMAttachmentState extends State<IOMAttachment> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Attachment Name",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Attachment Name',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Attachment Name",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Attachment Name',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -252,8 +255,8 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               });
             });
 
-            var hasilJson = jsonEncode(attFile);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(attFile);
+            //debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -265,38 +268,41 @@ class _IOMAttachmentState extends State<IOMAttachment> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM Attachment",
-          backgroundColor: Colors.grey[300],
-        );
+        //debugPrint('Error: ${response.statusCode}');
+        //debugPrint('Desc: ${response.body}');
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM Attachment',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
         }
       }
     } catch (e) {
-      debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM Attachment",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+      //debugPrint('$e');
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM Attachment',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -306,7 +312,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
 
   Future<void> initConnection() async {
     Connectivity().checkConnectivity().then((value) {
-      debugPrint('$value');
+      //debugPrint('$value');
       if (value != ConnectivityResult.none) {
         setState(() {
           _isConnected = (value != ConnectivityResult.none);
@@ -351,7 +357,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
 
     setState(() {
       level = userLevel ?? 'No Data';
-      debugPrint(level);
+      //debugPrint(level);
     });
   }
 

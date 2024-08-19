@@ -5,6 +5,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '/widgets/alertdialog/void_reason.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../backend/constants.dart';
@@ -126,6 +127,7 @@ class _IOMVoidState extends State<IOMVoid> {
                 title: "No Data",
                 backgroundColor: Colors.grey[300],
               );
+
               if (mounted) {
                 setState(() {
                   loading = false;
@@ -257,16 +259,19 @@ class _IOMVoidState extends State<IOMVoid> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get IOM",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -274,19 +279,19 @@ class _IOMVoidState extends State<IOMVoid> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get IOM",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

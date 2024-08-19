@@ -184,18 +184,19 @@ class _OTPRegist2State extends State<OTPRegist2> {
       } else {
         // debugPrint('Error Auth: ${response.statusCode}');
         // debugPrint('Desc: ${response.body}');
-        await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return LogError(
-                statusCode: response.statusCode.toString(),
-                fail: 'Failed Update Auth',
-                error: response.body,
-              );
-            });
 
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Update Auth',
+                  error: response.body,
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -203,18 +204,19 @@ class _OTPRegist2State extends State<OTPRegist2> {
       }
     } catch (e) {
       // debugPrint('$e');
-      await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return LogError(
-              statusCode: '',
-              fail: 'Failed Update Auth',
-              error: e.toString(),
-            );
-          });
 
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Update Auth',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

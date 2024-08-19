@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
 import 'package:flutter/material.dart';
+import '../widgets/alertdialog/log_error.dart';
 import '/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
@@ -115,15 +116,16 @@ class _ChangePassState extends State<ChangePass> {
         debugPrint('Desc: ${response.body}');
 
         if (mounted) {
-          StatusAlert.show(
-            context,
-            duration: const Duration(seconds: 1),
-            configuration:
-                const IconConfiguration(icon: Icons.error, color: Colors.red),
-            title: "${response.statusCode}",
-            subtitle: "Failed Update Password",
-            backgroundColor: Colors.grey[300],
-          );
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Update Password',
+                  error: response.body.toString(),
+                );
+              });
 
           setState(() {
             loading = false;
@@ -134,18 +136,16 @@ class _ChangePassState extends State<ChangePass> {
       debugPrint('$e');
 
       if (mounted) {
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 2),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "Failed Update Password",
-          subtitle: "$e",
-          subtitleOptions: StatusAlertTextConfiguration(
-            overflow: TextOverflow.visible,
-          ),
-          backgroundColor: Colors.grey[300],
-        );
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Update Password',
+                error: e.toString(),
+              );
+            });
 
         setState(() {
           loading = false;

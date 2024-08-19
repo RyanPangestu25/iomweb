@@ -11,6 +11,8 @@ import '../../backend/constants.dart';
 import '../loading.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
+import 'log_error.dart';
+
 class IncomeTax extends StatefulWidget {
   final Function(String) pphAmount;
   final List iom;
@@ -141,16 +143,19 @@ class _IncomeTaxState extends State<IncomeTax> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Error Get Currency",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Currency',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -158,19 +163,19 @@ class _IncomeTaxState extends State<IncomeTax> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Get Currency",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Currency',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });
@@ -259,16 +264,19 @@ class _IncomeTaxState extends State<IncomeTax> {
       } else {
         debugPrint('Error: ${response.statusCode}');
         debugPrint('Desc: ${response.body}');
-        StatusAlert.show(
-          context,
-          duration: const Duration(seconds: 1),
-          configuration:
-              const IconConfiguration(icon: Icons.error, color: Colors.red),
-          title: "${response.statusCode}",
-          subtitle: "Failed Update Tax",
-          backgroundColor: Colors.grey[300],
-        );
+
         if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Update Tax',
+                  error: response.body.toString(),
+                );
+              });
+
           setState(() {
             loading = false;
           });
@@ -276,19 +284,19 @@ class _IncomeTaxState extends State<IncomeTax> {
       }
     } catch (e) {
       debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Failed Update Tax",
-        subtitle: "$e",
-        subtitleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
-      );
+
       if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Update Tax',
+                error: e.toString(),
+              );
+            });
+
         setState(() {
           loading = false;
         });

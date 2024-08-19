@@ -45,9 +45,6 @@ const url_VerificationAttach =
 const url_CekSaldoIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoIOM';
 
-const url_GetVersion =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetVersion';
-
 const url_GetAttachmentName =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAttachmentName';
 
@@ -114,5 +111,5 @@ const url_AddAttachment =
 const url_UpdateAuth =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAuth';
 
-const url_CekNIK =
-    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekNIK';
+// const url_CekNIK =
+//     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekNIK';
