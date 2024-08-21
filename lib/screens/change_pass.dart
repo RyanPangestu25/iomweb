@@ -71,34 +71,36 @@ class _ChangePassState extends State<ChangePass> {
 
         if (result == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration:
-                  const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed Update Password",
-              backgroundColor: Colors.grey[300],
-            );
+            if (mounted) {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "Failed Update Password",
+                backgroundColor: Colors.grey[300],
+              );
 
-            setState(() {
-              loading = false;
-            });
+              setState(() {
+                loading = false;
+              });
+            }
           });
         } else {
           Future.delayed(const Duration(seconds: 1), () async {
-            StatusAlert.show(
-              context,
-              duration: const Duration(seconds: 1),
-              configuration: const IconConfiguration(
-                  icon: Icons.done, color: Colors.green),
-              title: "Password Updated",
-              backgroundColor: Colors.grey[300],
-            );
-
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.clear();
 
             if (mounted) {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.done, color: Colors.green),
+                title: "Password Updated",
+                backgroundColor: Colors.grey[300],
+              );
+
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
                 builder: (BuildContext context) {
                   return const LoginScreen();

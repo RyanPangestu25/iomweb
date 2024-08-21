@@ -640,7 +640,8 @@ class _ConfirmationState extends State<Confirmation> {
 
             StatusAlert.show(
               context,
-              duration: const Duration(seconds: 1),
+              dismissOnBackgroundTap: true,
+              duration: const Duration(seconds: 3),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
               title: "${response.statusCode}",
@@ -789,7 +790,8 @@ class _ConfirmationState extends State<Confirmation> {
 
             StatusAlert.show(
               context,
-              duration: const Duration(seconds: 1),
+              dismissOnBackgroundTap: true,
+              duration: const Duration(seconds: 3),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
               title: "${response.statusCode}",

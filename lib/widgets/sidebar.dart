@@ -813,45 +813,45 @@ class _SidebarState extends State<Sidebar> {
           leading: const Icon(Icons.receipt),
           textColor: const Color.fromARGB(255, 5, 98, 173),
           children: [
-            ListTile(
-              iconColor: Colors.white70,
-              textColor: Colors.white70,
-              leading: const Icon(Icons.circle_outlined),
-              title: const Text("IOM Agreement"),
-              onTap: () async {
-                await genRandom();
+            // ListTile(
+            //   iconColor: Colors.white70,
+            //   textColor: Colors.white70,
+            //   leading: const Icon(Icons.circle_outlined),
+            //   title: const Text("IOM Agreement"),
+            //   onTap: () async {
+            //     await genRandom();
 
-                Future.delayed(const Duration(seconds: 1), () async {
-                  String baseUrl =
-                      'https://lgapvfncacc.com/IOMCharterWeb/AgreementCharter/';
-                  String nik = data.last['nik'];
-                  String tranKey = randomID;
+            //     Future.delayed(const Duration(seconds: 1), () async {
+            //       String baseUrl =
+            //           'https://lgapvfncacc.com/IOMCharterWeb/AgreementCharter/';
+            //       String nik = data.last['nik'];
+            //       String tranKey = randomID;
 
-                  String urlWithParameters = baseUrl +
-                      '?NIK=' +
-                      Uri.encodeComponent(nik) +
-                      '&TranKey=' +
-                      Uri.encodeComponent(tranKey);
+            //       String urlWithParameters = baseUrl +
+            //           '?NIK=' +
+            //           Uri.encodeComponent(nik) +
+            //           '&TranKey=' +
+            //           Uri.encodeComponent(tranKey);
 
-                  if (await canLaunch(urlWithParameters)) {
-                    await launch(urlWithParameters, webOnlyWindowName: '_self');
-                  } else {
-                    StatusAlert.show(
-                      context,
-                      duration: const Duration(seconds: 1),
-                      configuration: const IconConfiguration(
-                        icon: Icons.error,
-                        color: Colors.red,
-                      ),
-                      title: "Error while opening URL",
-                      backgroundColor: Colors.grey[300],
-                    );
+            //       if (await canLaunch(urlWithParameters)) {
+            //         await launch(urlWithParameters, webOnlyWindowName: '_self');
+            //       } else {
+            //         StatusAlert.show(
+            //           context,
+            //           duration: const Duration(seconds: 1),
+            //           configuration: const IconConfiguration(
+            //             icon: Icons.error,
+            //             color: Colors.red,
+            //           ),
+            //           title: "Error while opening URL",
+            //           backgroundColor: Colors.grey[300],
+            //         );
 
-                    throw 'Error while opening $urlWithParameters';
-                  }
-                });
-              },
-            ),
+            //         throw 'Error while opening $urlWithParameters';
+            //       }
+            //     });
+            //   },
+            // ),
             ListTile(
               iconColor: Colors.white70,
               textColor: Colors.white70,

@@ -71,18 +71,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "Error Login, Registration Already?",
-                titleOptions: StatusAlertTextConfiguration(
-                  overflow: TextOverflow.visible,
-                ),
-                backgroundColor: Colors.grey[300],
-              );
               if (mounted) {
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "Error Login, Registration Already?",
+                  titleOptions: StatusAlertTextConfiguration(
+                    overflow: TextOverflow.visible,
+                  ),
+                  backgroundColor: Colors.grey[300],
+                );
+
                 setState(() {
                   loading = false;
                 });
@@ -138,14 +139,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (password == '123' ||
                   (!regExp.hasMatch(password) && password.length < 11)) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ChangePass(
-                      nik: nik,
-                      email: userEmail,
+                if (mounted) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChangePass(
+                        nik: nik,
+                        email: userEmail,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
               } else {
                 if (double.parse(passRange) < 4) {
                   await saveData(
@@ -164,14 +167,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ));
                   }
                 } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ChangePass(
-                        nik: nik,
-                        email: userEmail,
+                  if (mounted) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ChangePass(
+                          nik: nik,
+                          email: userEmail,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 }
 
                 // if (double.parse(isAuth) == 1) {
