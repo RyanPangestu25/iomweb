@@ -43,6 +43,8 @@ class _ViewIOMState extends State<ViewIOM> {
   bool isPeriod = false;
   bool isAttach = false;
   bool isOpen = false;
+  bool isOD = false;
+  bool isSL = false;
   List iom = [];
   List status = [
     'NONE',
@@ -336,6 +338,500 @@ class _ViewIOMState extends State<ViewIOM> {
               return LogError(
                 statusCode: '',
                 fail: 'Error Get IOM',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> getIOMOD() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetIOMOD xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetIOMOD),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetIOMOD',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (final listResult in listResultAll) {
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.text;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.text;
+            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglIOM').first.text;
+            final perihal = listResult.findElements('Perihal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Perihal').first.text;
+            final description = listResult.findElements('Description').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Description').first.text;
+            final typePesawat = listResult.findElements('TypePesawat').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TypePesawat').first.text;
+            final currency = listResult.findElements('Currency').isEmpty
+                ? ''
+                : listResult.findElements('Currency').first.text;
+            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
+                ? 'No Data'
+                : listResult.findElements('BiayaCharter').first.text;
+            final revenue = listResult.findElements('Revenue').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Revenue').first.text;
+            final pembayaran = listResult.findElements('Pembayaran').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Pembayaran').first.text;
+            final lainLain = listResult.findElements('LainLain').isEmpty
+                ? 'No Data'
+                : listResult.findElements('LainLain').first.text;
+            final tglFinanceverifikasiBelumterimapembayaran = listResult
+                    .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult
+                    .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
+                    .first
+                    .text;
+            final tglFinanceverifikasiSudahterimapembayaran = listResult
+                    .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult
+                    .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
+                    .first
+                    .text;
+            final tglKonfirmasiDireksi = listResult
+                    .findElements('Tgl_konfirmasi_direksi')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tgl_konfirmasi_direksi').first.text;
+            final statusKonfirmasiDireksi =
+                listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Status_konfirmasi_direksi')
+                        .first
+                        .text;
+            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
+                ? ''
+                : listResult.findElements('Currency_PPH').first.text;
+            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
+                ? '0'
+                : listResult.findElements('Biaya_PPH').first.text;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.text;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.text;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.text;
+
+            setState(() {
+              if (!iom.any((data) => data['noIOM'] == noIOM)) {
+                iom.add({
+                  'noIOM': noIOM,
+                  'tanggal': tglIOM,
+                  'perihal': perihal,
+                  'charter': description,
+                  'type': typePesawat,
+                  'curr': currency,
+                  'biaya': biayaCharter,
+                  'revenue': revenue,
+                  'pembayaran': pembayaran,
+                  'note': lainLain,
+                  'status': tglFinanceverifikasiBelumterimapembayaran ==
+                          'No Data'
+                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? statusKonfirmasiDireksi == 'No Data'
+                              ? 'NONE'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                          : statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PENDING PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                          : statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase(),
+                  'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
+                  'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
+                  'approveDate': tglKonfirmasiDireksi,
+                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
+                          'No Data'
+                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID'
+                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID',
+                  'currencyPPH': currencyPPH,
+                  'biayaPPH': biayaPPH,
+                  'rute': rute,
+                  'tanggalRute': tanggal,
+                  'server': server,
+                  'isAttach': '',
+                });
+              }
+            });
+
+            // var hasilJson = jsonEncode(iom);
+            // debugPrint(hasilJson);
+
+            Future.delayed(const Duration(seconds: 1), () async {
+              for (var data in iom) {
+                if (!company.contains(data['server'])) {
+                  company.add(data['server']);
+                }
+              }
+
+              for (var data in iom) {
+                if (!year
+                    .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
+                  year.add(DateTime.parse(data['tanggal']).toLocal().year);
+                }
+              }
+
+              setState(() {
+                filteredCompany.value = company;
+                filteredIOM.value = iom;
+                filteredYear.value = year;
+              });
+
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          }
+        }
+      } else {
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
+        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM OD',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      //debugprint('$e');
+
+      if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM OD',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> getIOMSL() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetIOMSL xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetIOMSL),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetIOMSL',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (final listResult in listResultAll) {
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.text;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final noIOM = listResult.findElements('NoIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoIOM').first.text;
+            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglIOM').first.text;
+            final perihal = listResult.findElements('Perihal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Perihal').first.text;
+            final description = listResult.findElements('Description').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Description').first.text;
+            final typePesawat = listResult.findElements('TypePesawat').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TypePesawat').first.text;
+            final currency = listResult.findElements('Currency').isEmpty
+                ? ''
+                : listResult.findElements('Currency').first.text;
+            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
+                ? 'No Data'
+                : listResult.findElements('BiayaCharter').first.text;
+            final revenue = listResult.findElements('Revenue').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Revenue').first.text;
+            final pembayaran = listResult.findElements('Pembayaran').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Pembayaran').first.text;
+            final lainLain = listResult.findElements('LainLain').isEmpty
+                ? 'No Data'
+                : listResult.findElements('LainLain').first.text;
+            final tglFinanceverifikasiBelumterimapembayaran = listResult
+                    .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult
+                    .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
+                    .first
+                    .text;
+            final tglFinanceverifikasiSudahterimapembayaran = listResult
+                    .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult
+                    .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
+                    .first
+                    .text;
+            final tglKonfirmasiDireksi = listResult
+                    .findElements('Tgl_konfirmasi_direksi')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tgl_konfirmasi_direksi').first.text;
+            final statusKonfirmasiDireksi =
+                listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Status_konfirmasi_direksi')
+                        .first
+                        .text;
+            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
+                ? ''
+                : listResult.findElements('Currency_PPH').first.text;
+            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
+                ? '0'
+                : listResult.findElements('Biaya_PPH').first.text;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.text;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.text;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.text;
+
+            setState(() {
+              if (!iom.any((data) => data['noIOM'] == noIOM)) {
+                iom.add({
+                  'noIOM': noIOM,
+                  'tanggal': tglIOM,
+                  'perihal': perihal,
+                  'charter': description,
+                  'type': typePesawat,
+                  'curr': currency,
+                  'biaya': biayaCharter,
+                  'revenue': revenue,
+                  'pembayaran': pembayaran,
+                  'note': lainLain,
+                  'status': tglFinanceverifikasiBelumterimapembayaran ==
+                          'No Data'
+                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? statusKonfirmasiDireksi == 'No Data'
+                              ? 'NONE'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                          : statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PENDING PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase()
+                          : statusKonfirmasiDireksi == 'No Data'
+                              ? 'VERIFIED PAYMENT'
+                              : statusKonfirmasiDireksi.toUpperCase(),
+                  'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
+                  'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
+                  'approveDate': tglKonfirmasiDireksi,
+                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
+                          'No Data'
+                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID'
+                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
+                          ? 'PENDING'
+                          : 'PAID',
+                  'currencyPPH': currencyPPH,
+                  'biayaPPH': biayaPPH,
+                  'rute': rute,
+                  'tanggalRute': tanggal,
+                  'server': server,
+                  'isAttach': '',
+                });
+              }
+            });
+
+            // var hasilJson = jsonEncode(iom);
+            // debugPrint(hasilJson);
+
+            Future.delayed(const Duration(seconds: 1), () async {
+              for (var data in iom) {
+                if (!company.contains(data['server'])) {
+                  company.add(data['server']);
+                }
+              }
+
+              for (var data in iom) {
+                if (!year
+                    .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
+                  year.add(DateTime.parse(data['tanggal']).toLocal().year);
+                }
+              }
+
+              setState(() {
+                filteredCompany.value = company;
+                filteredIOM.value = iom;
+                filteredYear.value = year;
+              });
+
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          }
+        }
+      } else {
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
+        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get IOM SL',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      //debugprint('$e');
+
+      if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get IOM SL',
                 error: e.toString(),
               );
             });
@@ -1157,11 +1653,23 @@ class _ViewIOMState extends State<ViewIOM> {
   Future<void> getUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userOpen = prefs.getString('userOpen');
+    String? isOD = prefs.getString('isOD');
+    String? isSL = prefs.getString('isSL');
 
     setState(() {
       isOpen = userOpen == 'true' ? true : false;
+      this.isOD = isOD == 'true' ? true : false;
+      this.isSL = isSL == 'true' ? true : false;
       //debugprint('$isOpen');
     });
+
+    if (this.isOD) {
+      await getIOMOD();
+    } else if (this.isSL) {
+      await getIOMSL();
+    } else {
+      await getIOM();
+    }
   }
 
   @override
@@ -1170,7 +1678,6 @@ class _ViewIOMState extends State<ViewIOM> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
       await getUser();
-      await getIOM();
     });
 
     date.text =

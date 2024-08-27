@@ -111,5 +111,11 @@ const url_AddAttachment =
 const url_UpdateAuth =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAuth';
 
+const url_GetIOMOD =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetIOMOD';
+
+const url_GetIOMSL =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetIOMSL';
+
 // const url_CekNIK =
 //     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekNIK';

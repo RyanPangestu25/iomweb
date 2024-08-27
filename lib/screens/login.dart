@@ -23,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool loading = false;
   bool _viewPass = true;
-  List hasilResult = [];
   var hasilJson;
 
   final FocusNode _focusNode = FocusNode();
@@ -114,6 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
             final passRange = listResult.findElements('PassRange').isEmpty
                 ? '0'
                 : listResult.findElements('PassRange').first.innerText;
+            final isOD = listResult.findElements('isOD').isEmpty
+                ? '0'
+                : listResult.findElements('isOD').first.innerText;
+            final isSL = listResult.findElements('isSL').isEmpty
+                ? '0'
+                : listResult.findElements('isSL').first.innerText;
 
             temporaryList.add({
               'userName': userName,
@@ -127,6 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
               'userOpen': iomOpenAccess,
               'userEmail': userEmail,
               'nik': nik,
+              'isOD': isOD,
+              'isSL': isSL,
             });
 
             // hasilJson = jsonEncode(temporaryList);
@@ -157,6 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     iomOpenAccess,
                     userEmail,
                     nik,
+                    isOD == '1' ? 'true' : 'false',
+                    isSL == '1' ? 'true' : 'false',
                   );
 
                   if (mounted) {
@@ -288,10 +297,6 @@ class _LoginScreenState extends State<LoginScreen> {
           });
         }
       }
-
-      setState(() {
-        hasilResult = temporaryList;
-      });
     } catch (e) {
       //debugPrint('$e');
 
@@ -320,6 +325,8 @@ class _LoginScreenState extends State<LoginScreen> {
     String userOpen,
     String userEmail,
     String nik,
+    String isOD,
+    String isSL,
   ) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', userName);
@@ -327,6 +334,8 @@ class _LoginScreenState extends State<LoginScreen> {
     await prefs.setString('userOpen', userOpen);
     await prefs.setString('userEmail', userEmail);
     await prefs.setString('nik', nik);
+    await prefs.setString('isOD', isOD);
+    await prefs.setString('isSL', isSL);
   }
 
   @override
