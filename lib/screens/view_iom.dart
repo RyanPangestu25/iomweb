@@ -382,21 +382,23 @@ class _ViewIOMState extends State<ViewIOM> {
               : listResult.findElements('StatusData').first.text;
 
           if (statusData == "GAGAL") {
-            Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) {
               StatusAlert.show(
                 context,
-                duration: const Duration(seconds: 1),
+                dismissOnBackgroundTap: true,
+                duration: const Duration(seconds: 3),
                 configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
+                  icon: Icons.error,
+                  color: Colors.red,
+                ),
+                title: "No Data OD",
                 backgroundColor: Colors.grey[300],
               );
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
+
+              setState(() {
+                loading = false;
+              });
+            }
           } else {
             final noIOM = listResult.findElements('NoIOM').isEmpty
                 ? 'No Data'
@@ -629,21 +631,23 @@ class _ViewIOMState extends State<ViewIOM> {
               : listResult.findElements('StatusData').first.text;
 
           if (statusData == "GAGAL") {
-            Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) {
               StatusAlert.show(
                 context,
-                duration: const Duration(seconds: 1),
+                dismissOnBackgroundTap: true,
+                duration: const Duration(seconds: 3),
                 configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
+                  icon: Icons.error,
+                  color: Colors.red,
+                ),
+                title: "No Data SL",
                 backgroundColor: Colors.grey[300],
               );
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
+
+              setState(() {
+                loading = false;
+              });
+            }
           } else {
             final noIOM = listResult.findElements('NoIOM').isEmpty
                 ? 'No Data'
@@ -1655,6 +1659,7 @@ class _ViewIOMState extends State<ViewIOM> {
     String? userOpen = prefs.getString('userOpen');
     String? isOD = prefs.getString('isOD');
     String? isSL = prefs.getString('isSL');
+    String nik = prefs.getString('nik') ?? 'No Data';
 
     setState(() {
       isOpen = userOpen == 'true' ? true : false;
@@ -1669,6 +1674,12 @@ class _ViewIOMState extends State<ViewIOM> {
       await getIOMSL();
     } else {
       await getIOM();
+
+      if (nik != 'No Data' &&
+          (nik == '56000031' || nik == '101010' || nik == '101011')) {
+        await getIOMOD();
+        await getIOMSL();
+      }
     }
   }
 
