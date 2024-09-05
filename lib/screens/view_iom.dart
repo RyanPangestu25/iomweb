@@ -2274,69 +2274,74 @@ class _ViewIOMState extends State<ViewIOM> {
                                                   //             .shrink()
                                                   //     : const SizedBox.shrink(),
                                                   isOpen
-                                                      ? DateTime.parse(filteredIOM
-                                                                              .value[
-                                                                          index]
-                                                                      [
-                                                                      'tanggalRute'])
-                                                                  .toLocal()
-                                                                  .year ==
-                                                              DateTime.now()
-                                                                  .year
-                                                          ? IconButton(
-                                                              onPressed:
-                                                                  () async {
-                                                                await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (BuildContext
-                                                                            context) {
-                                                                      return ResetConfirmation(
-                                                                        isSuccess:
-                                                                            (value) async {
-                                                                          if (value) {
-                                                                            setState(() {
-                                                                              loading = true;
-                                                                              dateRange = DateTimeRange(
-                                                                                start: DateTime.now(),
-                                                                                end: DateTime.now(),
-                                                                              );
-                                                                              date.text = '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                                              isStatus = false;
-                                                                              isPeriod = false;
-                                                                              isCompany = false;
-                                                                              isYear = false;
-                                                                              searchController.clear();
-                                                                              filteredStatus.value = status;
-                                                                              filteredCompany.value = company;
-                                                                            });
-
-                                                                            iom.clear();
-                                                                            await getIOM();
-                                                                          }
-                                                                        },
-                                                                        noIOM: filteredIOM.value[index]
-                                                                            [
-                                                                            'noIOM'],
-                                                                        server: filteredIOM.value[index]
-                                                                            [
-                                                                            'server'],
-                                                                        isIOM:
-                                                                            false,
-                                                                      );
-                                                                    });
-                                                              },
-                                                              tooltip:
-                                                                  'Reset Approval',
-                                                              icon: const Icon(
-                                                                Icons.approval,
-                                                                color:
-                                                                    Colors.red,
-                                                              ),
-                                                            )
-                                                          : const SizedBox
+                                                      ? filteredIOM.value[index]
+                                                                  [
+                                                                  'tanggalRute'] ==
+                                                              'No Data'
+                                                          ? const SizedBox
                                                               .shrink()
+                                                          : DateTime.parse(filteredIOM
+                                                                              .value[index]
+                                                                          [
+                                                                          'tanggalRute'])
+                                                                      .toLocal()
+                                                                      .year ==
+                                                                  DateTime.now()
+                                                                      .year
+                                                              ? IconButton(
+                                                                  onPressed:
+                                                                      () async {
+                                                                    await showDialog(
+                                                                        context:
+                                                                            context,
+                                                                        builder:
+                                                                            (BuildContext
+                                                                                context) {
+                                                                          return ResetConfirmation(
+                                                                            isSuccess:
+                                                                                (value) async {
+                                                                              if (value) {
+                                                                                setState(() {
+                                                                                  loading = true;
+                                                                                  dateRange = DateTimeRange(
+                                                                                    start: DateTime.now(),
+                                                                                    end: DateTime.now(),
+                                                                                  );
+                                                                                  date.text = '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
+                                                                                  isStatus = false;
+                                                                                  isPeriod = false;
+                                                                                  isCompany = false;
+                                                                                  isYear = false;
+                                                                                  searchController.clear();
+                                                                                  filteredStatus.value = status;
+                                                                                  filteredCompany.value = company;
+                                                                                });
+
+                                                                                iom.clear();
+                                                                                await getIOM();
+                                                                              }
+                                                                            },
+                                                                            noIOM:
+                                                                                filteredIOM.value[index]['noIOM'],
+                                                                            server:
+                                                                                filteredIOM.value[index]['server'],
+                                                                            isIOM:
+                                                                                false,
+                                                                          );
+                                                                        });
+                                                                  },
+                                                                  tooltip:
+                                                                      'Reset Approval',
+                                                                  icon:
+                                                                      const Icon(
+                                                                    Icons
+                                                                        .approval,
+                                                                    color: Colors
+                                                                        .red,
+                                                                  ),
+                                                                )
+                                                              : const SizedBox
+                                                                  .shrink()
                                                       : const SizedBox.shrink(),
                                                 ],
                                               ),
