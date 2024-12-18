@@ -1,6 +1,10 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, prefer_typing_uninitialized_variables
 
+import 'package:base32/base32.dart';
 import 'package:flutter/material.dart';
+import 'package:iomweb/widgets/alertdialog/otp/otp_login.dart';
+import 'package:iomweb/widgets/alertdialog/otp/otp_regist.dart';
+import 'package:otp/otp.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/alertdialog/log_error.dart';
 import '/screens/forgot_pass.dart';
@@ -107,9 +111,9 @@ class _LoginScreenState extends State<LoginScreen> {
             final nik = listResult.findElements('NIK').isEmpty
                 ? 'No Data'
                 : listResult.findElements('NIK').first.innerText;
-            // final isAuth = listResult.findElements('isAuth').isEmpty
-            //     ? '0'
-            //     : listResult.findElements('isAuth').first.innerText;
+            final isAuth = listResult.findElements('isAuth').isEmpty
+                ? '0'
+                : listResult.findElements('isAuth').first.innerText;
             final passRange = listResult.findElements('PassRange').isEmpty
                 ? '0'
                 : listResult.findElements('PassRange').first.innerText;
@@ -152,121 +156,121 @@ class _LoginScreenState extends State<LoginScreen> {
                       builder: (context) => ChangePass(
                         nik: nik,
                         email: userEmail,
+                        isFirst: true,
                       ),
                     ),
                   );
                 }
-              } else {
-                if (double.parse(passRange) < 4) {
-                  await saveData(
-                    userName,
-                    temporaryList.last['userLevel'],
-                    iomOpenAccess,
-                    userEmail,
-                    nik,
-                    isOD == '1' ? 'true' : 'false',
-                    isSL == '1' ? 'true' : 'false',
-                  );
+              } else if (nik == '101017'){
+                SharedPreferences prefs = await SharedPreferences.getInstance();
 
-                  if (mounted) {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (BuildContext context) {
-                        return const HomeScreen();
-                      },
-                    ));
-                  }
-                } else {
-                  if (mounted) {
-                    Navigator.of(context).push(
+                await prefs.setString('userName', userName);
+                await prefs.setString(
+                    'userLevel', temporaryList.last['userLevel']);
+                await prefs.setString('userOpen', iomOpenAccess);
+                await prefs.setString('userEmail', userEmail);
+                await prefs.setString('nik', nik);
+                await prefs.setString('isOD', isOD == '1' ? 'true' : 'false');
+                await prefs.setString('isSL', isSL == '1' ? 'true' : 'false');
+                 if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                    builder: (BuildContext context) {
+                      return const HomeScreen();
+                    },
+                  ), (route) => false);
+                }
+
+                 }else{
+
+                  if(double.parse(isAuth) == 1){
+                    if (double.parse(passRange) < 4) {
+                      if(mounted){
+                      await showDialog(
+                        context: context, 
+                        builder: (BuildContext context){
+                          return OTPLogin(
+                            isValid: (value){ 
+                              return false;
+                            }, 
+                            data: [
+                            {
+                              'userName': userName,
+                              'userLevel': temporaryList.last['userLevel'],
+                              'userOpen': iomOpenAccess,
+                              'userEmail': userEmail,
+                              'nik': nik,
+                              'isOD': isOD == '1' ? 'true' : 'false',
+                              'isSL': isSL == '1' ? 'true' : 'false',
+                            },
+                          ], 
+                            otpStream: Stream<dynamic>.periodic(
+                              const Duration(seconds: 0),
+                              (val) => OTP.generateTOTPCodeString(
+                                  base32.encodeString(nik + 'IC'),
+                                  DateTime.now().millisecondsSinceEpoch,
+                                  length: 6,
+                                  interval: 30,
+                                  algorithm: Algorithm.SHA1,
+                                  isGoogle: true)).asBroadcastStream(),
+                                  isUpdate: false,  
+                            
+
+                            );
+
+                        }
+                        );
+                    }}else{
+                      if(mounted){
+                      Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ChangePass(
                           nik: nik,
                           email: userEmail,
+                          isFirst: false,
                         ),
                       ),
                     );
+                      }
+                    }
+
+
+                  }else{
+                    if(mounted){
+                    
+                    await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return OTPRegist(
+                        data: [
+                          {
+                            'userName': userName,
+                            'userLevel': temporaryList.last['userLevel'],
+                            'userOpen': iomOpenAccess,
+                            'userEmail': userEmail,
+                            'nik': nik,
+                          },
+                        ],
+                        otpStream: Stream<dynamic>.periodic(
+                          const Duration(seconds: 0),
+                          (val) => OTP.generateTOTPCodeString(
+                            base32.encodeString(nik + 'IC'),
+                            DateTime.now().millisecondsSinceEpoch,
+                            length: 6,
+                            interval: 30,
+                            algorithm: Algorithm.SHA1,
+                            isGoogle: true,
+                          ),
+                        ).asBroadcastStream(),
+                      );
+                    },
+                  );
                   }
-                }
+                  }
+                 }
 
-                // if (double.parse(isAuth) == 1) {
-                //   if (double.parse(passRange) < 4) {
-                //     await showDialog(
-                //       context: context,
-                //       barrierDismissible: false,
-                //       builder: (BuildContext context) {
-                //         final now =
-                //             tz.TZDateTime.now(tz.getLocation('Asia/Jakarta'));
-
-                //         return OTPLogin(
-                //           isValid: (value) {
-                //             return false;
-                //           },
-                //           data: [
-                //             {
-                //               'userName': userName,
-                //               'userLevel': temporaryList.last['userLevel'],
-                //               'userOpen': iomOpenAccess,
-                //               'userEmail': userEmail,
-                //               'nik': nik,
-                //             },
-                //           ],
-                //           otpStream: Stream<dynamic>.periodic(
-                //               const Duration(seconds: 0),
-                //               (val) => OTP.generateTOTPCodeString(
-                //                   base32.encodeString(nik + 'IC'),
-                //                   now.millisecondsSinceEpoch,
-                //                   length: 6,
-                //                   interval: 30,
-                //                   algorithm: Algorithm.SHA1,
-                //                   isGoogle: true)).asBroadcastStream(),
-                //           isUpdate: false,
-                //         );
-                //       },
-                //     );
-                //   } else {
-                //     Navigator.of(context).pushReplacement(
-                //       MaterialPageRoute(
-                //         builder: (context) => ChangePass(
-                //           nik: nik,
-                //           email: userEmail,
-                //         ),
-                //       ),
-                //     );
-                //   }
-                // } else {
-                //   await showDialog(
-                //     context: context,
-                //     barrierDismissible: false,
-                //     builder: (BuildContext context) {
-                //       final now =
-                //           tz.TZDateTime.now(tz.getLocation('Asia/Jakarta'));
-
-                //       return OTPRegist(
-                //         data: [
-                //           {
-                //             'userName': userName,
-                //             'userLevel': temporaryList.last['userLevel'],
-                //             'userOpen': iomOpenAccess,
-                //             'userEmail': userEmail,
-                //             'nik': nik,
-                //           },
-                //         ],
-                //         otpStream: Stream<dynamic>.periodic(
-                //           const Duration(seconds: 0),
-                //           (val) => OTP.generateTOTPCodeString(
-                //             base32.encodeString(nik + 'IC'),
-                //             now.millisecondsSinceEpoch,
-                //             length: 6,
-                //             interval: 30,
-                //             algorithm: Algorithm.SHA1,
-                //             isGoogle: true,
-                //           ),
-                //         ).asBroadcastStream(),
-                //       );
-                //     },
-                //   );
-                // }
-              }
+                
+             
 
               if (mounted) {
                 setState(() {

@@ -1,65 +1,68 @@
 // ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:iomweb/widgets/alertdialog/attach.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../backend/constants.dart';
-import '../widgets/alertdialog/log_error.dart';
-import '../widgets/loading.dart';
-import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:iomweb/backend/constants.dart';
+import 'package:iomweb/screens/display/img.dart';
+import 'package:iomweb/screens/display/pdf.dart';
+import 'package:iomweb/widgets/alertdialog/delete.dart';
+import 'package:iomweb/widgets/alertdialog/edit.dart';
+import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:iomweb/widgets/loading.dart';
+import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
-import 'display/img.dart';
-import 'display/pdf.dart';
 
-class IOMAttachment extends StatefulWidget {
-  final List iom;
 
-  const IOMAttachment({
+class PaymentAgreementDetail extends StatefulWidget {
+  final List agreementdetail;
+
+
+  const PaymentAgreementDetail({
     super.key,
-    required this.iom,
-  });
+    required this.agreementdetail,
+    });
 
   @override
-  State<IOMAttachment> createState() => _IOMAttachmentState();
+  State<PaymentAgreementDetail> createState() => _PaymentAgreementDetailState();
 }
 
-class _IOMAttachmentState extends State<IOMAttachment> {
+class _PaymentAgreementDetailState extends State<PaymentAgreementDetail> {
+
+  bool loading = false;
   bool _isConnected = false;
   bool visible = true;
-  bool loading = false;
   bool _sortAscending = true;
   int _sortColumnIndex = 0;
   int currentPage = 1;
   int rowPerPages = PaginatedDataTable.defaultRowsPerPage;
-  String level = '';
+  
+  List payment = [];
   List att = [];
-  List attFile = [];
 
-  Future<void> getAttName() async {
+Future<void> getDetailAgreementPayment() async {
     try {
       setState(() {
         loading = true;
       });
 
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetAttachmentName xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '<level>$level</level>' +
-          '</GetAttachmentName>' +
+          '<GetAgreementPayment xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>' +
+          '<server>${widget.agreementdetail.last['server']}ring</server>' +
+          '</GetAgreementPayment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetAttachmentName),
+      final response = await http.post(Uri.parse(url_GetAgreementPayment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetAttachmentName',
+            'SOAPAction': 'http://tempuri.org/GetAgreementPayment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -92,35 +95,43 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               }
             });
           } else {
-            final fileName = listResult.findElements('Filename').isEmpty
+            final noAgreementdetail = listResult.findElements('NoAgreementDetail').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Filename').first.text;
-            final uploadedDate = listResult.findElements('UploadedDate').isEmpty
-                ? 'No Data'
-                : listResult.findElements('UploadedDate').first.text;
-            final ext = listResult.findElements('Ext').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Ext').first.text;
-            final attachmentType =
-                listResult.findElements('attachmentType').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('attachmentType').first.text;
+                : listResult.findElements('NoAgreementDetail').first.text;
             final item = listResult.findElements('Item').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Item').first.text;
+            final tglTerimaPembayaran = listResult
+                    .findElements('Tgl_TerimaPembayaran')
+                    .isEmpty
+                ? 'No Data'                : listResult.findElements('Tgl_TerimaPembayaran').first.text;
+            final namaBankPenerima =
+                listResult.findElements('NamaBankPenerima').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('NamaBankPenerima').first.text;
+            final amountPembayaran =
+                listResult.findElements('AmountPembayaran').isEmpty
+                    ? '0'
+
+                    : listResult.findElements('AmountPembayaran').first.text;
+            final currPembayaran =
+                listResult.findElements('CurrPembayaran').isEmpty
+                    ? '0'
+                    : listResult.findElements('CurrPembayaran').first.text;
 
             setState(() {
-              att.add({
+              payment.add({
+                'noAgreementDetail': noAgreementdetail,
                 'item': item,
-                'fileName': fileName,
-                'date': uploadedDate,
-                'ext': ext.toLowerCase(),
-                'attachmentType': attachmentType,
+                'tanggal': tglTerimaPembayaran,
+                'bank': namaBankPenerima,
+                'amount': amountPembayaran,
+                'curr': currPembayaran,
               });
             });
 
-            // var hasilJson = jsonEncode(att);
-            //debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(payment);
+            //debugprint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -132,8 +143,8 @@ class _IOMAttachmentState extends State<IOMAttachment> {
           }
         }
       } else {
-        //debugPrint('Error: ${response.statusCode}');
-        //debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -142,7 +153,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get Attachment Name',
+                  fail: 'Error Get Agreement Payment',
                   error: response.body.toString(),
                 );
               });
@@ -153,7 +164,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
         }
       }
     } catch (e) {
-      //debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -162,7 +173,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get Attachment Name',
+                fail: 'Error Get Agreement Payment',
                 error: e.toString(),
               );
             });
@@ -174,28 +185,28 @@ class _IOMAttachmentState extends State<IOMAttachment> {
     }
   }
 
-  Future<void> getIOMAttachment(index) async {
+Future<void> getAgreementAttachment(index) async {
     try {
       setState(() {
         loading = true;
       });
 
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMAttachment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<Item>${att[index]['item']}</Item>' +
-          '<attachmentType>${att[index]['attachmentType']}</attachmentType>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</GetIOMAttachment>' +
+          '<GetAgreementAttachment xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>' +
+          '<Item>${payment[index]['item']}</Item>' +
+          '<attachmentType>BUKTI TERIMA PEMBAYARAN</attachmentType>' +
+          '<server>${widget.agreementdetail.last['server']}</server>' +
+          '</GetAgreementAttachment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMAttachment),
+      final response = await http.post(Uri.parse(url_GetAgreementAttachment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMAttachment',
+            'SOAPAction': 'http://tempuri.org/GetAgreementAttachment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -228,26 +239,31 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreementdetail = listResult.findElements('NoAgreementDetail').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+
+                : listResult.findElements('NoAgreementDetail').first.text;
             final filename = listResult.findElements('Filename').isEmpty
                 ? 'No Data'
+
                 : listResult.findElements('Filename').first.text;
             final pdfFile = listResult.findElements('PDFFile').isEmpty
                 ? 'No Data'
+
                 : listResult.findElements('PDFFile').first.text;
             final ext = listResult.findElements('Ext').isEmpty
                 ? 'No Data'
+
                 : listResult.findElements('Ext').first.text;
             final attachmentType =
                 listResult.findElements('attachmentType').isEmpty
                     ? 'No Data'
+
                     : listResult.findElements('attachmentType').first.text;
 
             setState(() {
-              attFile.add({
-                'noIOM': noIOM,
+              att.add({
+                'noAgreementdetail': noAgreementdetail,
                 'filename': filename,
                 'pdf': pdfFile,
                 'ext': ext.toLowerCase(),
@@ -255,8 +271,8 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               });
             });
 
-            // var hasilJson = jsonEncode(attFile);
-            //debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(att);
+            //debugprint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -268,8 +284,8 @@ class _IOMAttachmentState extends State<IOMAttachment> {
           }
         }
       } else {
-        //debugPrint('Error: ${response.statusCode}');
-        //debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -278,7 +294,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get IOM Attachment',
+                  fail: 'Error Get Agreement Attachment',
                   error: response.body.toString(),
                 );
               });
@@ -289,7 +305,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
         }
       }
     } catch (e) {
-      //debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -298,7 +314,7 @@ class _IOMAttachmentState extends State<IOMAttachment> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get IOM Attachment',
+                fail: 'Error Get Agreement Attachment',
                 error: e.toString(),
               );
             });
@@ -309,10 +325,10 @@ class _IOMAttachmentState extends State<IOMAttachment> {
       }
     }
   }
-
-  Future<void> initConnection() async {
+ 
+Future<void> initConnection() async {
     Connectivity().checkConnectivity().then((value) {
-      //debugPrint('$value');
+      //debugprint('$value');
       if (value != ConnectivityResult.none) {
         setState(() {
           _isConnected = (value != ConnectivityResult.none);
@@ -349,102 +365,49 @@ class _IOMAttachmentState extends State<IOMAttachment> {
         }
       });
     });
-  }
+  } 
 
-  Future<void> getLevel() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userLevel = prefs.getString('userLevel');
 
-    setState(() {
-      level = userLevel ?? 'No Data';
-      //debugPrint(level);
-    });
-  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
-      await getLevel();
-      await getAttName();
+      await getDetailAgreementPayment();
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
+    double totalAmount = 0.0;
+    for (int i = 0; i < payment.length; i++) {
+      totalAmount += double.parse(payment[i]['amount']);
+    }
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.redAccent,
         foregroundColor: Colors.white,
         title: const Text(
-          "Detail Attachment",
+          "Detail Payment",
         ),
         elevation: 3,
         actions: [
-          level == '12' || level == '19'
-              ? IconButton(
-                  tooltip: 'Add Attachment',
-                  onPressed: loading
-                      ? null
-                      : () async {
-                          setState(() {
-                            loading = true;
-                          });
-
-                          Future.delayed(const Duration(seconds: 1), () async {
-                            if (mounted) {
-                              setState(() {
-                                loading = false;
-                              });
-                            }
-
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return Attachment(
-                                    isSuccess: (value) async {
-                                      if (value) {
-                                        Navigator.of(context).pop();
-
-                                        setState(() {
-                                          loading = true;
-                                          att.clear();
-                                        });
-
-                                        await getAttName();
-                                      }
-                                    },
-                                    iom: widget.iom,
-                                  );
-                                });
-                          });
-                        },
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.black,
-                  ),
-                )
-              : const SizedBox.shrink(),
           IconButton(
-            tooltip: 'Refresh',
             onPressed: loading
                 ? null
                 : () async {
                     setState(() {
                       loading = true;
-                      att.clear();
                     });
-
-                    await getAttName();
+                    payment.clear();
+                    await getDetailAgreementPayment();
                   },
             icon: const Icon(Icons.refresh),
           ),
@@ -458,18 +421,36 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  height: att.isEmpty
+                Text.rich(
+                  TextSpan(
+                    text: 'Total Amount = ',
+                    children: [
+                      TextSpan(
+                        text: NumberFormat.currency(locale: 'id_ID', symbol: '')
+                            .format(totalAmount)
+                            .toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                          fontSize: size.height * 0.023,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: size.height * 0.01),
+                 SizedBox(
+                  height: payment.isEmpty
                       ? size.height * 0.25
-                      : att.length < 5
+                      : payment.length < 5
                           ? ((MediaQuery.of(context).textScaleFactor * 14 +
                                       2 * 18) *
-                                  att.length) +
+                                  payment.length) +
                               2 * size.height * 0.085
-                          : size.height * 0.4,
+                         : size.height * 0.4,
                   child: PaginatedDataTable2(
                     border: TableBorder.all(width: 1),
-                    minWidth: 500,
+                    minWidth: 900,
                     sortColumnIndex: _sortColumnIndex,
                     sortAscending: _sortAscending,
                     rowsPerPage: rowPerPages,
@@ -501,9 +482,18 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                       DataColumn2(
                         size: ColumnSize.M,
                         label: const Center(
-                          child: Text(
-                            'Filename',
-                            textAlign: TextAlign.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Payment',
+                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                'Date',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
                         onSort: (columnIndex, ascending) {
@@ -511,35 +501,10 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                             _sortColumnIndex = columnIndex;
                             _sortAscending = ascending;
                             if (ascending) {
-                              att.sort(
-                                (a, b) {
-                                  return a['fileName'].compareTo(b['fileName']);
-                                },
-                              );
-                            } else {
-                              att.sort((a, b) =>
-                                  b['fileName'].compareTo(a['fileName']));
-                            }
-                          });
-                        },
-                      ),
-                      DataColumn2(
-                        size: ColumnSize.M,
-                        label: const Center(
-                          child: Text(
-                            'Date',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        onSort: (columnIndex, ascending) {
-                          setState(() {
-                            _sortColumnIndex = columnIndex;
-                            _sortAscending = ascending;
-                            if (ascending) {
-                              att.sort((a, b) {
+                              payment.sort((a, b) {
                                 // Mendapatkan tanggal dari data a dan b dalam format DateTime
-                                DateTime dateA = DateTime.parse(a['date']);
-                                DateTime dateB = DateTime.parse(b['date']);
+                                DateTime dateA = DateTime.parse(a['tanggal']);
+                                DateTime dateB = DateTime.parse(b['tanggal']);
 
                                 // Membandingkan berdasarkan tahun dan bulan
                                 int yearComparison =
@@ -555,9 +520,9 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                                 }
                               });
                             } else {
-                              att.sort((a, b) {
-                                DateTime dateA = DateTime.parse(a['date']);
-                                DateTime dateB = DateTime.parse(b['date']);
+                              payment.sort((a, b) {
+                                DateTime dateA = DateTime.parse(a['tanggal']);
+                                DateTime dateB = DateTime.parse(b['tanggal']);
 
                                 int yearComparison =
                                     dateB.year.compareTo(dateA.year);
@@ -574,21 +539,39 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                           });
                         },
                       ),
-                      DataColumn2(
+                      const DataColumn2(
                         size: ColumnSize.L,
-                        label: const Center(
+                        label: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Attachment',
+                                'Bank',
                                 textAlign: TextAlign.center,
                               ),
                               Text(
-                                'Type',
+                                'Name',
                                 textAlign: TextAlign.center,
                               ),
                             ],
+                          ),
+                        ),
+                      ),
+                      const DataColumn2(
+                        size: ColumnSize.S,
+                        label: Center(
+                          child: Text(
+                            'Curr',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      DataColumn2(
+                        size: ColumnSize.M,
+                        label: const Center(
+                          child: Text(
+                            'Amount',
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         onSort: (columnIndex, ascending) {
@@ -596,15 +579,21 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                             _sortColumnIndex = columnIndex;
                             _sortAscending = ascending;
                             if (ascending) {
-                              att.sort(
+                              payment.sort(
                                 (a, b) {
-                                  return a['attachmentType']
-                                      .compareTo(b['attachmentType']);
+                                  double balA = double.parse(a['amount']);
+                                  double balB = double.parse(b['amount']);
+
+                                  return balA.compareTo(balB);
                                 },
                               );
                             } else {
-                              att.sort((a, b) => b['attachmentType']
-                                  .compareTo(a['attachmentType']));
+                              payment.sort((a, b) {
+                                double balA = double.parse(a['amount']);
+                                double balB = double.parse(b['amount']);
+
+                                return balB.compareTo(balA);
+                              });
                             }
                           });
                         },
@@ -618,44 +607,57 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                           ),
                         ),
                       ),
+                      const DataColumn2(
+                        size: ColumnSize.S,
+                        label: Center(
+                          child: Text(
+                            'Edit',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      const DataColumn2(
+                        size: ColumnSize.S,
+                        label: Center(
+                          child: Text(
+                            'Delete',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                     ],
                     source: TableData(
-                      att: att,
+                      payment: payment,
                       currentPage: currentPage,
                       rowsPerPage: rowPerPages,
+                      status: widget.agreementdetail.last['status'],
                       action: (index) async {
                         setState(() {
-                          attFile.clear();
+                          att.clear();
                           loading = true;
                         });
 
-                        await getIOMAttachment(index);
+                        await getAgreementAttachment(index);
 
                         Future.delayed(const Duration(seconds: 1), () async {
-                          if (attFile.isNotEmpty) {
-                            if (attFile.last['ext']
-                                .toString()
-                                .contains('pdf')) {
+                          if (att.isNotEmpty) {
+                            if (att.last['ext'].toString().contains('pdf')) {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) {
                                   return DisplayPDF(
-                                    pdf: attFile,
+                                    pdf: att,
                                   );
                                 },
                               ));
-                            } else if (attFile.last['ext']
+                            } else if (att.last['ext']
                                     .toString()
                                     .contains('jpg') ||
-                                attFile.last['ext']
-                                    .toString()
-                                    .contains('jpeg') ||
-                                attFile.last['ext']
-                                    .toString()
-                                    .contains('png')) {
+                                att.last['ext'].toString().contains('jpeg') ||
+                                att.last['ext'].toString().contains('png')) {
                               Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) {
                                   return DisplayIMG(
-                                    image: attFile,
+                                    image: att,
                                   );
                                 },
                               ));
@@ -672,11 +674,53 @@ class _IOMAttachmentState extends State<IOMAttachment> {
                           }
                         });
                       },
+                      edit: (index) async {
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Edit(
+                              isUpdate: (value) async {
+                                if (value) {
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  payment.clear();
+                                  await getDetailAgreementPayment();
+                                }
+                              },
+                              editItem: [payment[index]],
+                              server: widget.agreementdetail.last['server'],
+                            );
+                          },
+                        );
+                      },
+                      delete: (index) async {
+                        await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Delete(
+                              isUpdate: (value) async {
+                                if (value) {
+                                  setState(() {
+                                    loading = true;
+                                  });
+                                  payment.clear();
+                                  await getDetailAgreementPayment();
+                                }
+                              },
+                              payment: [payment[index]],
+                              server: widget.agreementdetail.last['server'],
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
                 ),
+
               ],
             ),
+            
           ),
           Visibility(
             visible: visible,
@@ -707,70 +751,69 @@ class _IOMAttachmentState extends State<IOMAttachment> {
               ),
             ),
           ),
-          LoadingWidget(
+           LoadingWidget(
             isLoading: loading,
             title: 'Loading',
           ),
+
         ],
       ),
+
+      
+
     );
   }
 }
 
 class TableData extends DataTableSource {
-  final List att;
+  final List payment;
   final int currentPage;
   final int rowsPerPage;
+  final String status;
   final Function(int) action;
+  final Function(int) edit;
+  final Function(int) delete;
 
   TableData({
-    required this.att,
+    required this.payment,
     required this.currentPage,
     required this.rowsPerPage,
+    required this.status,
     required this.action,
+    required this.edit,
+    required this.delete,
   });
 
   @override
   DataRow? getRow(int index) {
     assert(index >= 0);
 
-    if (index >= att.length) throw 'index > ${att.length}';
+    if (index >= payment.length) throw 'index > ${payment.length}';
 
     final dataIndex =
-        (index + (currentPage - 1) * rowsPerPage).clamp(0, att.length - 1);
-    final data = att[dataIndex];
+        (index + (currentPage - 1) * rowsPerPage).clamp(0, payment.length - 1);
+    final data = payment[dataIndex];
 
     return DataRow2(
       color: MaterialStateProperty.resolveWith<Color?>(
           (Set<MaterialState> states) {
-        // Even rows will have a grey color.
         if (index.isOdd) {
           return Colors.grey.withOpacity(0.3);
         }
-        return null; // Use default value for other states and odd rows.
+        return null; 
       }),
       cells: <DataCell>[
         DataCell(
           Center(
             child: Text(
-              (index + 1).toString(),
+              data['item'].toString(),
               textAlign: TextAlign.center,
             ),
           ),
         ),
         DataCell(
-          SingleChildScrollView(
-            child: Center(
-              child: Text(
-                data['fileName'],
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        ),
-        DataCell(
           Center(
-            child: data['date'] == 'No Data'
+            child: data['tanggal'] == 'No Data'
                 ? const Text(
                     'No Data',
                     textAlign: TextAlign.center,
@@ -778,7 +821,7 @@ class TableData extends DataTableSource {
                 : Text(
                     DateFormat('dd-MMM-yyyy').format(
                       DateTime.parse(
-                        data['date'],
+                        data['tanggal'],
                       ).toLocal(),
                     ),
                     textAlign: TextAlign.center,
@@ -786,12 +829,28 @@ class TableData extends DataTableSource {
           ),
         ),
         DataCell(
-          SingleChildScrollView(
-            child: Center(
-              child: Text(
-                data['attachmentType'],
-                textAlign: TextAlign.center,
-              ),
+          Center(
+            child: Text(
+              data['bank'],
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: Text(
+              data['curr'],
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: Text(
+              NumberFormat.currency(locale: 'id_ID', symbol: '')
+                  .format(double.parse(data['amount']))
+                  .toString(),
+              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -804,6 +863,65 @@ class TableData extends DataTableSource {
               icon: const Icon(
                 Icons.photo_library,
                 color: Colors.blue,
+                size: 30,
+                shadows: [
+                  Shadow(
+                    offset: Offset(2, 1),
+                    blurRadius: 8,
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: IconButton(
+              onPressed: status == 'APPROVED' || status == 'VOID'
+                  ? null
+                  : () async {
+                      edit(index);
+                    },
+              icon: Icon(
+                Icons.edit_square,
+                color: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : Colors.green,
+                size: 30,
+                shadows: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : const [
+                        Shadow(
+                          offset: Offset(2, 1),
+                          blurRadius: 10,
+                        )
+                      ],
+              ),
+            ),
+          ),
+        ),
+        DataCell(
+          Center(
+            child: IconButton(
+              onPressed: status == 'APPROVED' || status == 'VOID'
+                  ? null
+                  : () async {
+                      delete(index);
+                    },
+              icon: Icon(
+                Icons.delete,
+                color: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : Colors.red,
+                size: 30,
+                shadows: status == 'APPROVED' || status == 'VOID'
+                    ? null
+                    : const [
+                        Shadow(
+                          offset: Offset(2, 1),
+                          blurRadius: 10,
+                        )
+                      ],
               ),
             ),
           ),
@@ -816,7 +934,7 @@ class TableData extends DataTableSource {
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => att.length;
+  int get rowCount => payment.length;
 
   @override
   int get selectedRowCount => 0;

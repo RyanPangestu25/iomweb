@@ -98,12 +98,17 @@ class _OTPLoginState extends State<OTPLogin> {
           }
         }
       } else {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        const otpInterval = 30 * 1000; 
+        final remainingTime = otpInterval - (now % otpInterval);
+        final waitingTime = (remainingTime / 1000).ceil();
         StatusAlert.show(
           context,
           duration: const Duration(seconds: 1),
           configuration:
               const IconConfiguration(icon: Icons.error, color: Colors.red),
           title: "Invalid OTP",
+          subtitle: "Please try again in $waitingTime seconds.",
           backgroundColor: Colors.grey[300],
         );
 
@@ -255,7 +260,7 @@ class _OTPLoginState extends State<OTPLogin> {
                     return true;
                   },
                 ),
-                // Text('$_currentOtp'),
+                Text('$_currentOtp'),
               ],
             ),
           ),

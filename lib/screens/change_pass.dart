@@ -12,11 +12,13 @@ import '../backend/constants.dart';
 class ChangePass extends StatefulWidget {
   final String nik;
   final String email;
+  final bool isFirst;
 
   const ChangePass({
     super.key,
     required this.nik,
     required this.email,
+    required this.isFirst
   });
 
   @override

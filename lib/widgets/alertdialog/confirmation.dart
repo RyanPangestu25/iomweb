@@ -7,7 +7,7 @@ import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import '../../backend/constants.dart';
-import '../../screens/view_iom.dart';
+import '../../screens/iom/view_iom.dart';
 import 'log_error.dart';
 import 'try_again.dart';
 

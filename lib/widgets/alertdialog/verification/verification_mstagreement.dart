@@ -1,39 +1,37 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import '../../screens/iom/view_iom.dart';
+import 'package:intl/intl.dart';
+import 'package:iomweb/backend/constants.dart';
+import 'package:http/http.dart' as http;
+import 'package:iomweb/screens/mstagreement/view_mstagreement.dart';
+import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:iomweb/widgets/alertdialog/try_again.dart';
+import 'package:iomweb/widgets/loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
-import '../../backend/constants.dart';
-import '../loading.dart';
-import 'log_error.dart';
-import 'try_again.dart';
 
-class Verification extends StatefulWidget {
+class VerificationMstagreement extends StatefulWidget {
   final Function(int) item;
-  final List iom;
+  final List data;
   final int lastItem;
-
-  const Verification({
+  const VerificationMstagreement({
     super.key,
     required this.item,
-    required this.iom,
+    required this.data,
     required this.lastItem,
-  });
+    });
 
   @override
-  State<Verification> createState() => _VerificationState();
+  State<VerificationMstagreement> createState() => _VerificationMstagreementState();
 }
 
-class _VerificationState extends State<Verification> {
+class _VerificationMstagreementState extends State<VerificationMstagreement> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
@@ -83,6 +81,7 @@ class _VerificationState extends State<Verification> {
   final FocusNode _focusNode3 = FocusNode();
 
   DateTime selectDate = DateTime.now();
+
   Future pickDate() async {
     final DateTime? newDate = await showDatePicker(
       context: context,
@@ -97,7 +96,7 @@ class _VerificationState extends State<Verification> {
           .format(DateTime.parse(selectDate.toString()).toLocal());
     }); //for button SAVE
   }
-
+  
   Future<void> _getFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -109,7 +108,7 @@ class _VerificationState extends State<Verification> {
       Uint8List? filePath = file.bytes;
       String ext = file.extension!;
       setState(() {
-        fileName = 'WEB${widget.iom.last['noIOM']}';
+        fileName = 'WEB${widget.data.last['noAgreement']}';
         fileExt = ext;
         titleFile = 'File Picked';
         _image = filePath;
@@ -363,7 +362,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> verification(int isPayment) async {
+  Future<void> verificationMstAgreement(int isPayment) async {
     try {
       setState(() {
         loading = true;
@@ -372,12 +371,12 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<Verification xmlns="http://tempuri.org/">' +
+          '<VerificationMstAgreement xmlns="http://tempuri.org/">' +
           '<isPayment>$isPayment</isPayment>' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
+          '<NoAgreement>${widget.data.last['noIOM']}</NoAgreement>' +
+          '<server>${widget.data.last['server']}</server>' +
           '<VerifiedBy>$userName</VerifiedBy>' +
-          '</Verification>' +
+          '</VerificationMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
@@ -437,7 +436,7 @@ class _VerificationState extends State<Verification> {
               if (level == '12') {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
-                    return const ViewIOM(
+                    return const ViewMstagreement(
                       title: 'IOM Verification',
                     );
                   },
@@ -445,7 +444,7 @@ class _VerificationState extends State<Verification> {
               } else if (level == '10') {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
-                    return const ViewIOM(
+                    return const ViewMstagreement(
                       title: 'IOM Approval',
                     );
                   },
@@ -453,7 +452,7 @@ class _VerificationState extends State<Verification> {
               } else {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
-                    return const ViewIOM(
+                    return const ViewMstagreement(
                       title: 'View IOM',
                     );
                   },
@@ -518,13 +517,13 @@ class _VerificationState extends State<Verification> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<VerificationPayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<NoIOM>${widget.data.last['noAgreement']}</NoIOM>' +
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
-          '<server>${widget.iom.last['server']}</server>' +
+          '<server>${widget.data.last['server']}</server>' +
           '</VerificationPayment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
@@ -617,6 +616,21 @@ class _VerificationState extends State<Verification> {
     }
   }
 
+  Future<void> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userName = prefs.getString('userName');
+    String? userLevel = prefs.getString('userLevel');
+
+    setState(() {
+      this.userName = userName ?? 'No Data';
+      //debugPrint(userName);
+
+      level = userLevel ?? 'No Data';
+      //debugPrint(level);
+    });
+  }
+
+
   Future<void> verifAtt() async {
     try {
       setState(() {
@@ -627,14 +641,14 @@ class _VerificationState extends State<Verification> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<VerificationAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<NoIOM>${widget.data.last['noIOM']}</NoIOM>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
           '<UploadDate>${DateTime.now().toLocal().toIso8601String()}</UploadDate>' +
           '<Ext>$fileExt</Ext>' +
           '<Item>${(item + 1).toString()}</Item>' +
-          '<server>${widget.iom.last['server']}</server>' +
+          '<server>${widget.data.last['server']}</server>' +
           '</VerificationAttach>' +
           '</soap:Body>' +
           '</soap:Envelope>';
@@ -781,8 +795,8 @@ class _VerificationState extends State<Verification> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<CekSaldoIOM xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
+          '<NoIOM>${widget.data.last['noAgreement']}</NoIOM>' +
+          '<server>${widget.data.last['server']}</server>' +
           '</CekSaldoIOM>' +
           '</soap:Body>' +
           '</soap:Envelope>';
@@ -834,7 +848,7 @@ class _VerificationState extends State<Verification> {
               item = int.parse(lastItem);
               saldo = double.parse(total);
 
-              double.parse(total) >= double.parse(widget.iom.last['biaya'])
+              double.parse(total) >= double.parse(widget.data.last['biaya'])
                   ? isBalance = true
                   : isBalance = false;
 
@@ -860,7 +874,7 @@ class _VerificationState extends State<Verification> {
                 if (level == '12') {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
-                      return const ViewIOM(
+                      return const ViewMstagreement(
                         title: 'IOM Verification',
                       );
                     },
@@ -868,7 +882,7 @@ class _VerificationState extends State<Verification> {
                 } else if (level == '10') {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
-                      return const ViewIOM(
+                      return const ViewMstagreement(
                         title: 'IOM Approval',
                       );
                     },
@@ -876,7 +890,7 @@ class _VerificationState extends State<Verification> {
                 } else {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
-                      return const ViewIOM(
+                      return const ViewMstagreement(
                         title: 'View IOM',
                       );
                     },
@@ -929,21 +943,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> getUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userName = prefs.getString('userName');
-    String? userLevel = prefs.getString('userLevel');
-
-    setState(() {
-      this.userName = userName ?? 'No Data';
-      //debugPrint(userName);
-
-      level = userLevel ?? 'No Data';
-      //debugPrint(level);
-    });
-  }
-
-  @override
+ @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -959,7 +959,7 @@ class _VerificationState extends State<Verification> {
     item == 0 ? item = widget.lastItem : null;
   }
 
-  @override
+   @override
   void dispose() {
     date.dispose();
     namaBank.dispose();
@@ -972,8 +972,7 @@ class _VerificationState extends State<Verification> {
     _focusNode3.dispose();
     super.dispose();
   }
-
-  @override
+@override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
@@ -1439,7 +1438,7 @@ class _VerificationState extends State<Verification> {
                                 loading = false;
                               });
                             } else {
-                              await verification(isPayment);
+                              await verificationMstAgreement(isPayment);
                             }
                           }
                         },

@@ -5,16 +5,16 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../widgets/alertdialog/delete.dart';
-import '../widgets/alertdialog/edit.dart';
-import '../backend/constants.dart';
-import '../widgets/alertdialog/log_error.dart';
-import '../widgets/loading.dart';
+import '../../widgets/alertdialog/delete.dart';
+import '../../widgets/alertdialog/edit.dart';
+import '../../backend/constants.dart';
+import '../../widgets/alertdialog/log_error.dart';
+import '../../widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
-import 'display/img.dart';
-import 'display/pdf.dart';
+import '../display/img.dart';
+import '../display/pdf.dart';
 
 class Payment extends StatefulWidget {
   final List iom;

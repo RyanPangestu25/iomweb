@@ -1,34 +1,41 @@
 // ignore_for_file: prefer_typing_uninitialized_variables, prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
 import 'dart:ui';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iomweb/backend/constants.dart';
+import 'package:iomweb/screens/mstagreement/detail_mstagreement.dart';
+import 'package:iomweb/widgets/alertdialog/confirm_reset.dart';
+import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:iomweb/widgets/loading.dart';
+import 'package:iomweb/widgets/sidebar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../backend/constants.dart';
-import '../widgets/alertdialog/confirm_reset.dart';
-import '../widgets/alertdialog/log_error.dart';
-import '../widgets/loading.dart';
-import '../widgets/sidebar.dart';
-import 'detail_iom.dart';
-import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
+import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
 
-class ViewIOM extends StatefulWidget {
+class ViewMstagreement extends StatefulWidget {
   final String title;
 
-  const ViewIOM({
+
+
+  const ViewMstagreement({
     super.key,
-    required this.title,
-  });
+    required this.title
+    });
+
+
 
   @override
-  State<ViewIOM> createState() => _ViewIOMState();
+  State<ViewMstagreement> createState() => _ViewMstagreementState();
+
+  
 }
 
-class _ViewIOMState extends State<ViewIOM> {
+class _ViewMstagreementState extends State<ViewMstagreement> {
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _scrollController1 = ScrollController();
@@ -45,7 +52,7 @@ class _ViewIOMState extends State<ViewIOM> {
   bool isOpen = false;
   bool isOD = false;
   bool isSL = false;
-  List iom = [];
+  List agreement = [];
   List status = [
     'NONE',
     'VERIFIED PENDING PAYMENT',
@@ -54,7 +61,7 @@ class _ViewIOMState extends State<ViewIOM> {
     'REJECTED',
     'VOID',
   ];
-  List<String> company = [];
+  List company = [];
   List year = [];
   ValueNotifier<List<dynamic>> filteredStatus = ValueNotifier([
     'NONE',
@@ -66,7 +73,7 @@ class _ViewIOMState extends State<ViewIOM> {
   ]);
   ValueNotifier<List<dynamic>> filteredCompany = ValueNotifier([]);
   ValueNotifier<List<dynamic>> filteredYear = ValueNotifier([]);
-  ValueNotifier<List<dynamic>> filteredIOM = ValueNotifier([]);
+  ValueNotifier<List<dynamic>> filteredAgreement = ValueNotifier([]);
 
   TextEditingController searchController = TextEditingController();
   TextEditingController date = TextEditingController();
@@ -77,6 +84,7 @@ class _ViewIOMState extends State<ViewIOM> {
     start: DateTime.now(),
     end: DateTime.now(),
   );
+
 
   Future pickDateRange() async {
     DateTimeRange? newDateRange = await showDateRangePicker(
@@ -94,15 +102,15 @@ class _ViewIOMState extends State<ViewIOM> {
       isPeriod = true;
     }); //for button SAVE
 
-    iom.clear();
-    await getIOM();
+    agreement.clear();
+    await getMstAgreement();
 
     Future.delayed(const Duration(seconds: 1), () async {
       await filterDate(dateRange.start, dateRange.end);
     });
   }
 
-  Future<void> getIOM() async {
+  Future<void> getMstAgreement() async {
     try {
       setState(() {
         loading = true;
@@ -111,14 +119,14 @@ class _ViewIOMState extends State<ViewIOM> {
       const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOM xmlns="http://tempuri.org/" />' +
+          '<GetMstAgreement xmlns="http://tempuri.org/" />' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOM),
+      final response = await http.post(Uri.parse(url_GetMstAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOM',
+            'SOAPAction': 'http://tempuri.org/GetMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -132,55 +140,69 @@ class _ViewIOMState extends State<ViewIOM> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
               if (mounted) {
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "No Data",
+                  backgroundColor: Colors.grey[300],
+                );
+
                 setState(() {
                   loading = false;
                 });
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                : listResult.findElements('NoAgreement').first.innerText;
+            final customer = listResult.findElements('Customer').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TglIOM').first.text;
-            final perihal = listResult.findElements('Perihal').isEmpty
+                : listResult.findElements('Customer').first.innerText;
+            final priodeAwal = listResult.findElements('PriodeAwal').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Perihal').first.text;
-            final description = listResult.findElements('Description').isEmpty
+                : listResult.findElements('PriodeAwal').first.innerText;
+            final priodeAkhir = listResult.findElements('PriodeAkhir').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Description').first.text;
-            final typePesawat = listResult.findElements('TypePesawat').isEmpty
+                : listResult.findElements('PriodeAkhir').first.innerText;
+            final noNPWP = listResult.findElements('NoNPWP').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TypePesawat').first.text;
+                : listResult.findElements('NoNPWP').first.innerText;
+            final noReference = listResult.findElements('NoReference').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoReference').first.innerText;
+            final approvedBy = listResult.findElements('ApprovedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ApprovedBy').first.innerText;
+            final tnC = listResult.findElements('TnC').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TnC').first.innerText;
             final currency = listResult.findElements('Currency').isEmpty
-                ? ''
-                : listResult.findElements('Currency').first.text;
-            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
                 ? 'No Data'
-                : listResult.findElements('BiayaCharter').first.text;
-            final revenue = listResult.findElements('Revenue').isEmpty
+                : listResult.findElements('Currency').first.innerText;
+            final amountDeposit =
+                listResult.findElements('AmountDeposit').isEmpty
+                    ? '0'
+                    : listResult.findElements('AmountDeposit').first.innerText;
+            final jenisAgreement =
+                listResult.findElements('JenisAgreement').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('JenisAgreement').first.innerText;
+            final signedby = listResult.findElements('Signedby').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Revenue').first.text;
-            final pembayaran = listResult.findElements('Pembayaran').isEmpty
+                : listResult.findElements('Signedby').first.innerText;
+            final signedByCharterer = listResult
+                    .findElements('SignedByCharterer')
+                    .isEmpty
                 ? 'No Data'
-                : listResult.findElements('Pembayaran').first.text;
-            final lainLain = listResult.findElements('LainLain').isEmpty
-                ? 'No Data'
-                : listResult.findElements('LainLain').first.text;
+                : listResult.findElements('SignedByCharterer').first.innerText;
             final tglFinanceverifikasiBelumterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .isEmpty
@@ -188,7 +210,7 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .first
-                    .text;
+                    .innerText;
             final tglFinanceverifikasiSudahterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .isEmpty
@@ -196,48 +218,45 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .first
-                    .text;
-            final tglKonfirmasiDireksi = listResult
-                    .findElements('Tgl_konfirmasi_direksi')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tgl_konfirmasi_direksi').first.text;
+                    .innerText;
+            final tglKonfirmasiDireksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
             final statusKonfirmasiDireksi =
                 listResult.findElements('Status_konfirmasi_direksi').isEmpty
                     ? 'No Data'
                     : listResult
                         .findElements('Status_konfirmasi_direksi')
                         .first
-                        .text;
-            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
-                ? ''
-                : listResult.findElements('Currency_PPH').first.text;
-            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
-                ? '0'
-                : listResult.findElements('Biaya_PPH').first.text;
+                        .innerText;
             final rute = listResult.findElements('Rute').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Rute').first.text;
-            final tanggal = listResult.findElements('Tanggal').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tanggal').first.text;
+                : listResult.findElements('Rute').first.innerText;
             final server = listResult.findElements('Server').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Server').first.text;
+                : listResult.findElements('Server').first.innerText;
 
             setState(() {
-              if (!iom.any((data) => data['noIOM'] == noIOM)) {
-                iom.add({
-                  'noIOM': noIOM,
-                  'tanggal': tglIOM,
-                  'perihal': perihal,
-                  'charter': description,
-                  'type': typePesawat,
-                  'curr': currency,
-                  'biaya': biayaCharter,
-                  'revenue': revenue,
-                  'pembayaran': pembayaran,
-                  'note': lainLain,
+              if (!agreement.any((data) => data['noAgreement'] == noAgreement)) {
+                agreement.add({
+                  'noAgreement': noAgreement,
+                  'customer': customer,
+                  'priodeAwal': priodeAwal,
+                  'priodeAkhir': priodeAkhir,
+                  'noNPWP': noNPWP,
+                  'noReference': noReference,
+                  'approvedBy': approvedBy,
+                  'tnC': tnC,
+                  'currency': currency,
+                  'amountDeposit': amountDeposit,
+                  'jenisAgreement': jenisAgreement,
+                  'signedby': signedby,
+                  'signedByCharterer': signedByCharterer,
+                  'rute': rute,
                   'status': tglFinanceverifikasiBelumterimapembayaran ==
                           'No Data'
                       ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
@@ -254,47 +273,34 @@ class _ViewIOMState extends State<ViewIOM> {
                           : statusKonfirmasiDireksi == 'No Data'
                               ? 'VERIFIED PAYMENT'
                               : statusKonfirmasiDireksi.toUpperCase(),
-                  'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
-                  'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
-                  'approveDate': tglKonfirmasiDireksi,
-                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
-                          'No Data'
-                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID'
-                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID',
-                  'currencyPPH': currencyPPH,
-                  'biayaPPH': biayaPPH,
-                  'rute': rute,
-                  'tanggalRute': tanggal,
+                  'tglKonfirmasiDireksi': tglKonfirmasiDireksi,
                   'server': server,
-                  'isAttach': '',
                 });
               }
             });
 
-            // var hasilJson = jsonEncode(iom);
+            // var hasilJson = jsonEncode(agreement);
             // debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
-              for (var data in iom) {
-                if (!company.contains(data['server'])) {
-                  company.add(data['server']);
+              for (var data in agreement) {
+                if (!isCompany) {
+                  if (!company.contains(data['server'])) {
+                    company.add(data['server']);
+                  }
                 }
               }
 
-              for (var data in iom) {
-                if (!year
-                    .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
-                  year.add(DateTime.parse(data['tanggal']).toLocal().year);
+              for (var data in agreement) {
+                if (!year.contains(
+                    DateTime.parse(data['priodeAwal']).toLocal().year)) {
+                  year.add(DateTime.parse(data['priodeAwal']).toLocal().year);
                 }
               }
 
               setState(() {
                 filteredCompany.value = company;
-                filteredIOM.value = iom;
+                filteredAgreement.value = agreement;
                 filteredYear.value = year;
               });
 
@@ -317,7 +323,7 @@ class _ViewIOMState extends State<ViewIOM> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get IOM',
+                  fail: 'Error Get Mst Agreement',
                   error: response.body.toString(),
                 );
               });
@@ -337,7 +343,7 @@ class _ViewIOMState extends State<ViewIOM> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get IOM',
+                fail: 'Error Get Mst Agreement',
                 error: e.toString(),
               );
             });
@@ -349,7 +355,7 @@ class _ViewIOMState extends State<ViewIOM> {
     }
   }
 
-  Future<void> getIOMOD() async {
+  Future<void> getMstAgreementOD() async {
     try {
       setState(() {
         loading = true;
@@ -358,14 +364,14 @@ class _ViewIOMState extends State<ViewIOM> {
       const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMOD xmlns="http://tempuri.org/" />' +
+          '<GetMstAgreementOD xmlns="http://tempuri.org/" />' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMOD),
+      final response = await http.post(Uri.parse(url_GetMstAgreementOD),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMOD',
+            'SOAPAction': 'http://tempuri.org/GetMstAgreementOD',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -379,7 +385,7 @@ class _ViewIOMState extends State<ViewIOM> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             if (mounted) {
@@ -400,36 +406,49 @@ class _ViewIOMState extends State<ViewIOM> {
               });
             }
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                : listResult.findElements('NoAgreement').first.innerText;
+            final customer = listResult.findElements('Customer').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TglIOM').first.text;
-            final perihal = listResult.findElements('Perihal').isEmpty
+                : listResult.findElements('Customer').first.innerText;
+            final priodeAwal = listResult.findElements('PriodeAwal').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Perihal').first.text;
-            final description = listResult.findElements('Description').isEmpty
+                : listResult.findElements('PriodeAwal').first.innerText;
+            final priodeAkhir = listResult.findElements('PriodeAkhir').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Description').first.text;
-            final typePesawat = listResult.findElements('TypePesawat').isEmpty
+                : listResult.findElements('PriodeAkhir').first.innerText;
+            final noNPWP = listResult.findElements('NoNPWP').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TypePesawat').first.text;
+                : listResult.findElements('NoNPWP').first.innerText;
+            final noReference = listResult.findElements('NoReference').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoReference').first.innerText;
+            final approvedBy = listResult.findElements('ApprovedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ApprovedBy').first.innerText;
+            final tnC = listResult.findElements('TnC').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TnC').first.innerText;
             final currency = listResult.findElements('Currency').isEmpty
-                ? ''
-                : listResult.findElements('Currency').first.text;
-            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
                 ? 'No Data'
-                : listResult.findElements('BiayaCharter').first.text;
-            final revenue = listResult.findElements('Revenue').isEmpty
+                : listResult.findElements('Currency').first.innerText;
+            final amountDeposit =
+                listResult.findElements('AmountDeposit').isEmpty
+                    ? '0'
+                    : listResult.findElements('AmountDeposit').first.innerText;
+            final jenisAgreement =
+                listResult.findElements('JenisAgreement').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('JenisAgreement').first.innerText;
+            final signedby = listResult.findElements('Signedby').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Revenue').first.text;
-            final pembayaran = listResult.findElements('Pembayaran').isEmpty
+                : listResult.findElements('Signedby').first.innerText;
+            final signedByCharterer = listResult
+                    .findElements('SignedByCharterer')
+                    .isEmpty
                 ? 'No Data'
-                : listResult.findElements('Pembayaran').first.text;
-            final lainLain = listResult.findElements('LainLain').isEmpty
-                ? 'No Data'
-                : listResult.findElements('LainLain').first.text;
+                : listResult.findElements('SignedByCharterer').first.innerText;
             final tglFinanceverifikasiBelumterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .isEmpty
@@ -437,7 +456,7 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .first
-                    .text;
+                    .innerText;
             final tglFinanceverifikasiSudahterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .isEmpty
@@ -445,48 +464,46 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .first
-                    .text;
-            final tglKonfirmasiDireksi = listResult
-                    .findElements('Tgl_konfirmasi_direksi')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tgl_konfirmasi_direksi').first.text;
+                    .innerText;
+            final tglKonfirmasiDireksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
             final statusKonfirmasiDireksi =
                 listResult.findElements('Status_konfirmasi_direksi').isEmpty
                     ? 'No Data'
                     : listResult
                         .findElements('Status_konfirmasi_direksi')
                         .first
-                        .text;
-            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
-                ? ''
-                : listResult.findElements('Currency_PPH').first.text;
-            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
-                ? '0'
-                : listResult.findElements('Biaya_PPH').first.text;
+                        .innerText;
             final rute = listResult.findElements('Rute').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Rute').first.text;
-            final tanggal = listResult.findElements('Tanggal').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tanggal').first.text;
+                : listResult.findElements('Rute').first.innerText;
             final server = listResult.findElements('Server').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Server').first.text;
+                : listResult.findElements('Server').first.innerText;
 
             setState(() {
-              if (!iom.any((data) => data['noIOM'] == noIOM)) {
-                iom.add({
-                  'noIOM': noIOM,
-                  'tanggal': tglIOM,
-                  'perihal': perihal,
-                  'charter': description,
-                  'type': typePesawat,
-                  'curr': currency,
-                  'biaya': biayaCharter,
-                  'revenue': revenue,
-                  'pembayaran': pembayaran,
-                  'note': lainLain,
+              if (!agreement
+                  .any((data) => data['noAgreement'] == noAgreement)) {
+                agreement.add({
+                  'noAgreement': noAgreement,
+                  'customer': customer,
+                  'priodeAwal': priodeAwal,
+                  'priodeAkhir': priodeAkhir,
+                  'noNPWP': noNPWP,
+                  'noReference': noReference,
+                  'approvedBy': approvedBy,
+                  'tnC': tnC,
+                  'currency': currency,
+                  'amountDeposit': amountDeposit,
+                  'jenisAgreement': jenisAgreement,
+                  'signedby': signedby,
+                  'signedByCharterer': signedByCharterer,
+                  'rute': rute,
                   'status': tglFinanceverifikasiBelumterimapembayaran ==
                           'No Data'
                       ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
@@ -503,47 +520,32 @@ class _ViewIOMState extends State<ViewIOM> {
                           : statusKonfirmasiDireksi == 'No Data'
                               ? 'VERIFIED PAYMENT'
                               : statusKonfirmasiDireksi.toUpperCase(),
-                  'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
-                  'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
-                  'approveDate': tglKonfirmasiDireksi,
-                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
-                          'No Data'
-                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID'
-                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID',
-                  'currencyPPH': currencyPPH,
-                  'biayaPPH': biayaPPH,
-                  'rute': rute,
-                  'tanggalRute': tanggal,
+                  'tglKonfirmasiDireksi': tglKonfirmasiDireksi,
                   'server': server,
-                  'isAttach': '',
                 });
               }
             });
 
-            // var hasilJson = jsonEncode(iom);
+            // var hasilJson = jsonEncode(agreement);
             // debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
-              for (var data in iom) {
+              for (var data in agreement) {
                 if (!company.contains(data['server'])) {
                   company.add(data['server']);
                 }
               }
 
-              for (var data in iom) {
-                if (!year
-                    .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
-                  year.add(DateTime.parse(data['tanggal']).toLocal().year);
+              for (var data in agreement) {
+                if (!year.contains(
+                    DateTime.parse(data['priodeAwal']).toLocal().year)) {
+                  year.add(DateTime.parse(data['priodeAwal']).toLocal().year);
                 }
               }
 
               setState(() {
                 filteredCompany.value = company;
-                filteredIOM.value = iom;
+                filteredAgreement.value = agreement;
                 filteredYear.value = year;
               });
 
@@ -598,7 +600,7 @@ class _ViewIOMState extends State<ViewIOM> {
     }
   }
 
-  Future<void> getIOMSL() async {
+  Future<void> getMstAgreementSL() async {
     try {
       setState(() {
         loading = true;
@@ -607,14 +609,14 @@ class _ViewIOMState extends State<ViewIOM> {
       const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMSL xmlns="http://tempuri.org/" />' +
+          '<GetMstAgreementSL xmlns="http://tempuri.org/" />' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMSL),
+      final response = await http.post(Uri.parse(url_GetMstAgreementSL),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMSL',
+            'SOAPAction': 'http://tempuri.org/GetMstAgreementSL',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -628,7 +630,7 @@ class _ViewIOMState extends State<ViewIOM> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             if (mounted) {
@@ -649,36 +651,49 @@ class _ViewIOMState extends State<ViewIOM> {
               });
             }
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                : listResult.findElements('NoAgreement').first.innerText;
+            final customer = listResult.findElements('Customer').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TglIOM').first.text;
-            final perihal = listResult.findElements('Perihal').isEmpty
+                : listResult.findElements('Customer').first.innerText;
+            final priodeAwal = listResult.findElements('PriodeAwal').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Perihal').first.text;
-            final description = listResult.findElements('Description').isEmpty
+                : listResult.findElements('PriodeAwal').first.innerText;
+            final priodeAkhir = listResult.findElements('PriodeAkhir').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Description').first.text;
-            final typePesawat = listResult.findElements('TypePesawat').isEmpty
+                : listResult.findElements('PriodeAkhir').first.innerText;
+            final noNPWP = listResult.findElements('NoNPWP').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TypePesawat').first.text;
+                : listResult.findElements('NoNPWP').first.innerText;
+            final noReference = listResult.findElements('NoReference').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoReference').first.innerText;
+            final approvedBy = listResult.findElements('ApprovedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ApprovedBy').first.innerText;
+            final tnC = listResult.findElements('TnC').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TnC').first.innerText;
             final currency = listResult.findElements('Currency').isEmpty
-                ? ''
-                : listResult.findElements('Currency').first.text;
-            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
                 ? 'No Data'
-                : listResult.findElements('BiayaCharter').first.text;
-            final revenue = listResult.findElements('Revenue').isEmpty
+                : listResult.findElements('Currency').first.innerText;
+            final amountDeposit =
+                listResult.findElements('AmountDeposit').isEmpty
+                    ? '0'
+                    : listResult.findElements('AmountDeposit').first.innerText;
+            final jenisAgreement =
+                listResult.findElements('JenisAgreement').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('JenisAgreement').first.innerText;
+            final signedby = listResult.findElements('Signedby').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Revenue').first.text;
-            final pembayaran = listResult.findElements('Pembayaran').isEmpty
+                : listResult.findElements('Signedby').first.innerText;
+            final signedByCharterer = listResult
+                    .findElements('SignedByCharterer')
+                    .isEmpty
                 ? 'No Data'
-                : listResult.findElements('Pembayaran').first.text;
-            final lainLain = listResult.findElements('LainLain').isEmpty
-                ? 'No Data'
-                : listResult.findElements('LainLain').first.text;
+                : listResult.findElements('SignedByCharterer').first.innerText;
             final tglFinanceverifikasiBelumterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .isEmpty
@@ -686,7 +701,7 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_belumTerimaPembayaran')
                     .first
-                    .text;
+                    .innerText;
             final tglFinanceverifikasiSudahterimapembayaran = listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .isEmpty
@@ -694,48 +709,46 @@ class _ViewIOMState extends State<ViewIOM> {
                 : listResult
                     .findElements('tgl_financeverifikasi_sudahTerimaPembayaran')
                     .first
-                    .text;
-            final tglKonfirmasiDireksi = listResult
-                    .findElements('Tgl_konfirmasi_direksi')
-                    .isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tgl_konfirmasi_direksi').first.text;
+                    .innerText;
+            final tglKonfirmasiDireksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
             final statusKonfirmasiDireksi =
                 listResult.findElements('Status_konfirmasi_direksi').isEmpty
                     ? 'No Data'
                     : listResult
                         .findElements('Status_konfirmasi_direksi')
                         .first
-                        .text;
-            final currencyPPH = listResult.findElements('Currency_PPH').isEmpty
-                ? ''
-                : listResult.findElements('Currency_PPH').first.text;
-            final biayaPPH = listResult.findElements('Biaya_PPH').isEmpty
-                ? '0'
-                : listResult.findElements('Biaya_PPH').first.text;
+                        .innerText;
             final rute = listResult.findElements('Rute').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Rute').first.text;
-            final tanggal = listResult.findElements('Tanggal').isEmpty
-                ? 'No Data'
-                : listResult.findElements('Tanggal').first.text;
+                : listResult.findElements('Rute').first.innerText;
             final server = listResult.findElements('Server').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Server').first.text;
+                : listResult.findElements('Server').first.innerText;
 
             setState(() {
-              if (!iom.any((data) => data['noIOM'] == noIOM)) {
-                iom.add({
-                  'noIOM': noIOM,
-                  'tanggal': tglIOM,
-                  'perihal': perihal,
-                  'charter': description,
-                  'type': typePesawat,
-                  'curr': currency,
-                  'biaya': biayaCharter,
-                  'revenue': revenue,
-                  'pembayaran': pembayaran,
-                  'note': lainLain,
+              if (!agreement
+                  .any((data) => data['noAgreement'] == noAgreement)) {
+                agreement.add({
+                  'noAgreement': noAgreement,
+                  'customer': customer,
+                  'priodeAwal': priodeAwal,
+                  'priodeAkhir': priodeAkhir,
+                  'noNPWP': noNPWP,
+                  'noReference': noReference,
+                  'approvedBy': approvedBy,
+                  'tnC': tnC,
+                  'currency': currency,
+                  'amountDeposit': amountDeposit,
+                  'jenisAgreement': jenisAgreement,
+                  'signedby': signedby,
+                  'signedByCharterer': signedByCharterer,
+                  'rute': rute,
                   'status': tglFinanceverifikasiBelumterimapembayaran ==
                           'No Data'
                       ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
@@ -752,47 +765,32 @@ class _ViewIOMState extends State<ViewIOM> {
                           : statusKonfirmasiDireksi == 'No Data'
                               ? 'VERIFIED PAYMENT'
                               : statusKonfirmasiDireksi.toUpperCase(),
-                  'verifNoPayStatus': tglFinanceverifikasiBelumterimapembayaran,
-                  'verifPayStatus': tglFinanceverifikasiSudahterimapembayaran,
-                  'approveDate': tglKonfirmasiDireksi,
-                  'payStatus': tglFinanceverifikasiBelumterimapembayaran ==
-                          'No Data'
-                      ? tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID'
-                      : tglFinanceverifikasiSudahterimapembayaran == 'No Data'
-                          ? 'PENDING'
-                          : 'PAID',
-                  'currencyPPH': currencyPPH,
-                  'biayaPPH': biayaPPH,
-                  'rute': rute,
-                  'tanggalRute': tanggal,
+                  'tglKonfirmasiDireksi': tglKonfirmasiDireksi,
                   'server': server,
-                  'isAttach': '',
                 });
               }
             });
 
-            // var hasilJson = jsonEncode(iom);
+            // var hasilJson = jsonEncode(agreement);
             // debugPrint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
-              for (var data in iom) {
+              for (var data in agreement) {
                 if (!company.contains(data['server'])) {
                   company.add(data['server']);
                 }
               }
 
-              for (var data in iom) {
-                if (!year
-                    .contains(DateTime.parse(data['tanggal']).toLocal().year)) {
-                  year.add(DateTime.parse(data['tanggal']).toLocal().year);
+              for (var data in agreement) {
+                if (!year.contains(
+                    DateTime.parse(data['priodeAwal']).toLocal().year)) {
+                  year.add(DateTime.parse(data['priodeAwal']).toLocal().year);
                 }
               }
 
               setState(() {
                 filteredCompany.value = company;
-                filteredIOM.value = iom;
+                filteredAgreement.value = agreement;
                 filteredYear.value = year;
               });
 
@@ -850,7 +848,7 @@ class _ViewIOMState extends State<ViewIOM> {
   Future<void> filterStatus(DateTime startDate, DateTime endDate) async {
     if (isStatus && !isCompany && !isPeriod && searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           return status;
         }).toList();
@@ -885,7 +883,7 @@ class _ViewIOMState extends State<ViewIOM> {
       filterYear(startDate, endDate);
     } else {
       setState(() {
-        filteredIOM.value = iom;
+        filteredAgreement.value = agreement;
       });
     }
   }
@@ -893,7 +891,7 @@ class _ViewIOMState extends State<ViewIOM> {
   Future<void> filterCompany(DateTime startDate, DateTime endDate) async {
     if (!isStatus && isCompany && !isPeriod && searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
           return server;
         }).toList();
@@ -917,7 +915,7 @@ class _ViewIOMState extends State<ViewIOM> {
         !isPeriod &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
           return status && server;
@@ -969,7 +967,7 @@ class _ViewIOMState extends State<ViewIOM> {
       filterSearch(searchController.text);
     } else {
       setState(() {
-        filteredIOM.value = iom;
+        filteredAgreement.value = agreement;
       });
     }
   }
@@ -981,8 +979,8 @@ class _ViewIOMState extends State<ViewIOM> {
         !isPeriod &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+        filteredAgreement.value = agreement.where((data) {
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
           return tahun;
         }).toList();
@@ -1021,10 +1019,10 @@ class _ViewIOMState extends State<ViewIOM> {
         !isPeriod &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
           return status && server && tahun;
         }).toList();
@@ -1035,9 +1033,9 @@ class _ViewIOMState extends State<ViewIOM> {
         !isPeriod &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
           return server && tahun;
         }).toList();
@@ -1080,7 +1078,7 @@ class _ViewIOMState extends State<ViewIOM> {
       filterSearch(searchController.text);
     } else {
       setState(() {
-        filteredIOM.value = iom;
+        filteredAgreement.value = agreement;
       });
     }
   }
@@ -1089,8 +1087,8 @@ class _ViewIOMState extends State<ViewIOM> {
     DateTime period = DateTime.now();
 
     setState(() {
-      filteredIOM.value = iom.where((data) {
-        period = DateTime.parse(data['tanggal']).toLocal();
+      filteredAgreement.value = agreement.where((data) {
+        period = DateTime.parse(data['priodeAwal']).toLocal();
         return period.isAfter(startDate) && period.isBefore(endDate) ||
             period.isAtSameMomentAs(startDate) ||
             period.isAtSameMomentAs(endDate);
@@ -1099,30 +1097,30 @@ class _ViewIOMState extends State<ViewIOM> {
 
     if (isStatus && !isCompany && !isYear && searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1131,9 +1129,9 @@ class _ViewIOMState extends State<ViewIOM> {
         !isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
@@ -1146,37 +1144,37 @@ class _ViewIOMState extends State<ViewIOM> {
         !isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               status &&
                   server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1185,10 +1183,10 @@ class _ViewIOMState extends State<ViewIOM> {
         !isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   server &&
                   period.isAfter(startDate) &&
@@ -1202,45 +1200,45 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               status &&
                   server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1249,12 +1247,12 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   server &&
                   tahun &&
@@ -1269,30 +1267,30 @@ class _ViewIOMState extends State<ViewIOM> {
         !isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               server &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               server &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1301,9 +1299,9 @@ class _ViewIOMState extends State<ViewIOM> {
         !isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return server &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
@@ -1316,38 +1314,38 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1356,11 +1354,12 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
+
           return server &&
                   tahun &&
                   period.isAfter(startDate) &&
@@ -1374,31 +1373,31 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+        filteredAgreement.value = agreement.where((data) {
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1407,10 +1406,10 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+        filteredAgreement.value = agreement.where((data) {
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return tahun &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
@@ -1422,23 +1421,23 @@ class _ViewIOMState extends State<ViewIOM> {
         !isCompany &&
         !isYear &&
         searchController.text.isNotEmpty) {
-      filteredIOM.value = iom.where((data) {
-        final noIOM = data['noIOM'].toLowerCase();
-        final charter = data['charter'].toLowerCase();
-        period = DateTime.parse(data['tanggal']).toLocal();
-        return noIOM.contains(searchController.text.toLowerCase()) &&
+      filteredAgreement.value = agreement.where((data) {
+        final noAgreement = data['noAgreement'].toLowerCase();
+        final customer = data['customer'].toLowerCase();
+        period = DateTime.parse(data['priodeAwal']).toLocal();
+        return noAgreement.contains(searchController.text.toLowerCase()) &&
                 period.isAfter(startDate) &&
                 period.isBefore(endDate) ||
-            noIOM.contains(searchController.text.toLowerCase()) &&
+            noAgreement.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(startDate) ||
-            noIOM.contains(searchController.text.toLowerCase()) &&
+            noAgreement.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(endDate) ||
-            charter.contains(searchController.text.toLowerCase()) &&
+            customer.contains(searchController.text.toLowerCase()) &&
                 period.isAfter(startDate) &&
                 period.isBefore(endDate) ||
-            charter.contains(searchController.text.toLowerCase()) &&
+            customer.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(startDate) ||
-            charter.contains(searchController.text.toLowerCase()) &&
+            customer.contains(searchController.text.toLowerCase()) &&
                 period.isAtSameMomentAs(endDate);
       }).toList();
     } else if (isStatus &&
@@ -1446,11 +1445,11 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          period = DateTime.parse(data['tanggal']).toLocal();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   tahun &&
                   period.isAfter(startDate) &&
@@ -1464,38 +1463,38 @@ class _ViewIOMState extends State<ViewIOM> {
         isYear &&
         searchController.text.isNotEmpty) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          period = DateTime.parse(data['tanggal']).toLocal();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          period = DateTime.parse(data['priodeAwal']).toLocal();
           return status &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) &&
+                  noAgreement.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate) ||
               status &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAfter(startDate) &&
                   period.isBefore(endDate) ||
               status &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(startDate) ||
               status &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase()) &&
+                  customer.contains(searchController.text.toLowerCase()) &&
                   period.isAtSameMomentAs(endDate);
         }).toList();
       });
@@ -1504,110 +1503,111 @@ class _ViewIOMState extends State<ViewIOM> {
 
   Future<void> filterSearch(String query) async {
     setState(() {
-      filteredIOM.value = iom.where((data) {
-        final noIOM = data['noIOM'].toLowerCase();
-        final charter = data['charter'].toLowerCase();
-        return noIOM.contains(query.toLowerCase()) ||
-            charter.contains(query.toLowerCase());
+      filteredAgreement.value = agreement.where((data) {
+        final noAgreement = data['noAgreement'].toLowerCase();
+        final customer = data['customer'].toLowerCase();
+        return noAgreement.contains(query.toLowerCase()) ||
+            customer.contains(query.toLowerCase());
       }).toList();
     });
 
     if (isStatus && isCompany && isYear) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return status &&
                   server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
               status &&
                   server &&
-                  charter.contains(searchController.text.toLowerCase());
+                  customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isStatus && isCompany && !isYear) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
           final server = data['server'] == filteredCompany.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return status &&
                   server &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
               status &&
                   server &&
-                  charter.contains(searchController.text.toLowerCase());
+                  customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isStatus && !isCompany && isYear) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return status &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
               status &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase());
+                  customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (!isStatus && isCompany && isYear) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return server &&
                   tahun &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
               server &&
                   tahun &&
-                  charter.contains(searchController.text.toLowerCase());
+                  customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isStatus) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final status = data['status'] == filteredStatus.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return status &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
-              status && charter.contains(searchController.text.toLowerCase());
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
+              status && customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isCompany) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
+        filteredAgreement.value = agreement.where((data) {
           final server = data['server'] == filteredCompany.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
           return server &&
-                  noIOM.contains(searchController.text.toLowerCase()) ||
-              server && charter.contains(searchController.text.toLowerCase());
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
+              server && customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     } else if (isYear) {
       setState(() {
-        filteredIOM.value = iom.where((data) {
-          final tahun = DateTime.parse(data['tanggal']).toLocal().year ==
+        filteredAgreement.value = agreement.where((data) {
+          final tahun = DateTime.parse(data['priodeAwal']).toLocal().year ==
               filteredYear.value.last;
-          final noIOM = data['noIOM'].toLowerCase();
-          final charter = data['charter'].toLowerCase();
-          return tahun && noIOM.contains(searchController.text.toLowerCase()) ||
-              tahun && charter.contains(searchController.text.toLowerCase());
+          final noAgreement = data['noAgreement'].toLowerCase();
+          final customer = data['customer'].toLowerCase();
+          return tahun &&
+                  noAgreement.contains(searchController.text.toLowerCase()) ||
+              tahun && customer.contains(searchController.text.toLowerCase());
         }).toList();
       });
     }
@@ -1653,7 +1653,8 @@ class _ViewIOMState extends State<ViewIOM> {
       });
     });
   }
-
+  
+  
   Future<void> getUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? userOpen = prefs.getString('userOpen');
@@ -1669,16 +1670,16 @@ class _ViewIOMState extends State<ViewIOM> {
     });
 
     if (this.isOD) {
-      await getIOMOD();
+      await getMstAgreementOD();
     } else if (this.isSL) {
-      await getIOMSL();
+      await getMstAgreementSL();
     } else {
-      await getIOM();
+      await getMstAgreement();
 
       if (nik != 'No Data' &&
           (nik == '56000031' || nik == '101010' || nik == '101011')) {
-        await getIOMOD();
-        await getIOMSL();
+        await getMstAgreementOD();
+        await getMstAgreementSL();
       }
     }
   }
@@ -1694,14 +1695,17 @@ class _ViewIOMState extends State<ViewIOM> {
     date.text =
         '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
   }
-
+ 
+ 
   @override
   void dispose() {
     _focusNode.dispose();
     super.dispose();
   }
 
-  @override
+
+ @override
+   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
@@ -1718,7 +1722,7 @@ class _ViewIOMState extends State<ViewIOM> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: MediaQuery.of(context).textScaleFactor * 20,
+                      fontSize: MediaQuery.of(context).textScaler.scale(20),
                     ),
                   ),
                 ),
@@ -1746,12 +1750,13 @@ class _ViewIOMState extends State<ViewIOM> {
                         isStatus = false;
                         isPeriod = false;
                         isCompany = false;
+                        isYear = false;
                         searchController.clear();
                         filteredStatus.value = status;
                         filteredCompany.value = company;
                       });
-                      iom.clear();
-                      await getIOM();
+                      agreement.clear();
+                      await getMstAgreement();
                     },
               icon: const Icon(Icons.refresh),
             ),
@@ -1964,7 +1969,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Period From - Period To (IOM Date)'),
+                          const Text('Period From - Period To (Start Period)'),
                           SizedBox(height: size.height * 0.01),
                           TextFormField(
                             controller: date,
@@ -1994,7 +1999,7 @@ class _ViewIOMState extends State<ViewIOM> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Text("Search (IOM No./Charter Name)"),
+                      const Text("Search (Agreement No./Customer Name)"),
                       const SizedBox(height: 5),
                       Form(
                         key: _formKey,
@@ -2070,12 +2075,12 @@ class _ViewIOMState extends State<ViewIOM> {
                         ),
                       ),
                       SizedBox(height: size.height * 0.02),
-                      Text('Total Data = ${filteredIOM.value.length}'),
+                      Text('Total Data = ${filteredAgreement.value.length}'),
                       SizedBox(
                         height: size.height * 0.7,
                         child: Stack(
                           children: [
-                            filteredIOM.value.isEmpty
+                            filteredAgreement.value.isEmpty
                                 ? ListView.builder(
                                     itemCount: 1,
                                     itemBuilder: (BuildContext context, index) {
@@ -2091,7 +2096,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                     },
                                   )
                                 : ListView.builder(
-                                    itemCount: filteredIOM.value.length,
+                                    itemCount: filteredAgreement.value.length,
                                     itemBuilder: (BuildContext context, index) {
                                       return Padding(
                                         padding: const EdgeInsets.only(
@@ -2115,7 +2120,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                       .push(MaterialPageRoute(
                                                     builder:
                                                         (BuildContext context) {
-                                                      return DetailIOM(
+                                                      return DetailMstAgreement(
                                                         isRefresh:
                                                             (value) async {
                                                           if (value) {
@@ -2133,6 +2138,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                               isStatus = false;
                                                               isPeriod = false;
                                                               isCompany = false;
+                                                              isYear = false;
                                                               searchController
                                                                   .clear();
                                                               filteredStatus
@@ -2143,12 +2149,12 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                   company;
                                                             });
 
-                                                            iom.clear();
-                                                            await getIOM();
+                                                            agreement.clear();
+                                                            await getMstAgreement();
                                                           }
                                                         },
-                                                        iom: [
-                                                          filteredIOM
+                                                        data: [
+                                                          filteredAgreement
                                                               .value[index]
                                                         ],
                                                       );
@@ -2156,30 +2162,30 @@ class _ViewIOMState extends State<ViewIOM> {
                                                   ));
                                                 },
                                           child: CupertinoListTile.notched(
-                                            leading: filteredIOM.value[index]
+                                            leading: filteredAgreement.value[index]
                                                             ['server'] ==
                                                         'LION' ||
-                                                    filteredIOM.value[index]
+                                                    filteredAgreement.value[index]
                                                             ['server'] ==
                                                         'ANGKASA'
                                                 ? Image.asset(
                                                     'assets/images/logo.png')
-                                                : filteredIOM.value[index]
+                                                : filteredAgreement.value[index]
                                                             ['server'] ==
                                                         'SAJ'
                                                     ? Image.asset(
                                                         'assets/images/logosuper.png')
-                                                    : filteredIOM.value[index]
+                                                    : filteredAgreement.value[index]
                                                                 ['server'] ==
                                                             'WINGS'
                                                         ? Image.asset(
                                                             'assets/images/logowings.png')
-                                                        : filteredIOM.value[
-                                                                        index]
+                                                        : filteredAgreement
+                                                                        .value[index]
                                                                     ['server'] ==
                                                                 'BATIK'
                                                             ? Image.asset('assets/images/logobatik.png')
-                                                            : filteredIOM.value[index]['server'] == 'THAI'
+                                                            : filteredAgreement.value[index]['server'] == 'THAI'
                                                                 ? Image.asset('assets/images/logothai.png')
                                                                 : const Icon(Icons.business),
                                             title: SingleChildScrollView(
@@ -2191,99 +2197,26 @@ class _ViewIOMState extends State<ViewIOM> {
                                                     CrossAxisAlignment.center,
                                                 children: [
                                                   Text(
-                                                    filteredIOM.value[index]
-                                                        ['noIOM'],
+                                                    filteredAgreement
+                                                            .value[index]
+                                                        ['noAgreement'],
                                                     textAlign: TextAlign.left,
                                                     style: const TextStyle(
                                                       fontWeight:
                                                           FontWeight.bold,
                                                     ),
                                                   ),
-                                                  // isOpen
-                                                  //     ? DateTime.parse(filteredIOM
-                                                  //                             .value[
-                                                  //                         index][
-                                                  //                     'tanggalRute'])
-                                                  //                 .toLocal()
-                                                  //                 .year ==
-                                                  //             DateTime.now().year
-                                                  //         ? IconButton(
-                                                  //             onPressed:
-                                                  //                 () async {
-                                                  //               await showDialog(
-                                                  //                   context:
-                                                  //                       context,
-                                                  //                   builder:
-                                                  //                       (BuildContext
-                                                  //                           context) {
-                                                  //                     return ResetConfirmation(
-                                                  //                       isSuccess:
-                                                  //                           (value) async {
-                                                  //                         if (value) {
-                                                  //                           setState(
-                                                  //                               () {
-                                                  //                             loading =
-                                                  //                                 true;
-                                                  //                             dateRange =
-                                                  //                                 DateTimeRange(
-                                                  //                               start: DateTime.now(),
-                                                  //                               end: DateTime.now(),
-                                                  //                             );
-                                                  //                             date.text =
-                                                  //                                 '${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.start.toString()).toLocal())} - ${DateFormat('dd-MMM-yyyy').format(DateTime.parse(dateRange.end.toString()).toLocal())}';
-                                                  //                             isStatus =
-                                                  //                                 false;
-                                                  //                             isPeriod =
-                                                  //                                 false;
-                                                  //                             isCompany =
-                                                  //                                 false;
-                                                  //                             isYear =
-                                                  //                                 false;
-                                                  //                             searchController.clear();
-                                                  //                             filteredStatus.value =
-                                                  //                                 status;
-                                                  //                             filteredCompany.value =
-                                                  //                                 company;
-                                                  //                           });
-
-                                                  //                           iom.clear();
-                                                  //                           await getIOM();
-                                                  //                         }
-                                                  //                       },
-                                                  //                       noIOM: filteredIOM
-                                                  //                               .value[index]
-                                                  //                           [
-                                                  //                           'noIOM'],
-                                                  //                       server: filteredIOM
-                                                  //                               .value[index]
-                                                  //                           [
-                                                  //                           'server'],
-                                                  //                       isIOM:
-                                                  //                           true,
-                                                  //                     );
-                                                  //                   });
-                                                  //             },
-                                                  //             tooltip:
-                                                  //                 'Reset IOM',
-                                                  //             icon: const Icon(
-                                                  //               Icons.history,
-                                                  //               color: Colors.red,
-                                                  //             ),
-                                                  //           )
-                                                  //         : const SizedBox
-                                                  //             .shrink()
-                                                  //     : const SizedBox.shrink(),
                                                   isOpen
-                                                      ? filteredIOM.value[index]
-                                                                  [
-                                                                  'tanggalRute'] ==
+                                                      ? filteredAgreement.value[
+                                                                      index][
+                                                                  'priodeAwal'] ==
                                                               'No Data'
                                                           ? const SizedBox
                                                               .shrink()
-                                                          : DateTime.parse(filteredIOM
+                                                          : DateTime.parse(filteredAgreement
                                                                               .value[index]
                                                                           [
-                                                                          'tanggalRute'])
+                                                                          'priodeAwal'])
                                                                       .toLocal()
                                                                       .year ==
                                                                   DateTime.now()
@@ -2317,14 +2250,14 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                                   filteredCompany.value = company;
                                                                                 });
 
-                                                                                iom.clear();
-                                                                                await getIOM();
+                                                                                agreement.clear();
+                                                                                await getMstAgreement();
                                                                               }
                                                                             },
                                                                             noIOM:
-                                                                                filteredIOM.value[index]['noIOM'],
+                                                                                filteredAgreement.value[index]['noAgreement'],
                                                                             server:
-                                                                                filteredIOM.value[index]['server'],
+                                                                                filteredAgreement.value[index]['server'],
                                                                             isIOM:
                                                                                 false,
                                                                           );
@@ -2360,10 +2293,10 @@ class _ViewIOMState extends State<ViewIOM> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          Text('IOM Date '),
-                                                          Text('Charter Name '),
+                                                          Text('Period From '),
+                                                          Text('Period To '),
+                                                          Text('Customer '),
                                                           Text('Route '),
-                                                          Text('Charter Date '),
                                                           Text('Status '),
                                                         ],
                                                       ),
@@ -2395,44 +2328,42 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                     .start,
                                                             children: [
                                                               Text(
-                                                                filteredIOM.value[index]
+                                                                filteredAgreement.value[index]
                                                                             [
-                                                                            'tanggal'] ==
+                                                                            'priodeAwal'] ==
                                                                         'No Data'
-                                                                    ? '${filteredIOM.value[index]['tanggal']}'
+                                                                    ? '${filteredAgreement.value[index]['priodeAwal']}'
                                                                     : DateFormat(
                                                                             'dd MMM yyyy')
                                                                         .format(
-                                                                            DateTime.parse(filteredIOM.value[index]['tanggal']).toLocal()),
+                                                                            DateTime.parse(filteredAgreement.value[index]['priodeAwal']).toLocal()),
+                                                              ),
+                                                              Text(
+                                                                filteredAgreement.value[index]
+                                                                            [
+                                                                            'priodeAkhir'] ==
+                                                                        'No Data'
+                                                                    ? '${filteredAgreement.value[index]['priodeAkhir']}'
+                                                                    : DateFormat(
+                                                                            'dd MMM yyyy')
+                                                                        .format(
+                                                                            DateTime.parse(filteredAgreement.value[index]['priodeAkhir']).toLocal()),
                                                               ),
                                                               SingleChildScrollView(
                                                                 scrollDirection:
                                                                     Axis.horizontal,
                                                                 child: Text(
-                                                                  filteredIOM.value[
+                                                                  filteredAgreement
+                                                                              .value[
                                                                           index]
                                                                       [
-                                                                      'charter'],
+                                                                      'customer'],
                                                                 ),
                                                               ),
                                                               Text(
-                                                                filteredIOM.value[
-                                                                        index]
-                                                                    ['rute'],
-                                                              ),
-                                                              Text(
-                                                                filteredIOM.value[index]
-                                                                            [
-                                                                            'tanggalRute'] ==
-                                                                        'No Data'
-                                                                    ? filteredIOM
-                                                                            .value[index]
-                                                                        [
-                                                                        'tanggalRute']
-                                                                    : DateFormat(
-                                                                            'dd MMM yyyy')
-                                                                        .format(
-                                                                            DateTime.parse(filteredIOM.value[index]['tanggalRute']).toLocal()),
+                                                                filteredAgreement
+                                                                        .value[
+                                                                    index]['rute'],
                                                               ),
                                                               SizedBox(
                                                                 width:
@@ -2441,7 +2372,7 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                 child:
                                                                     Text.rich(
                                                                   TextSpan(
-                                                                    text: filteredIOM
+                                                                    text: filteredAgreement
                                                                         .value[
                                                                             index]
                                                                             [
@@ -2456,14 +2387,14 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold,
-                                                                      color: filteredIOM.value[index]['status'] == 'VERIFIED PENDING PAYMENT' ||
-                                                                              filteredIOM.value[index]['status'] ==
+                                                                      color: filteredAgreement.value[index]['status'] == 'VERIFIED PENDING PAYMENT' ||
+                                                                              filteredAgreement.value[index]['status'] ==
                                                                                   'VERIFIED PAYMENT'
                                                                           ? Colors
                                                                               .blue
-                                                                          : filteredIOM.value[index]['status'] == 'APPROVED'
+                                                                          : filteredAgreement.value[index]['status'] == 'APPROVED'
                                                                               ? Colors.green
-                                                                              : filteredIOM.value[index]['status'] == 'REJECTED' || filteredIOM.value[index]['status'] == 'VOID'
+                                                                              : filteredAgreement.value[index]['status'] == 'REJECTED' || filteredAgreement.value[index]['status'] == 'VOID'
                                                                                   ? Colors.red
                                                                                   : Colors.black,
                                                                     ),
@@ -2479,16 +2410,20 @@ class _ViewIOMState extends State<ViewIOM> {
                                                 ),
                                               ],
                                             ),
-                                            trailing: filteredIOM.value[index]
+                                            trailing: filteredAgreement
+                                                                .value[index]
                                                             ['status'] ==
                                                         'VERIFIED PAYMENT' ||
-                                                    filteredIOM.value[index]
+                                                    filteredAgreement
+                                                                .value[index]
                                                             ['status'] ==
                                                         'APPROVED' ||
-                                                    filteredIOM.value[index]
+                                                    filteredAgreement
+                                                                .value[index]
                                                             ['status'] ==
                                                         'REJECTED' ||
-                                                    filteredIOM.value[index]
+                                                    filteredAgreement
+                                                                .value[index]
                                                             ['status'] ==
                                                         'VOID'
                                                 ? const Icon(Icons.attach_file)

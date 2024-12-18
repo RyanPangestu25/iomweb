@@ -119,3 +119,47 @@ const url_GetIOMSL =
 
 // const url_CekNIK =
 //     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekNIK';
+const url_GetMstAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreement';
+
+const url_GetMstAgreementOD =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementOD';
+
+const url_GetMstAgreementSL =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementSL';
+
+const url_GetMstAgreementItem =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementItem';
+
+const url_GetMstAgreementPayment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementPayment';
+
+const url_GetMstAgreementAttachmentName =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementAttachmentName';
+
+const url_GetMstAgreementAttachment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementAttachment';
+
+const url_GetMstAgreementPayAttachment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetMstAgreementPayAttachment';
+
+const url_GetAgreementOD =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementOD';
+
+const url_GetAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreement';
+
+const url_GetAgreementSL =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementSL';
+
+const url_GetAgreementItem =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementItem';
+
+const url_GetAgreementPayment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementPayment';
+
+const url_GetAgreementAttachmentName =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementAttachmentName';
+
+const url_GetAgreementAttachment =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementAttachment';

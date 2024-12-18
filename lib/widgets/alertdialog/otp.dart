@@ -260,6 +260,7 @@ class _CekOTPState extends State<CekOTP> {
                             builder: (context) => ChangePass(
                               nik: widget.nik,
                               email: widget.email,
+                              isFirst: false,
                             ),
                           ),
                         );

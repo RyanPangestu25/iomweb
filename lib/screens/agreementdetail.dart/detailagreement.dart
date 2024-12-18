@@ -1,79 +1,71 @@
-// ignore_for_file: prefer_typing_uninitialized_variables, prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings, deprecated_member_use, use_build_context_synchronously
 
-import 'dart:convert';
-import 'package:data_table_2/data_table_2.dart';
-import 'package:intl/intl.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:data_table_2/data_table_2.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../backend/constants.dart';
-import '../screens/attachment.dart';
-import '../screens/payment.dart';
-import '../widgets/alertdialog/confirmation.dart';
-import '../widgets/alertdialog/income_tax.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/alertdialog/log_error.dart';
-import '../widgets/alertdialog/verification.dart';
-import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:iomweb/backend/constants.dart';
+import 'package:iomweb/screens/agreementdetail.dart/attachmentagreement.dart';
+import 'package:iomweb/screens/agreementdetail.dart/paymentagreement.dart';
+import 'package:iomweb/widgets/alertdialog/confirmation.dart';
+import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
-import '../widgets/loading.dart';
 
-class DetailIOM extends StatefulWidget {
+class DetailAgreement extends StatefulWidget {
   final Function(bool) isRefresh;
-  final List iom;
-
-  const DetailIOM({
+  final List agreementdetail;
+  const DetailAgreement({
     super.key,
     required this.isRefresh,
-    required this.iom,
+    required this.agreementdetail,
   });
 
   @override
-  State<DetailIOM> createState() => _DetailIOMState();
+  State<DetailAgreement> createState() => _DetailAgreementState();
 }
 
-class _DetailIOMState extends State<DetailIOM> {
-  bool _isConnected = false;
-  bool visible = true;
+class _DetailAgreementState extends State<DetailAgreement> {
   bool loading = false;
   bool _sortAscending = true;
+  bool _isConnected = false;
+  bool visible = true;
   bool isBalance = false;
-  bool isSave = false;
-  bool isNeedIssued = false;
-  bool isIssued = false;
-  String status = '';
-  int level = 0;
   int _sortColumnIndex = 0;
   int currentPage = 1;
   int rowPerPages = PaginatedDataTable.defaultRowsPerPage;
   int item = 0;
+  int level = 0;
   List jadwal = [];
-  List att = [];
   List payment = [];
-  var excelPath = '';
-
+  String status = '';
   TextEditingController pphAmount = TextEditingController();
 
-  Future<void> getIOMItem() async {
+  Future<void> getAgreementItem() async {
     try {
       setState(() {
         loading = true;
       });
 
+     
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMItem xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</GetIOMItem>' +
+          '<GetAgreementItem xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>'+
+          '<server>${widget.agreementdetail.last['server']}</server>'+
+          '</GetAgreementItem>'+
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMItem),
+
+      final response = await http.post(Uri.parse(url_GetAgreementItem),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMItem',
+            'SOAPAction': 'http://tempuri.org/GetAgreementItem',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -87,49 +79,50 @@ class _DetailIOMState extends State<DetailIOM> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
               if (mounted) {
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "No Data",
+                  backgroundColor: Colors.grey[300],
+                );
+
                 setState(() {
                   loading = false;
                 });
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreementdetail = listResult.findElements('NoAgreementDetail').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+                : listResult.findElements('NoAgreementDetail').first.innerText;
             final item = listResult.findElements('Item').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Item').first.text;
+                : listResult.findElements('Item').first.innerText;
             final tanggal = listResult.findElements('Tanggal').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Tanggal').first.text;
+                : listResult.findElements('Tanggal').first.innerText;
             final rute = listResult.findElements('Rute').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Rute').first.text;
+                : listResult.findElements('Rute').first.innerText;
             final blockTime = listResult.findElements('BlockTime').isEmpty
                 ? 'PT0M'
-                : listResult.findElements('BlockTime').first.text;
+                : listResult.findElements('BlockTime').first.innerText;
             final keterangan = listResult.findElements('Keterangan').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Keterangan').first.text;
+                : listResult.findElements('Keterangan').first.innerText;
             final flightNumber = listResult.findElements('FlightNumber').isEmpty
                 ? 'No Data'
-                : listResult.findElements('FlightNumber').first.text;
+                : listResult.findElements('FlightNumber').first.innerText;
             final airlineCode = listResult.findElements('AirlineCode').isEmpty
                 ? 'No Data'
-                : listResult.findElements('AirlineCode').first.text;
+                : listResult.findElements('AirlineCode').first.innerText;
 
             // Parse the blockTime string to extract the hours and minutes
             int hours = 0;
@@ -158,7 +151,7 @@ class _DetailIOMState extends State<DetailIOM> {
             setState(() {
               if (!jadwal.any((data) => data['item'] == item)) {
                 jadwal.add({
-                  'noIOM': noIOM,
+                  'noAgreementdetail': noAgreementdetail,
                   'item': item,
                   'tanggal': tanggal,
                   'rute': rute,
@@ -170,8 +163,8 @@ class _DetailIOMState extends State<DetailIOM> {
               }
             });
 
-            var hasilJson = jsonEncode(jadwal);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(jadwal);
+            //debugprint(hasilJson);
 
             Future.delayed(const Duration(seconds: 1), () async {
               if (mounted) {
@@ -183,8 +176,8 @@ class _DetailIOMState extends State<DetailIOM> {
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -193,7 +186,7 @@ class _DetailIOMState extends State<DetailIOM> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get IOM Item',
+                  fail: 'Error Get Agreement Item',
                   error: response.body.toString(),
                 );
               });
@@ -204,7 +197,7 @@ class _DetailIOMState extends State<DetailIOM> {
         }
       }
     } catch (e) {
-      debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -213,7 +206,7 @@ class _DetailIOMState extends State<DetailIOM> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get IOM Item',
+                fail: 'Error Get Agree Item',
                 error: e.toString(),
               );
             });
@@ -225,26 +218,144 @@ class _DetailIOMState extends State<DetailIOM> {
     }
   }
 
-  Future<void> cekSaldoIOM() async {
+  // Future<void> cekSaldoDetailAgreement() async {
+  //   try {
+  //     setState(() {
+  //       loading = true;
+  //     });
+
+  //     final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><CekSaldoIOM xmlns="http://tempuri.org/"><NoIOM>${widget.agreementdetail.last['noIOM']}</NoIOM><server>${widget.agreementdetail.last['server']}</server></CekSaldoIOM></soap:Body></soap:Envelope>';
+
+  //     final response = await http.post(Uri.parse(url_CekSaldoIOM),
+  //         headers: <String, String>{
+  //           "Access-Control-Allow-Origin": "*",
+  //           'SOAPAction': 'http://tempuri.org/CekSaldoIOM',
+  //           'Access-Control-Allow-Credentials': 'true',
+  //           'Content-type': 'text/xml; charset=utf-8'
+  //         },
+  //         body: soapEnvelope);
+
+  //     if (response.statusCode == 200) {
+  //       final document = xml.XmlDocument.parse(response.body);
+
+  //       final listResultAll = document.findAllElements('Table');
+
+  //       for (final listResult in listResultAll) {
+  //         final statusData = listResult.findElements('StatusData').isEmpty
+  //             ? 'No Data'
+  //             : listResult.findElements('StatusData').first.innerText;
+
+  //         if (statusData == "GAGAL") {
+  //           Future.delayed(const Duration(seconds: 1), () {
+  //             if (mounted) {
+  //               StatusAlert.show(
+  //                 context,
+  //                 duration: const Duration(seconds: 1),
+  //                 configuration: const IconConfiguration(
+  //                     icon: Icons.error, color: Colors.red),
+  //                 title: "No Data",
+  //                 backgroundColor: Colors.grey[300],
+  //               );
+
+  //               setState(() {
+  //                 loading = false;
+  //               });
+  //             }
+  //           });
+  //         } else {
+  //           final lastItem = listResult.findElements('LastItem').isEmpty
+  //               ? '0'
+  //               : listResult.findElements('LastItem').first.innerText;
+  //           final total = listResult.findElements('Total').isEmpty
+  //               ? '0'
+  //               : listResult.findElements('Total').first.innerText;
+
+  //           setState(() {
+  //             item = int.parse(lastItem);
+  //             double.parse(total) >=
+  //                     double.parse(widget.agreementdetail.last['biaya'])
+  //                 ? isBalance = true
+  //                 : false;
+  //           });
+
+  //           //debugprint('$item');
+  //           //debugprint(total);
+
+  //           Future.delayed(const Duration(seconds: 1), () async {
+  //             if (mounted) {
+  //               setState(() {
+  //                 loading = false;
+  //               });
+  //             }
+  //           });
+  //         }
+  //       }
+  //     } else {
+  //       //debugprint('Error: ${response.statusCode}');
+  //       //debugprint('Desc: ${response.body}');
+
+  //       if (mounted) {
+  //         await showDialog(
+  //             context: context,
+  //             barrierDismissible: false,
+  //             builder: (BuildContext context) {
+  //               return LogError(
+  //                 statusCode: response.statusCode.toString(),
+  //                 fail: 'Error Check IOM Balance',
+  //                 error: response.body.toString(),
+  //               );
+  //             });
+
+  //         setState(() {
+  //           loading = false;
+  //         });
+  //       }
+  //     }
+  //   } catch (e) {
+  //     //debugprint('$e');
+
+  //     if (mounted) {
+  //       await showDialog(
+  //           context: context,
+  //           barrierDismissible: false,
+  //           builder: (BuildContext context) {
+  //             return LogError(
+  //               statusCode: '',
+  //               fail: 'Error Check IOM Balance',
+  //               error: e.toString(),
+  //             );
+  //           });
+
+  //       setState(() {
+  //         loading = false;
+  //       });
+  //     }
+  //   }
+  // }
+
+
+
+  Future<void> getAgreementPayment() async {
     try {
       setState(() {
         loading = true;
       });
 
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<CekSaldoIOM xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</CekSaldoIOM>' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>'+
+      '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">'+
+      '<soap:Body>'+
+      '<GetAgreementPayment xmlns="http://tempuri.org/">'+
+      '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>'+
+      '<server>${widget.agreementdetail.last['server']}</server>'+
+      '</GetAgreementPayment>'+
+      '</soap:Body>'+
+      '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_CekSaldoIOM),
+
+      final response = await http.post(Uri.parse(url_GetAgreementPayment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/CekSaldoIOM',
+            'SOAPAction': 'http://tempuri.org/GetAgreementPayment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -258,173 +369,57 @@ class _DetailIOMState extends State<DetailIOM> {
         for (final listResult in listResultAll) {
           final statusData = listResult.findElements('StatusData').isEmpty
               ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
+              : listResult.findElements('StatusData').first.innerText;
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
               if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
-          } else {
-            final lastItem = listResult.findElements('LastItem').isEmpty
-                ? '0'
-                : listResult.findElements('LastItem').first.text;
-            final total = listResult.findElements('Total').isEmpty
-                ? '0'
-                : listResult.findElements('Total').first.text;
-
-            setState(() {
-              item = int.parse(lastItem);
-              double.parse(total) >= double.parse(widget.iom.last['biaya'])
-                  ? isBalance = true
-                  : false;
-            });
-
-            debugPrint('$item');
-            debugPrint(total);
-
-            Future.delayed(const Duration(seconds: 1), () async {
-              if (mounted) {
-                setState(() {
-                  loading = false;
-                });
-              }
-            });
-          }
-        }
-      } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
-
-        if (mounted) {
-          await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return LogError(
-                  statusCode: response.statusCode.toString(),
-                  fail: 'Error Check IOM Balance',
-                  error: response.body.toString(),
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "No Data",
+                  backgroundColor: Colors.grey[300],
                 );
-              });
 
-          setState(() {
-            loading = false;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('$e');
-
-      if (mounted) {
-        await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (BuildContext context) {
-              return LogError(
-                statusCode: '',
-                fail: 'Error Check IOM Balance',
-                error: e.toString(),
-              );
-            });
-
-        setState(() {
-          loading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> getIOMPayment() async {
-    try {
-      setState(() {
-        loading = true;
-      });
-
-      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
-          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
-          '<soap:Body>' +
-          '<GetIOMPayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</GetIOMPayment>' +
-          '</soap:Body>' +
-          '</soap:Envelope>';
-
-      final response = await http.post(Uri.parse(url_GetIOMPayment),
-          headers: <String, String>{
-            "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMPayment',
-            'Access-Control-Allow-Credentials': 'true',
-            'Content-type': 'text/xml; charset=utf-8'
-          },
-          body: soapEnvelope);
-
-      if (response.statusCode == 200) {
-        final document = xml.XmlDocument.parse(response.body);
-
-        final listResultAll = document.findAllElements('Table');
-
-        for (final listResult in listResultAll) {
-          final statusData = listResult.findElements('StatusData').isEmpty
-              ? 'No Data'
-              : listResult.findElements('StatusData').first.text;
-
-          if (statusData == "GAGAL") {
-            Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
-              if (mounted) {
                 setState(() {
                   loading = false;
                 });
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+                : listResult.findElements('NoAgreement').first.innerText;
             final item = listResult.findElements('Item').isEmpty
                 ? 'No Data'
-                : listResult.findElements('Item').first.text;
-            final tglTerimaPembayaran = listResult
-                    .findElements('Tgl_TerimaPembayaran')
+                : listResult.findElements('Item').first.innerText;
+            final tglTerimaPembayaran =
+                listResult.findElements('Tgl_TerimaPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_TerimaPembayaran')
+                        .first
+                        .innerText;
+            final namaBankPenerima = listResult
+                    .findElements('NamaBankPenerima')
                     .isEmpty
                 ? 'No Data'
-                : listResult.findElements('Tgl_TerimaPembayaran').first.text;
-            final namaBankPenerima =
-                listResult.findElements('NamaBankPenerima').isEmpty
-                    ? 'No Data'
-                    : listResult.findElements('NamaBankPenerima').first.text;
-            final amountPembayaran =
-                listResult.findElements('AmountPembayaran').isEmpty
-                    ? '0'
-                    : listResult.findElements('AmountPembayaran').first.text;
+                : listResult.findElements('NamaBankPenerima').first.innerText;
+            final amountPembayaran = listResult
+                    .findElements('AmountPembayaran')
+                    .isEmpty
+                ? '0'
+                : listResult.findElements('AmountPembayaran').first.innerText;
             final currPembayaran =
                 listResult.findElements('CurrPembayaran').isEmpty
                     ? '0'
-                    : listResult.findElements('CurrPembayaran').first.text;
+                    : listResult.findElements('CurrPembayaran').first.innerText;
 
             setState(() {
               payment.add({
-                'noIOM': noIOM,
+                'noAgreement': noAgreement,
                 'item': item,
                 'tanggal': tglTerimaPembayaran,
                 'bank': namaBankPenerima,
@@ -433,13 +428,13 @@ class _DetailIOMState extends State<DetailIOM> {
               });
             });
 
-            var hasilJson = jsonEncode(payment);
-            debugPrint(hasilJson);
+            // var hasilJson = jsonEncode(payment);
+            //debugprint(hasilJson);
           }
         }
       } else {
-        debugPrint('Error: ${response.statusCode}');
-        debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -459,7 +454,7 @@ class _DetailIOMState extends State<DetailIOM> {
         }
       }
     } catch (e) {
-      debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -480,175 +475,9 @@ class _DetailIOMState extends State<DetailIOM> {
     }
   }
 
-  // Future<void> createExcelFile() async {
-  //   try {
-  //     var excel = Excel.createExcel();
-  //     var sheet = excel['Sheet1'];
-
-  //     // Add data to the sheet
-  //     sheet.appendRow(['IOM DETAIL']);
-  //     sheet.appendRow([
-  //       'No. IOM',
-  //       'Charter',
-  //       'Date',
-  //       'Description',
-  //       'IOM Cost',
-  //       'Income Tax',
-  //       'Payment',
-  //       'Note',
-  //       'Status',
-  //       'Verification Pending Payment Date',
-  //       'Verification Payment Date',
-  //       'Approved Data',
-  //       'Payment Status',
-  //     ]);
-  //     sheet.appendRow(List.generate(
-  //         13, (index) => '========================================'));
-  //     sheet.appendRow([
-  //       widget.iom.last['noIOM'],
-  //       widget.iom.last['charter'],
-  //       DateFormat('dd-MMM-yyyy')
-  //           .format(DateTime.parse(widget.iom.last['tanggal']).toLocal()),
-  //       widget.iom.last['perihal'],
-  //       widget.iom.last['curr'] +
-  //           ' ' +
-  //           NumberFormat.currency(locale: 'id_ID', symbol: '')
-  //               .format(
-  //                 double.parse(widget.iom.last['biaya'].replaceAll(',', '.')),
-  //               )
-  //               .toString(),
-  //       pphAmount.text,
-  //       widget.iom.last['pembayaran'],
-  //       widget.iom.last['note'],
-  //       widget.iom.last['status'],
-  //       widget.iom.last['verifNoPayStatus'] == 'No Data'
-  //           ? widget.iom.last['verifNoPayStatus']
-  //           : DateFormat('dd-MMM-yyyy').format(
-  //               DateTime.parse(widget.iom.last['verifNoPayStatus']).toLocal()),
-  //       widget.iom.last['verifPayStatus'] == 'No Data'
-  //           ? widget.iom.last['verifPayStatus']
-  //           : DateFormat('dd-MMM-yyyy').format(
-  //               DateTime.parse(widget.iom.last['verifPayStatus']).toLocal()),
-  //       widget.iom.last['approveDate'] == 'No Data'
-  //           ? widget.iom.last['approveDate']
-  //           : DateFormat('dd-MMM-yyyy').format(
-  //               DateTime.parse(widget.iom.last['approveDate']).toLocal()),
-  //       widget.iom.last['payStatus'],
-  //     ]);
-  //     for (int i = 0; i < 2; i++) {
-  //       sheet.appendRow(['']);
-  //     }
-  //     sheet.appendRow(['IOM ITEM']);
-  //     sheet.appendRow([
-  //       'No',
-  //       'Date',
-  //       'Route',
-  //       'BLK TIME',
-  //       'Description',
-  //       'Flight Number',
-  //       'Airline Code',
-  //     ]);
-  //     sheet.appendRow(
-  //         List.generate(7, (index) => '=============================='));
-  //     for (int index = 0; index < jadwal.length; index++) {
-  //       List<String> scheduleData = [
-  //         jadwal[index]['item'].toString(),
-  //         jadwal[index]['tanggal'] == 'No Data'
-  //             ? jadwal[index]['tanggal']
-  //             : DateFormat('dd-MMM-yyyy')
-  //                 .format(DateTime.parse(jadwal[index]['tanggal']).toLocal()),
-  //         jadwal[index]['rute'],
-  //         DateFormat('HH:mm')
-  //             .format(DateTime.parse(jadwal[index]['blockTime']).toLocal()),
-  //         jadwal[index]['ket'],
-  //         jadwal[index]['flightNumber'],
-  //         jadwal[index]['airlineCode'],
-  //       ];
-
-  //       sheet.appendRow(scheduleData);
-  //     }
-  //     for (int i = 0; i < 2; i++) {
-  //       sheet.appendRow(['']);
-  //     }
-  //     level == 19 ? null : sheet.appendRow(['PAYMENT']);
-  //     level == 19
-  //         ? null
-  //         : sheet.appendRow([
-  //             'No',
-  //             'Payment Date',
-  //             'Bank Name',
-  //             'Curr',
-  //             'Amount',
-  //           ]);
-  //     level == 19
-  //         ? null
-  //         : sheet.appendRow(List.generate(5, (index) => '================='));
-  //     for (int index = 0; index < payment.length; index++) {
-  //       List<String> payData = [
-  //         payment[index]['item'].toString(),
-  //         payment[index]['tanggal'] == 'No Data'
-  //             ? payment[index]['tanggal']
-  //             : DateFormat('dd-MMM-yyyy')
-  //                 .format(DateTime.parse(payment[index]['tanggal']).toLocal()),
-  //         payment[index]['bank'],
-  //         payment[index]['curr'],
-  //         NumberFormat.currency(locale: 'id_ID', symbol: '')
-  //             .format(double.parse(payment[index]['amount']))
-  //             .toString(),
-  //       ];
-
-  //       level == 19 ? null : sheet.appendRow(payData);
-  //     }
-
-  //     String fileName = widget.iom.last['noIOM'];
-
-  //     // Simpan data byte ke file Excel
-  //     excel.save(fileName: '$fileName.xlsx');
-
-  //     setState(() {
-  //       isSave = true;
-  //     });
-
-  //     Future.delayed(const Duration(seconds: 1), () async {
-  //       if (mounted) {
-  //         setState(() {
-  //           loading = false;
-  //         });
-  //       }
-  //     });
-
-  //     Future.delayed(const Duration(seconds: 3), () async {
-  //       if (mounted) {
-  //         setState(() {
-  //           isSave = false;
-  //         });
-  //       }
-  //     });
-  //   } catch (e) {
-  //     debugPrint('$e');
-  //     StatusAlert.show(
-  //       context,
-  //       duration: const Duration(seconds: 2),
-  //       configuration:
-  //           const IconConfiguration(icon: Icons.error, color: Colors.red),
-  //       title: "Error Download Report",
-  //       subtitle: "$e",
-  //       subtitleOptions: StatusAlertTextConfiguration(
-  //         overflow: TextOverflow.visible,
-  //       ),
-  //       backgroundColor: Colors.grey[300],
-  //     );
-  //     if (mounted) {
-  //       setState(() {
-  //         loading = false;
-  //       });
-  //     }
-  //   }
-  // }
-
   Future<void> initConnection() async {
     Connectivity().checkConnectivity().then((value) {
-      debugPrint('$value');
+      //debugprint('$value');
       if (value != ConnectivityResult.none) {
         setState(() {
           _isConnected = (value != ConnectivityResult.none);
@@ -693,7 +522,7 @@ class _DetailIOMState extends State<DetailIOM> {
 
     setState(() {
       level = int.parse(userLevel ?? '0');
-      debugPrint(level.toString());
+      //debugprint(level.toString());
     });
   }
 
@@ -703,37 +532,32 @@ class _DetailIOMState extends State<DetailIOM> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await initConnection();
       await getLevel();
-      await getIOMItem();
-      await cekSaldoIOM();
+      await getAgreementItem();
+      // await cekSaldoDetailAgreement();
     });
 
     pphAmount.text.isEmpty
-        ? pphAmount.text = widget.iom.last['currencyPPH'] +
+        ? pphAmount.text = widget.agreementdetail.last['currencyPPH'] +
             " " +
             NumberFormat.currency(locale: 'id_ID', symbol: '')
                 .format(
-                  double.parse(
-                      widget.iom.last['biayaPPH'].replaceAll(',', '.')),
+                  double.parse(widget.agreementdetail.last['biayaPPH']
+                      .replaceAll(',', '.')),
                 )
                 .toString()
         : null;
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          widget.isRefresh(true);
 
-    return WillPopScope(
-      onWillPop: () {
-        widget.isRefresh(true);
-        Navigator.of(context).pop();
-
-        return Future(() => true);
+          return;
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -741,7 +565,7 @@ class _DetailIOMState extends State<DetailIOM> {
           backgroundColor: Colors.redAccent,
           foregroundColor: Colors.white,
           title: const Text(
-            "Detail IOM",
+            "Agreement Detail",
           ),
           elevation: 3,
           leading: IconButton(
@@ -771,15 +595,15 @@ class _DetailIOMState extends State<DetailIOM> {
 
             //           if (isSave) {
             //             ScaffoldMessenger.of(context).showSnackBar(
-            //               const SnackBar(
+            //               SnackBar(
             //                 showCloseIcon: false,
-            //                 duration: Duration(seconds: 5),
+            //                 duration: const Duration(seconds: 5),
             //                 behavior: SnackBarBehavior.floating,
-            //                 padding: EdgeInsets.all(20),
+            //                 padding: const EdgeInsets.all(20),
             //                 elevation: 10,
             //                 content: Center(
             //                   child: Text(
-            //                     'File Saved in Download',
+            //                     'File Saved in $excelPath',
             //                     textAlign: TextAlign.justify,
             //                   ),
             //                 ),
@@ -798,8 +622,8 @@ class _DetailIOMState extends State<DetailIOM> {
                         isBalance = false;
                       });
                       jadwal.clear();
-                      await getIOMItem();
-                      await cekSaldoIOM();
+                      await getAgreementItem();
+                      // await cekSaldoDetailAgreement();
                     },
               icon: const Icon(Icons.refresh),
             ),
@@ -814,14 +638,12 @@ class _DetailIOMState extends State<DetailIOM> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    "IOM No",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Agreement No',
+                    style:  TextStyle(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['noIOM'],
+                    initialValue: widget.agreementdetail.last['noAgreementdetail'],
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -836,14 +658,14 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.015),
                   const Text(
-                    "Charter Name",
+                    "Agreement Name",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['charter'],
+                    initialValue: widget.agreementdetail.last['charter'],
                     autocorrect: false,
                     readOnly: true,
                     maxLines: 2,
@@ -859,17 +681,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.015),
                   const Text(
-                    "IOM Date",
+                    "Agreement Date",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['tanggal'] == 'No Data'
-                        ? widget.iom.last['tanggal']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['tanggal'])
+                    initialValue:
+                        widget.agreementdetail.last['tanggal'] == 'No Data'
+                            ? widget.agreementdetail.last['tanggal']
+                            : DateFormat('dd-MMM-yyyy').format(DateTime.parse(
+                                    widget.agreementdetail.last['tanggal'])
                                 .toLocal()),
                     autocorrect: false,
                     readOnly: true,
@@ -891,8 +714,9 @@ class _DetailIOMState extends State<DetailIOM> {
                     ),
                   ),
                   SizedBox(height: size.height * 0.01),
+                  SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['perihal'],
+                    initialValue: widget.agreementdetail.last['perihal'],
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -907,18 +731,18 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.015),
                   const Text(
-                    "IOM Cost",
+                    "Agreement Cost",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['curr'] +
+                    initialValue: widget.agreementdetail.last['curr'] +
                         ' ' +
                         NumberFormat.currency(locale: 'id_ID', symbol: '')
                             .format(
-                              double.parse(widget.iom.last['biaya']
+                              double.parse(widget.agreementdetail.last['biaya']
                                   .replaceAll(',', '.')),
                             )
                             .toString(),
@@ -943,10 +767,10 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['revenue'],
+                    initialValue: widget.agreementdetail.last['revenue'],
                     autocorrect: false,
                     readOnly: true,
-                    maxLines: 2,
+                    maxLines: 1,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
                       enabledBorder: OutlineInputBorder(
@@ -966,7 +790,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['pembayaran'],
+                    initialValue: widget.agreementdetail.last['pembayaran'],
                     autocorrect: false,
                     readOnly: true,
                     maxLines: 2,
@@ -989,7 +813,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['note'],
+                    initialValue: widget.agreementdetail.last['note'],
                     autocorrect: false,
                     readOnly: true,
                     maxLines: 2,
@@ -1012,7 +836,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['status'],
+                    initialValue: widget.agreementdetail.last['status'],
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1020,15 +844,19 @@ class _DetailIOMState extends State<DetailIOM> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
-                          color: widget.iom.last['status'] ==
+                          color: widget.agreementdetail.last['status'] ==
                                       'VERIFIED PENDING PAYMENT' ||
-                                  widget.iom.last['status'] ==
+                                  widget.agreementdetail.last['status'] ==
                                       'VERIFIED PAYMENT'
                               ? Colors.blue
-                              : widget.iom.last['status'] == 'APPROVED'
+                              : widget.agreementdetail.last['status'] ==
+                                      'APPROVED'
                                   ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED' ||
-                                          widget.iom.last['status'] == 'VOID'
+                                  : widget.agreementdetail.last['status'] ==
+                                              'REJECTED' ||
+                                          widget.agreementdetail
+                                                  .last['status'] ==
+                                              'VOID'
                                       ? Colors.red
                                       : Colors.black,
                         ),
@@ -1036,14 +864,19 @@ class _DetailIOMState extends State<DetailIOM> {
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
-                          color: widget.iom.last['status'] ==
+                          color: widget.agreementdetail.last['status'] ==
                                       'VERIFIED PENDING PAYMENT' ||
-                                  widget.iom.last['status'] ==
+                                  widget.agreementdetail.last['status'] ==
                                       'VERIFIED PAYMENT'
                               ? Colors.blue
-                              : widget.iom.last['status'] == 'APPROVED'
+                              : widget.agreementdetail.last['status'] ==
+                                      'APPROVED'
                                   ? Colors.green
-                                  : widget.iom.last['status'] == 'REJECTED'
+                                  : widget.agreementdetail.last['status'] ==
+                                              'REJECTED' ||
+                                          widget.agreementdetail
+                                                  .last['status'] ==
+                                              'VOID'
                                       ? Colors.red
                                       : Colors.black,
                         ),
@@ -1059,12 +892,13 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['verifNoPayStatus'] ==
+                    initialValue: widget
+                                .agreementdetail.last['verifNoPayStatus'] ==
                             'No Data'
-                        ? widget.iom.last['verifNoPayStatus']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['verifNoPayStatus'])
-                                .toLocal()),
+                        ? widget.agreementdetail.last['verifNoPayStatus']
+                        : DateFormat('dd-MMM-yyyy').format(DateTime.parse(
+                                widget.agreementdetail.last['verifNoPayStatus'])
+                            .toLocal()),
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1086,11 +920,13 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['verifPayStatus'] == 'No Data'
-                        ? widget.iom.last['verifPayStatus']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['verifPayStatus'])
-                                .toLocal()),
+                    initialValue: widget
+                                .agreementdetail.last['verifPayStatus'] ==
+                            'No Data'
+                        ? widget.agreementdetail.last['verifPayStatus']
+                        : DateFormat('dd-MMM-yyyy').format(DateTime.parse(
+                                widget.agreementdetail.last['verifPayStatus'])
+                            .toLocal()),
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1112,10 +948,11 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['approveDate'] == 'No Data'
-                        ? widget.iom.last['approveDate']
-                        : DateFormat('dd-MMM-yyyy').format(
-                            DateTime.parse(widget.iom.last['approveDate'])
+                    initialValue:
+                        widget.agreementdetail.last['approveDate'] == 'No Data'
+                            ? widget.agreementdetail.last['approveDate']
+                            : DateFormat('dd-MMM-yyyy').format(DateTime.parse(
+                                    widget.agreementdetail.last['approveDate'])
                                 .toLocal()),
                     autocorrect: false,
                     readOnly: true,
@@ -1138,7 +975,7 @@ class _DetailIOMState extends State<DetailIOM> {
                   ),
                   SizedBox(height: size.height * 0.01),
                   TextFormField(
-                    initialValue: widget.iom.last['payStatus'],
+                    initialValue: widget.agreementdetail.last['payStatus'],
                     autocorrect: false,
                     readOnly: true,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1146,17 +983,19 @@ class _DetailIOMState extends State<DetailIOM> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
-                          color: widget.iom.last['payStatus'] == 'PAID'
-                              ? Colors.green
-                              : Colors.red,
+                          color:
+                              widget.agreementdetail.last['payStatus'] == 'PAID'
+                                  ? Colors.green
+                                  : Colors.red,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(
                           width: 2,
-                          color: widget.iom.last['payStatus'] == 'PAID'
-                              ? Colors.green
-                              : Colors.red,
+                          color:
+                              widget.agreementdetail.last['payStatus'] == 'PAID'
+                                  ? Colors.green
+                                  : Colors.red,
                         ),
                       ),
                       suffixIcon: IconButton(
@@ -1168,8 +1007,8 @@ class _DetailIOMState extends State<DetailIOM> {
                                     Navigator.of(context)
                                         .push(MaterialPageRoute(
                                       builder: (BuildContext context) {
-                                        return Payment(
-                                          iom: widget.iom,
+                                        return PaymentAgreementDetail(
+                                          agreementdetail: widget.agreementdetail,
                                         );
                                       },
                                     ));
@@ -1209,8 +1048,8 @@ class _DetailIOMState extends State<DetailIOM> {
                     onPressed: () async {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (BuildContext context) {
-                          return IOMAttachment(
-                            iom: widget.iom,
+                          return AttachmentDetailAgreement(
+                            agreementdetail: widget.agreementdetail,
                           );
                         },
                       ));
@@ -1223,7 +1062,7 @@ class _DetailIOMState extends State<DetailIOM> {
                           'View Attachment',
                           style: TextStyle(
                             fontSize:
-                                MediaQuery.of(context).textScaleFactor * 16,
+                                MediaQuery.of(context).textScaler.scale(16),
                           ),
                         ),
                         Icon(
@@ -1240,7 +1079,7 @@ class _DetailIOMState extends State<DetailIOM> {
                     height: jadwal.isEmpty
                         ? size.height * 0.25
                         : jadwal.length < 5
-                            ? ((MediaQuery.of(context).textScaleFactor * 14 +
+                            ? ((MediaQuery.of(context).textScaler.scale(14) +
                                         2 * 18) *
                                     jadwal.length) +
                                 2 * size.height * 0.085
@@ -1262,12 +1101,10 @@ class _DetailIOMState extends State<DetailIOM> {
                       horizontalMargin: size.width * 0,
                       columnSpacing: 15,
                       empty: Center(
-                        child: loading
-                            ? const Text('Waiting...')
-                            : const Text('No Data'),
-                      ),
+                          child:
+                              loading ? const Text('Waiting...') : const Text('No Data')),
                       columns: [
-                        const DataColumn2(
+                       const DataColumn2(
                           size: ColumnSize.S,
                           label: Center(
                             child: Text(
@@ -1434,55 +1271,22 @@ class _DetailIOMState extends State<DetailIOM> {
                         ),
                       ],
                       source: TableData(
-                        jadwal: jadwal,
                         currentPage: currentPage,
                         rowsPerPage: rowPerPages,
+                        jadwal: jadwal,
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
-            ),
-            Visibility(
-              visible: visible,
-              child: Container(
-                color: _isConnected ? Colors.green : Colors.red,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _isConnected ? 'ONLINE' : 'OFFLINE',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: size.width * 0.01),
-                    _isConnected
-                        ? const SizedBox.shrink()
-                        : const SizedBox(
-                            height: 15,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              color: Colors.blue,
-                            ),
-                          ),
-                  ],
-                ),
-              ),
-            ),
-            LoadingWidget(
-              isLoading: loading,
-              title: 'Loading',
-            ),
+            )
           ],
         ),
-        persistentFooterButtons: widget.iom.last['status'] == 'VOID'
+        persistentFooterButtons: widget.agreementdetail.last['status'] == 'VOID'
             ? [
                 Center(
                   child: Text(
-                    widget.iom.last['status'],
+                    widget.agreementdetail.last['status'],
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.red,
@@ -1492,23 +1296,23 @@ class _DetailIOMState extends State<DetailIOM> {
                 ),
               ]
             : level == 12
-                ? (widget.iom.last['status'] == 'VERIFIED PAYMENT' ||
-                            widget.iom.last['status'] == 'APPROVED' ||
-                            widget.iom.last['status'] == 'REJECTED') &&
+                ? (widget.agreementdetail.last['status'] == 'VERIFIED PAYMENT' ||
+                            widget.agreementdetail.last['status'] == 'APPROVED' ||
+                            widget.agreementdetail.last['status'] == 'REJECTED') &&
                         isBalance
-                    ? (widget.iom.last['status'] == 'APPROVED' ||
-                                widget.iom.last['status'] == 'REJECTED') &&
+                    ? (widget.agreementdetail.last['status'] == 'APPROVED' ||
+                                widget.agreementdetail.last['status'] == 'REJECTED') &&
                             !isBalance
                         ? [
                             Center(
                               child: Text(
-                                widget.iom.last['status'],
+                                widget.agreementdetail.last['status'],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: widget.iom.last['status'] ==
+                                  color: widget.agreementdetail.last['status'] ==
                                           'VERIFIED PAYMENT'
                                       ? Colors.blue
-                                      : widget.iom.last['status'] == 'APPROVED'
+                                      : widget.agreementdetail.last['status'] == 'APPROVED'
                                           ? Colors.green
                                           : Colors.red,
                                   fontWeight: FontWeight.bold,
@@ -1519,13 +1323,13 @@ class _DetailIOMState extends State<DetailIOM> {
                         : [
                             Center(
                               child: Text(
-                                widget.iom.last['status'],
+                                widget.agreementdetail.last['status'],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: widget.iom.last['status'] ==
+                                  color: widget.agreementdetail.last['status'] ==
                                           'VERIFIED PAYMENT'
                                       ? Colors.blue
-                                      : widget.iom.last['status'] == 'APPROVED'
+                                      : widget.agreementdetail.last['status'] == 'APPROVED'
                                           ? Colors.green
                                           : Colors.red,
                                   fontWeight: FontWeight.bold,
@@ -1541,17 +1345,17 @@ class _DetailIOMState extends State<DetailIOM> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 fixedSize:
-                                    Size(size.width * 0.4, size.height * 0.08),
+                                    Size(size.width*0.9, size.height * 0.08),
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
                               onPressed: loading
                                   ? null
                                   : () async {
-                                      if (double.parse(widget.iom.last['biaya']
+                                      if (double.parse(widget.agreementdetail.last['biaya']
                                               .replaceAll(',', '.')) ==
                                           0.00) {
                                         StatusAlert.show(
@@ -1567,88 +1371,42 @@ class _DetailIOMState extends State<DetailIOM> {
                                           backgroundColor: Colors.grey[300],
                                         );
                                       } else {
-                                        await showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (BuildContext context) {
-                                            return Verification(
-                                              item: (value) {
-                                                setState(() {
-                                                  item = value;
-                                                });
-                                              },
-                                              iom: widget.iom,
-                                              lastItem: item,
-                                            );
-                                          },
-                                        );
+                                        // await showDialog(
+                                        //   context: context,
+                                        //   barrierDismissible: false,
+                                        //   builder: (BuildContext context) {
+                                        //     return VerificationAgreementDetail(
+                                        //       item: (value) {
+                                        //         setState(() {
+                                        //           item = value;
+                                        //         });
+                                        //       },
+                                        //       agreementdetail: widget.agreementdetail,
+                                        //       lastItem: item,
+                                        //     );
+                                        //   },
+                                        // );
                                       }
                                     },
                               child: const Text('Verification'),
                             ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                fixedSize:
-                                    Size(size.width * 0.4, size.height * 0.08),
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: loading
-                                  ? null
-                                  : () async {
-                                      if (double.parse(widget.iom.last['biaya']
-                                              .replaceAll(',', '.')) ==
-                                          0.00) {
-                                        StatusAlert.show(
-                                          context,
-                                          duration: const Duration(seconds: 1),
-                                          configuration:
-                                              const IconConfiguration(
-                                            icon: Icons.error,
-                                            color: Colors.red,
-                                          ),
-                                          title: "Failed",
-                                          subtitle: "0 IOM Cost",
-                                          backgroundColor: Colors.grey[300],
-                                        );
-                                      } else {
-                                        await showDialog(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder: (BuildContext context) {
-                                            return IncomeTax(
-                                              pphAmount: (value) {
-                                                setState(() {
-                                                  pphAmount.text = value;
-                                                });
-                                              },
-                                              iom: widget.iom,
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                              child: const Text('Income Tax'),
-                            ),
+                            
                           ],
                         )
                       ]
                 : level == 10
-                    ? widget.iom.last['status'] == 'APPROVED' //||
+                    ? widget.agreementdetail.last['status'] == 'APPROVED' //||
                         // widget.iom.last['status'] == 'REJECTED' ||
                         // widget.iom.last['status'] == 'NONE'
                         ? [
                             Center(
                               child: Text(
-                                widget.iom.last['status'],
+                                widget.agreementdetail.last['status'],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  color: widget.iom.last['status'] == 'APPROVED'
+                                  color: widget.agreementdetail.last['status'] == 'APPROVED'
                                       ? Colors.green
-                                      : widget.iom.last['status'] == 'REJECTED'
+                                      : widget.agreementdetail.last['status'] == 'REJECTED'
                                           ? Colors.red
                                           : Colors.black,
                                   fontWeight: FontWeight.bold,
@@ -1694,7 +1452,7 @@ class _DetailIOMState extends State<DetailIOM> {
 
                                               return Confirmation(
                                                 text: status,
-                                                iom: widget.iom,
+                                                iom: widget.agreementdetail,
                                                 iomItem: jadwal,
                                                 flightDate: flightDate,
                                               );
@@ -1725,7 +1483,7 @@ class _DetailIOMState extends State<DetailIOM> {
                                             builder: (BuildContext context) {
                                               return Confirmation(
                                                 text: status,
-                                                iom: widget.iom,
+                                                iom: widget.agreementdetail,
                                                 iomItem: jadwal,
                                                 flightDate: const [],
                                               );
@@ -1740,17 +1498,17 @@ class _DetailIOMState extends State<DetailIOM> {
                     : [
                         Center(
                           child: Text(
-                            widget.iom.last['status'],
+                            widget.agreementdetail.last['status'],
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: widget.iom.last['status'] == 'NONE'
+                              color: widget.agreementdetail.last['status'] == 'NONE'
                                   ? Colors.black
-                                  : widget.iom.last['status'] ==
+                                  : widget.agreementdetail.last['status'] ==
                                               'VERIFIED PAYMENT' ||
-                                          widget.iom.last['status'] ==
+                                          widget.agreementdetail.last['status'] ==
                                               'VERIFIED PENDING PAYMENT'
                                       ? Colors.blue
-                                      : widget.iom.last['status'] == 'APPROVED'
+                                      : widget.agreementdetail.last['status'] == 'APPROVED'
                                           ? Colors.green
                                           : Colors.red,
                               fontWeight: FontWeight.bold,
@@ -1758,9 +1516,7 @@ class _DetailIOMState extends State<DetailIOM> {
                           ),
                         ),
                       ],
-        persistentFooterAlignment: AlignmentDirectional.center,
-      ),
-    );
+    ));
   }
 }
 
@@ -1786,8 +1542,7 @@ class TableData extends DataTableSource {
     final data = jadwal[dataIndex];
 
     return DataRow2(
-      color: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
+      color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
         // Even rows will have a grey color.
         if (index.isOdd) {
           return Colors.grey.withOpacity(0.3);
