@@ -12,7 +12,7 @@ import '../../widgets/alertdialog/confirmation.dart';
 import '../../widgets/alertdialog/income_tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/alertdialog/log_error.dart';
-import '../../widgets/alertdialog/verification.dart';
+import '../../widgets/alertdialog/verification/verificationiom.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
@@ -1637,9 +1637,9 @@ class _DetailIOMState extends State<DetailIOM> {
                         )
                       ]
                 : level == 10
-                    ? widget.iom.last['status'] == 'APPROVED' //||
-                        // widget.iom.last['status'] == 'REJECTED' ||
-                        // widget.iom.last['status'] == 'NONE'
+                    ? widget.iom.last['status'] == 'APPROVED' ||
+                        widget.iom.last['status'] == 'REJECTED' ||
+                        widget.iom.last['status'] == 'NONE'
                         ? [
                             Center(
                               child: Text(

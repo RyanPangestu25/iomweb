@@ -2244,7 +2244,9 @@ class _ViewAgreementDetailState extends State<ViewAgreementDetail> {
                                                                                   await getAgreementDetail();
                                                                                 }
                                                                               },
-                                                                              noIOM: filteredAgreementDetail.value[index]['noAgreementdetail'],
+                                                                              noIOM: '',
+                                                                              noAgreement: '',
+                                                                              noAgreementDetail: filteredAgreementDetail.value[index]['noAgreementdetail'],
                                                                               server: filteredAgreementDetail.value[index]['server'],
                                                                               isIOM: false,
                                                                             );

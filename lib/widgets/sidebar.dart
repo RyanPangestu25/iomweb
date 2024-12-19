@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:iomweb/screens/agreementdetail.dart/view_agreementdetail.dart';
 import 'package:iomweb/screens/iom/view_iom.dart';
 import 'package:iomweb/screens/mstagreement/view_mstagreement.dart';
+import 'package:iomweb/widgets/alertdialog/donwload/donwloadagreementdetail.dart';
 import 'package:iomweb/widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import '../backend/constants.dart';
@@ -17,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/about.dart';
 import '../screens/login.dart';
 import 'alertdialog/log_error.dart';
-import 'alertdialog/pick_date.dart';
+import 'alertdialog/donwload/donwloadiom.dart';
 // import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
@@ -876,13 +877,13 @@ class _SidebarState extends State<Sidebar> {
                   leading: const Icon(Icons.circle_outlined),
                   title: const Text("Download Report"),
                   onTap: () async {
-                    // await showDialog(
-                    //   context: context,
-                    //   barrierDismissible: false,
-                    //   builder: (BuildContext context) {
-                    //     return const DonwloadAgreementDetail();
-                    //   },
-                    // );
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Donwloadagreementdetail();
+                      },
+                    );
                   },
                 ),
                 ListTile(

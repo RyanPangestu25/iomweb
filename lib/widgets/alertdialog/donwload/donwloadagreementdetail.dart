@@ -3,27 +3,27 @@
 import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:iomweb/backend/constants.dart';
+import 'package:iomweb/widgets/alertdialog/log_error.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
-import '../../backend/constants.dart';
-import 'log_error.dart';
 
-class PickDate extends StatefulWidget {
-  const PickDate({super.key});
+class Donwloadagreementdetail extends StatefulWidget {
+  const Donwloadagreementdetail({super.key});
 
   @override
-  State<PickDate> createState() => _PickDateState();
+  State<Donwloadagreementdetail> createState() =>
+      _DonwloadagreementdetailState();
 }
 
-class _PickDateState extends State<PickDate> {
+class _DonwloadagreementdetailState extends State<Donwloadagreementdetail> {
   final _formKey = GlobalKey<FormState>();
-
   bool loading = false;
   bool isSave = false;
   int level = 0;
   String airlines = 'Select';
-  List iom = [];
+  List agreementdetail = [];
   List<String> listAirlines = [
     'Select',
     'ALL',
@@ -79,15 +79,16 @@ class _PickDateState extends State<PickDate> {
 
   Future<void> DownloadReport() async {
     try {
-      List<String> noIOM = [];
+      List<String> noAgreementDetail = [];
 
       var excel = Excel.createExcel();
-      var sheet = excel['IOM'];
-      var sheet1 = excel['DetailIOM'];
+      var sheet = excel['Agreement'];
+      var sheet1 = excel['AgreementDetail'];
       sheet.appendRow([
         'Company',
-        'NoIom',
-        'TglIom',
+        'NoAgreement Detail',
+        'NoAgreement',
+        'TglAgreement',
         'Curr',
         'BiayaCharter',
         'TglCreate',
@@ -102,8 +103,9 @@ class _PickDateState extends State<PickDate> {
       ]);
       sheet1.appendRow([
         'Company',
-        'NoIom',
-        'TglIom',
+        'NoAgreement Detail',
+        'NoAgreement',
+        'TglAgreement',
         'Dari',
         'KepadaYTH',
         'CCYTH',
@@ -134,17 +136,18 @@ class _PickDateState extends State<PickDate> {
         'InsertDate',
         'Status',
       ]);
-      sheet.appendRow(List.generate(13, (index) => '================'));
-      sheet1.appendRow(List.generate(31, (index) => '================'));
-      for (var data in iom) {
-        if (!noIOM.contains(data['noIOM'])) {
+      sheet.appendRow(List.generate(14, (index) => '================'));
+      sheet1.appendRow(List.generate(32, (index) => '================'));
+      for (var data in agreementdetail) {
+        if (!noAgreementDetail.contains(data['noAgreementDetail'])) {
           sheet.appendRow([
             data['server'],
-            data['noIOM'],
-            data['tglIom'] == 'No Data'
-                ? data['tglIom']
+            data['noAgreementDetail'],
+            data['noAgreement'],
+            data['tglAgreement'] == 'No Data'
+                ? data['tglAgreement']
                 : DateFormat('dd-MMM-yyyy')
-                    .format(DateTime.parse(data['tglIom']).toLocal()),
+                    .format(DateTime.parse(data['tglAgreement']).toLocal()),
             data['curr'],
             data['biayaCharter'],
             data['createdDate'] == 'No Data'
@@ -167,16 +170,17 @@ class _PickDateState extends State<PickDate> {
             data['statusKonfirmasiDireksi'],
           ]);
 
-          noIOM.add(data['noIOM']);
+          noAgreementDetail.add(data['noAgreementDetail']);
         }
 
         sheet1.appendRow([
           data['server'],
-          data['noIOM'],
-          data['tglIom'] == 'No Data'
-              ? data['tglIom']
+          data['noAgreementDetail'],
+          data['noAgreement'],
+          data['tglAgreement'] == 'No Data'
+              ? data['tglAgreement']
               : DateFormat('dd-MMM-yyyy')
-                  .format(DateTime.parse(data['tglIom']).toLocal()),
+                  .format(DateTime.parse(data['tglAgreement']).toLocal()),
           data['dari'],
           data['kepadaYTH'],
           data['ccYTH'],
@@ -228,7 +232,7 @@ class _PickDateState extends State<PickDate> {
       }
 
       String fileName =
-          '${airlines}IOM${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
+          '${airlines}AgreementDetail${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
 
       //Simpan data byte ke file excel
       excel.save(fileName: '$fileName.xlsx');
@@ -285,18 +289,18 @@ class _PickDateState extends State<PickDate> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetReport xmlns="http://tempuri.org/">' +
+          '<GetReportAgreement xmlns="http://tempuri.org/">' +
           '<start>${DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal().toIso8601String()}</start>' +
           '<end>${DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal().toIso8601String()}</end>' +
           '<server>$airlines</server>' +
-          '</GetReport>' +
+          '</GetReportAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetReport),
+      final response = await http.post(Uri.parse(url_GetReportAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetReport',
+            'SOAPAction': 'http://tempuri.org/GetReportAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -331,12 +335,17 @@ class _PickDateState extends State<PickDate> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreementDetail = listResult
+                    .findElements('NoAgreementDetail')
+                    .isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.innerText;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                : listResult.findElements('NoAgreementDetail').first.innerText;
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TglIOM').first.innerText;
+                : listResult.findElements('NoAgreement').first.innerText;
+            final tglAgreement = listResult.findElements('TglAgreement').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglAgreement').first.innerText;
             final dari = listResult.findElements('Dari').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Dari').first.innerText;
@@ -444,11 +453,12 @@ class _PickDateState extends State<PickDate> {
                 : listResult.findElements('Server').first.innerText;
 
             setState(() {
-              if (!iom.any((e) => e['no'] == index + 1)) {
-                iom.add({
+              if (!agreementdetail.any((e) => e['no'] == index + 1)) {
+                agreementdetail.add({
                   'no': index,
-                  'noIOM': noIOM,
-                  'tglIom': tglIOM,
+                  'noAgreementDetail': noAgreementDetail,
+                  'noAgreement': noAgreement,
+                  'tglAgreement': tglAgreement,
                   'dari': dari,
                   'kepadaYTH': kepadaYth,
                   'ccYTH': ccYth,
@@ -487,7 +497,7 @@ class _PickDateState extends State<PickDate> {
         }
 
         Future.delayed(const Duration(seconds: 1), () async {
-          if (iom.isNotEmpty) {
+          if (agreementdetail.isNotEmpty) {
             await DownloadReport();
           }
         });
@@ -543,17 +553,17 @@ class _PickDateState extends State<PickDate> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetReportAll xmlns="http://tempuri.org/">' +
+          '<GetReportAgreementAll xmlns="http://tempuri.org/">' +
           '<start>${DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal().toIso8601String()}</start>' +
           '<end>${DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal().toIso8601String()}</end>' +
-          '</GetReportAll>' +
+          '</GetReportAgreementAll>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetReportAll),
+      final response = await http.post(Uri.parse(url_GetReportAgreementAll),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetReportAll',
+            'SOAPAction': 'http://tempuri.org/GetReportAgreementAll',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -573,14 +583,16 @@ class _PickDateState extends State<PickDate> {
 
           if (statusData == "GAGAL") {
             Future.delayed(const Duration(seconds: 1), () {
-              StatusAlert.show(
-                context,
-                duration: const Duration(seconds: 1),
-                configuration: const IconConfiguration(
-                    icon: Icons.error, color: Colors.red),
-                title: "No Data",
-                backgroundColor: Colors.grey[300],
-              );
+              if (mounted) {
+                StatusAlert.show(
+                  context,
+                  duration: const Duration(seconds: 1),
+                  configuration: const IconConfiguration(
+                      icon: Icons.error, color: Colors.red),
+                  title: "No Data",
+                  backgroundColor: Colors.grey[300],
+                );
+              }
               if (mounted) {
                 setState(() {
                   loading = false;
@@ -588,12 +600,17 @@ class _PickDateState extends State<PickDate> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreementDetail = listResult
+                    .findElements('NoAgreementDetail')
+                    .isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.innerText;
-            final tglIOM = listResult.findElements('TglIOM').isEmpty
+                : listResult.findElements('NoAgreementDetail').first.innerText;
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('TglIOM').first.innerText;
+                : listResult.findElements('NoAgreement').first.innerText;
+            final tglIOM = listResult.findElements('TglAgreement').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglAgreement').first.innerText;
             final dari = listResult.findElements('Dari').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Dari').first.innerText;
@@ -701,12 +718,13 @@ class _PickDateState extends State<PickDate> {
                 : listResult.findElements('Server').first.innerText;
 
             setState(() {
-              if (!iom.any((e) => e['no'] == index + 1)) {
-                iom.add({
+              if (!agreementdetail.any((e) => e['no'] == index + 1)) {
+                agreementdetail.add({
                   'no': index,
                   'server': server,
-                  'noIOM': noIOM,
-                  'tglIom': tglIOM,
+                  'noAgreementDetail': noAgreementDetail,
+                  'noAgreement': noAgreement,
+                  'tglAgreement': tglIOM,
                   'dari': dari,
                   'kepadaYTH': kepadaYth,
                   'ccYTH': ccYth,
@@ -744,7 +762,7 @@ class _PickDateState extends State<PickDate> {
         }
 
         Future.delayed(const Duration(seconds: 1), () async {
-          if (iom.isNotEmpty) {
+          if (agreementdetail.isNotEmpty) {
             await DownloadReport();
           }
         });

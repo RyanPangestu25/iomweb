@@ -163,3 +163,24 @@ const url_GetAgreementAttachmentName =
 
 const url_GetAgreementAttachment =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAgreementAttachment';
+
+const url_GetReportAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportAgreement';
+
+const url_GetReportAgreementAll =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportAgreementAll';
+
+const url_GetReportMstAgreementAll =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportMstAgreementAll';
+
+const url_VerificationAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationAgreement';
+
+const url_VerificationAttachAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationAttachAgreement';
+
+const url_VerificationPaymentAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationPaymentAgreement';
+
+const url_CekSaldoAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoAgreement';

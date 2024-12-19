@@ -11,6 +11,7 @@ import 'package:iomweb/screens/agreementdetail.dart/attachmentagreement.dart';
 import 'package:iomweb/screens/agreementdetail.dart/paymentagreement.dart';
 import 'package:iomweb/widgets/alertdialog/confirmation.dart';
 import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:iomweb/widgets/alertdialog/verification/verifiction_agreement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
@@ -1371,21 +1372,21 @@ class _DetailAgreementState extends State<DetailAgreement> {
                                           backgroundColor: Colors.grey[300],
                                         );
                                       } else {
-                                        // await showDialog(
-                                        //   context: context,
-                                        //   barrierDismissible: false,
-                                        //   builder: (BuildContext context) {
-                                        //     return VerificationAgreementDetail(
-                                        //       item: (value) {
-                                        //         setState(() {
-                                        //           item = value;
-                                        //         });
-                                        //       },
-                                        //       agreementdetail: widget.agreementdetail,
-                                        //       lastItem: item,
-                                        //     );
-                                        //   },
-                                        // );
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return VerificationAgreement(
+                                              item: (value) {
+                                                setState(() {
+                                                  item = value;
+                                                });
+                                              },
+                                              agreementdetail: widget.agreementdetail,
+                                              lastItem: item,
+                                            );
+                                          },
+                                        );
                                       }
                                     },
                               child: const Text('Verification'),

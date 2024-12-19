@@ -8,32 +8,32 @@ import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import '../../screens/iom/view_iom.dart';
+import '../../../screens/iom/view_iom.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
-import '../../backend/constants.dart';
-import '../loading.dart';
-import 'log_error.dart';
-import 'try_again.dart';
+import '../../../backend/constants.dart';
+import '../../loading.dart';
+import '../log_error.dart';
+import '../try_again.dart';
 
-class Verification extends StatefulWidget {
+class VerificationAgreement extends StatefulWidget {
   final Function(int) item;
-  final List iom;
+  final List agreementdetail;
   final int lastItem;
 
-  const Verification({
+  const VerificationAgreement({
     super.key,
     required this.item,
-    required this.iom,
+    required this.agreementdetail,
     required this.lastItem,
   });
 
   @override
-  State<Verification> createState() => _VerificationState();
+  State<VerificationAgreement> createState() => _VerificationAgreementState();
 }
 
-class _VerificationState extends State<Verification> {
+class _VerificationAgreementState extends State<VerificationAgreement> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
@@ -109,7 +109,7 @@ class _VerificationState extends State<Verification> {
       Uint8List? filePath = file.bytes;
       String ext = file.extension!;
       setState(() {
-        fileName = 'WEB${widget.iom.last['noIOM']}';
+        fileName = 'WEB${widget.agreementdetail.last['noAgreementDetail']}';
         fileExt = ext;
         titleFile = 'File Picked';
         _image = filePath;
@@ -372,19 +372,19 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<Verification xmlns="http://tempuri.org/">' +
+          '<VerificationAgreement xmlns="http://tempuri.org/">' +
           '<isPayment>$isPayment</isPayment>' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<server>${widget.agreementdetail.last['server']}</server>' +
           '<VerifiedBy>$userName</VerifiedBy>' +
-          '</Verification>' +
+          '</VerificationAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_Verification),
+      final response = await http.post(Uri.parse(url_VerificationAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/Verification',
+            'SOAPAction': 'http://tempuri.org/VerificationAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -438,7 +438,7 @@ class _VerificationState extends State<Verification> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewIOM(
-                      title: 'IOM Verification',
+                      title: 'Agreement Verification',
                     );
                   },
                 ));
@@ -446,7 +446,7 @@ class _VerificationState extends State<Verification> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewIOM(
-                      title: 'IOM Approval',
+                      title: 'Agreement Approval',
                     );
                   },
                 ));
@@ -454,7 +454,7 @@ class _VerificationState extends State<Verification> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewIOM(
-                      title: 'View IOM',
+                      title: 'View Agreement',
                     );
                   },
                 ));
@@ -517,22 +517,22 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationPayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<VerificationPaymentAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</VerificationPayment>' +
+          '<server>${widget.agreementdetail.last['server']}</server>' +
+          '</VerificationPaymentAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_VerificationPayment),
+      final response = await http.post(Uri.parse(url_VerificationPaymentAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationPayment',
+            'SOAPAction': 'http://tempuri.org/VerificationPaymentAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -626,23 +626,23 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
+          '<VerificationAttachAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
           '<UploadDate>${DateTime.now().toLocal().toIso8601String()}</UploadDate>' +
           '<Ext>$fileExt</Ext>' +
           '<Item>${(item + 1).toString()}</Item>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</VerificationAttach>' +
+          '<server>${widget.agreementdetail.last['server']}</server>' +
+          '</VerificationAttachAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_VerificationAttach),
+      final response = await http.post(Uri.parse(url_VerificationAttachAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationAttach',
+            'SOAPAction': 'http://tempuri.org/VerificationAttachAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -699,7 +699,7 @@ class _VerificationState extends State<Verification> {
               });
             }
 
-            await cekSaldoIOM();
+            await cekSaldoAgreement();
           });
         }
       } else {
@@ -771,7 +771,7 @@ class _VerificationState extends State<Verification> {
     }
   }
 
-  Future<void> cekSaldoIOM() async {
+  Future<void> cekSaldoAgreement() async {
     try {
       setState(() {
         loading = true;
@@ -780,17 +780,17 @@ class _VerificationState extends State<Verification> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<CekSaldoIOM xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.iom.last['noIOM']}</NoIOM>' +
-          '<server>${widget.iom.last['server']}</server>' +
-          '</CekSaldoIOM>' +
+          '<CekSaldoAgreement  xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<server>${widget.agreementdetail.last['server']}</server>' +
+          '</CekSaldoAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_CekSaldoIOM),
+      final response = await http.post(Uri.parse(url_CekSaldoAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/CekSaldoIOM',
+            'SOAPAction': 'http://tempuri.org/CekSaldoAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -834,7 +834,7 @@ class _VerificationState extends State<Verification> {
               item = int.parse(lastItem);
               saldo = double.parse(total);
 
-              double.parse(total) >= double.parse(widget.iom.last['biaya'])
+              double.parse(total) >= double.parse(widget.agreementdetail.last['biaya'])
                   ? isBalance = true
                   : isBalance = false;
 
@@ -861,7 +861,7 @@ class _VerificationState extends State<Verification> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewIOM(
-                        title: 'IOM Verification',
+                        title: 'Agreement Verification',
                       );
                     },
                   ));
@@ -869,7 +869,7 @@ class _VerificationState extends State<Verification> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewIOM(
-                        title: 'IOM Approval',
+                        title: 'Agreement Approval',
                       );
                     },
                   ));
@@ -877,7 +877,7 @@ class _VerificationState extends State<Verification> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewIOM(
-                        title: 'View IOM',
+                        title: 'Agreement IOM',
                       );
                     },
                   ));
@@ -897,7 +897,7 @@ class _VerificationState extends State<Verification> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Check IOM Balance',
+                  fail: 'Error Check Agreement Balance',
                   error: response.body.toString(),
                 );
               });
@@ -950,7 +950,7 @@ class _VerificationState extends State<Verification> {
       await getBank();
       await getCurr();
       await getUser();
-      await cekSaldoIOM();
+      await cekSaldoAgreement();
     });
 
     date.text = DateFormat('dd-MMM-yyyy')

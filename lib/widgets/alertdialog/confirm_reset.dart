@@ -12,6 +12,8 @@ import 'try_again.dart';
 class ResetConfirmation extends StatefulWidget {
   final Function(bool) isSuccess;
   final String noIOM;
+  final String noAgreement;
+  final String noAgreementDetail;
   final String server;
   final bool isIOM;
 
@@ -19,6 +21,8 @@ class ResetConfirmation extends StatefulWidget {
     super.key,
     required this.isSuccess,
     required this.noIOM,
+    required this.noAgreement,
+    required this.noAgreementDetail,
     required this.server,
     required this.isIOM,
   });
@@ -169,7 +173,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
     }
   }
 
-  Future<void> resetApproval() async {
+  Future<void> resetApprovalIom() async {
     try {
       setState(() {
         loading = true;
@@ -249,7 +253,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await resetApproval();
+                      await resetApprovalIom();
                     }
                   },
                 );
@@ -282,7 +286,7 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await resetApproval();
+                    await resetApprovalIom();
                   }
                 },
               );
@@ -305,6 +309,280 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
       }
     }
   }
+
+  Future<void> resetApprovalAgreementDetail() async {
+    try {
+      setState(() {
+        loading = true;
+        status = 'Resetting Approval';
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<ResetApproval xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.noIOM}</NoAgreementDetail>' +
+          '<server>${widget.server}</server>' +
+          '</ResetApproval>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_ResetApproval),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/ResetApproval',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData =
+            document.findAllElements('ResetApprovalResult').isEmpty
+                ? 'GAGAL'
+                : document.findAllElements('ResetApprovalResult').first.text;
+
+        if (statusData == "GAGAL") {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "Failed",
+              backgroundColor: Colors.grey[300],
+            );
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success Reset Approval",
+              backgroundColor: Colors.grey[300],
+            );
+
+            widget.isSuccess(true);
+            Navigator.of(context).pop();
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+
+        if (mounted) {
+          showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return TryAgain(
+                  submit: (value) async {
+                    if (value) {
+                      await resetApprovalAgreementDetail();
+                    }
+                  },
+                );
+              });
+
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Reset Approval',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+
+      if (mounted) {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await resetApprovalAgreementDetail();
+                  }
+                },
+              );
+            });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Reset Approval',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+  Future<void> resetApprovalMstAgreementDetail() async {
+    try {
+      setState(() {
+        loading = true;
+        status = 'Resetting Approval';
+      });
+
+      final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<ResetApproval xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.noAgreement}</NoAgreement>' +
+          '<server>${widget.server}</server>' +
+          '</ResetApproval>' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_ResetApproval),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/ResetApproval',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final statusData =
+            document.findAllElements('ResetApprovalResult').isEmpty
+                ? 'GAGAL'
+                : document.findAllElements('ResetApprovalResult').first.text;
+
+        if (statusData == "GAGAL") {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              title: "Failed",
+              backgroundColor: Colors.grey[300],
+            );
+
+            if (mounted) {
+              setState(() {
+                loading = false;
+              });
+            }
+          });
+        } else {
+          Future.delayed(const Duration(seconds: 1), () async {
+            StatusAlert.show(
+              context,
+              duration: const Duration(seconds: 1),
+              configuration: const IconConfiguration(
+                icon: Icons.done,
+                color: Colors.green,
+              ),
+              title: "Success Reset Approval",
+              backgroundColor: Colors.grey[300],
+            );
+
+            widget.isSuccess(true);
+            Navigator.of(context).pop();
+          });
+        }
+      } else {
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Desc: ${response.body}');
+
+        if (mounted) {
+          showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return TryAgain(
+                  submit: (value) async {
+                    if (value) {
+                      await resetApprovalMstAgreementDetail();
+                    }
+                  },
+                );
+              });
+
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Failed Reset Approval',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('$e');
+
+      if (mounted) {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return TryAgain(
+                submit: (value) async {
+                  if (value) {
+                    await resetApprovalMstAgreementDetail();
+                  }
+                },
+              );
+            });
+
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Failed Reset Approval',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
 
   @override
   void initState() {
@@ -340,13 +618,19 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    Text(widget.isIOM
-                        ? 'Do you want to reset this IOM Number?'
-                        : 'Do you want to undo the approval of this IOM Number?'),
+                    Text(widget.noIOM != '' ? 'Do you want to undo the approval of this IOM Number?'
+                        : widget.noAgreement!=''?'Do you want to undo the approval of this Agreement Number?'
+                        : widget.noAgreementDetail !=''?'Do you want to undo the approval of this Agreement Detail Number?'
+                        :''
+                        ),
                     SizedBox(height: size.height * 0.01),
-                    const Text('IOM Number:'),
+                    Text(widget.noIOM != ''
+                        ? 'IOM Number:'
+                        : widget.noAgreement !=''? 'Agreement Number:'
+                        :widget.noAgreementDetail !=''? 'Agreement Detail Number: ':''
+                        ),
                     Text(
-                      widget.noIOM,
+                      widget.noIOM != '' ? widget.noIOM : widget.noAgreement !=''?widget.noAgreement : widget.noAgreementDetail !=''?widget.noAgreementDetail:'' ,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: MediaQuery.of(context).textScaler.scale(15),
@@ -365,11 +649,11 @@ class _ResetConfirmationState extends State<ResetConfirmation> {
                           loading = true;
                         });
 
-                        if (widget.isIOM) {
-                          await resetIOM();
-                        } else {
-                          await resetApproval();
-                        }
+                       if(widget.noIOM !=''){
+                        await resetApprovalIom();
+                       }else{
+                        await resetIOM();
+                       }
                       },
                 child: Text(
                   "Yes",

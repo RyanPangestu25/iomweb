@@ -2254,12 +2254,14 @@ class _ViewMstagreementState extends State<ViewMstagreement> {
                                                                                 await getMstAgreement();
                                                                               }
                                                                             },
-                                                                            noIOM:
+                                                                            noAgreement:
                                                                                 filteredAgreement.value[index]['noAgreement'],
                                                                             server:
                                                                                 filteredAgreement.value[index]['server'],
                                                                             isIOM:
                                                                                 false,
+                                                                                noAgreementDetail: '',
+                                                                                noIOM: '',
                                                                           );
                                                                         });
                                                                   },

@@ -2325,8 +2325,9 @@ class _ViewIOMState extends State<ViewIOM> {
                                                                                 filteredIOM.value[index]['noIOM'],
                                                                             server:
                                                                                 filteredIOM.value[index]['server'],
-                                                                            isIOM:
-                                                                                false,
+                                                                            isIOM: false,
+                                                                                noAgreement: '',
+                                                                                noAgreementDetail: '',
                                                                           );
                                                                         });
                                                                   },
