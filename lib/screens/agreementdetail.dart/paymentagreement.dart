@@ -10,7 +10,7 @@ import 'package:iomweb/backend/constants.dart';
 import 'package:iomweb/screens/display/img.dart';
 import 'package:iomweb/screens/display/pdf.dart';
 import 'package:iomweb/widgets/alertdialog/delete.dart';
-import 'package:iomweb/widgets/alertdialog/edit.dart';
+import 'package:iomweb/widgets/alertdialog/update/edit.dart';
 import 'package:iomweb/widgets/alertdialog/log_error.dart';
 import 'package:iomweb/widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
@@ -708,7 +708,8 @@ Future<void> initConnection() async {
                                   await getDetailAgreementPayment();
                                 }
                               },
-                              payment: [payment[index]],
+                              data: [payment[index]],
+                              menu: 3,
                               server: widget.agreementdetail.last['server'],
                             );
                           },

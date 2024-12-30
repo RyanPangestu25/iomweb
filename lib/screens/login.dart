@@ -148,8 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#$%^&*()_+{}\[\]:;<>,.?~])';
               RegExp regExp = RegExp(pattern);
 
-              if (password == '123' ||
-                  (!regExp.hasMatch(password) && password.length < 11)) {
+              if (password == '123' || (!regExp.hasMatch(password) && password.length < 11)) {
                 if (mounted) {
                   Navigator.of(context).push(
                     MaterialPageRoute(

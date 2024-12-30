@@ -6,7 +6,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/alertdialog/delete.dart';
-import '../../widgets/alertdialog/edit.dart';
+import '../../widgets/alertdialog/update/edit.dart';
 import '../../backend/constants.dart';
 import '../../widgets/alertdialog/log_error.dart';
 import '../../widgets/loading.dart';
@@ -699,7 +699,8 @@ class _PaymentState extends State<Payment> {
                                   await getIOMPayment();
                                 }
                               },
-                              payment: [payment[index]],
+                              data: [payment[index]],
+                              menu: 1,
                               server: widget.iom.last['server'],
                             );
                           },

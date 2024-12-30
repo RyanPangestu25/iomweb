@@ -1,15 +1,15 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, prefer_adjacent_string_concatenation, deprecated_member_use, use_build_context_synchronously, must_be_immutable
 
 import 'package:flutter/material.dart';
-import '../../widgets/loading.dart';
+import '../../loading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
-import '../../backend/constants.dart';
-import '../../screens/iom/view_iom.dart';
-import 'log_error.dart';
-import 'try_again.dart';
+import '../../../backend/constants.dart';
+import '../../../screens/iom/view_iom.dart';
+import '../log_error.dart';
+import '../try_again.dart';
 
 class Confirmation extends StatefulWidget {
   final String text;

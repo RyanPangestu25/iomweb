@@ -11,10 +11,10 @@ import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
-import '../../backend/constants.dart';
-import '../loading.dart';
-import 'log_error.dart';
-import 'try_again.dart';
+import '../../../backend/constants.dart';
+import '../../loading.dart';
+import '../log_error.dart';
+import '../try_again.dart';
 
 class Edit extends StatefulWidget {
   final Function(bool) isUpdate;

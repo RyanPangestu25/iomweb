@@ -18,9 +18,39 @@ class LogError extends StatefulWidget {
 }
 
 class _LogErrorState extends State<LogError> {
+  String instruksi = '';
+  bool isShow = false;
+
+  String getInstruksi(String error) {
+    if (error.contains('Timeout')) {
+      return 'The connection timed out. Please check your internet and try again.';
+    } else if (error.contains('SocketException')) {
+      return 'No internet connection. Please check your networks.';
+    } else if (widget.statusCode != '') {
+      switch (widget.statusCode) {
+        case '400':
+          return "Bad request. Please check your input. Note: Don't use & @ < > : / ? * | ";
+        case '401':
+          return 'Unauthorized. Please contact IT.'; //Please log in again
+        case '403':
+          return 'Please contact IT.'; //You do not have permission to access this resource
+        case '404':
+          return 'Resource not found. Please contact IT.'; //Please check the URL
+        case '500':
+          return 'Server error. Please try again later or contact IT.';
+        default:
+          return 'Unexpected server error. Please try again later or contact IT.';
+      }
+    } else if (error.contains('XML')) {
+      return 'Invalid server response. Please contact IT.';
+    }
+    return 'An unexpected error occurred: ${error.toString()}';
+  }
+
   @override
   void initState() {
     super.initState();
+    instruksi = getInstruksi(widget.error);
   }
 
   @override
@@ -63,32 +93,6 @@ class _LogErrorState extends State<LogError> {
       actions: [
         TextButton(
           onPressed: () {
-            FlutterClipboard.copy(widget.error);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                showCloseIcon: false,
-                duration: Duration(seconds: 3),
-                behavior: SnackBarBehavior.floating,
-                padding: EdgeInsets.all(20),
-                elevation: 10,
-                content: Center(
-                  child: Text(
-                    'Error Messages copied!',
-                    textAlign: TextAlign.justify,
-                  ),
-                ),
-              ),
-            );
-          },
-          child: const Text(
-            "Copy",
-            style: TextStyle(
-              color: Colors.red,
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: () {
             Navigator.of(context).pop();
           },
           child: const Text(
@@ -98,9 +102,39 @@ class _LogErrorState extends State<LogError> {
             ),
           ),
         ),
+        TextButton(
+          onPressed: () {
+            FlutterClipboard.copy(widget.error);
+
+            if (mounted) {
+              try {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    showCloseIcon: false,
+                    duration: Duration(seconds: 3),
+                    behavior: SnackBarBehavior.floating,
+                    padding: EdgeInsets.all(20),
+                    elevation: 10,
+                    content: Center(
+                      child: Text(
+                        'Error Messages copied!',
+                        textAlign: TextAlign.justify,
+                      ),
+                    ),
+                  ),
+                );
+              } catch (e) {
+                rethrow;
+              }
+            }
+          },
+          child: const Text(
+            "Copy",
+          ),
+        ),
       ],
       content: SizedBox(
-        height: size.height * 0.12,
+        height: isShow ? size.height * 0.5 : size.height * 0.15,
         width: size.width * 0.7,
         child: SingleChildScrollView(
           clipBehavior: Clip.antiAlias,
@@ -110,9 +144,36 @@ class _LogErrorState extends State<LogError> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                widget.error,
+                instruksi,
                 textAlign: TextAlign.justify,
               ),
+              TextButton(
+                onPressed: () async {
+                  setState(() {
+                    isShow = !isShow;
+                  });
+                },
+                child: Text(
+                  !isShow ? 'Error Description' : 'Close',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    color: isShow ? Colors.red : null,
+                  ),
+                ),
+              ),
+              if (isShow)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Divider(thickness: 3),
+                    Text(
+                      widget.error,
+                      textAlign: TextAlign.justify,
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

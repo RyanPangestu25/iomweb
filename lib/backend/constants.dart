@@ -184,3 +184,25 @@ const url_VerificationPaymentAgreement =
 
 const url_CekSaldoAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoAgreement';
+const url_ApprovalAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ApprovalAgreement';
+const url_SendLogAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=SendLogAgreement';
+
+const url_CekAPBEmbarkAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbarkAgreement';
+
+const url_CreateAPB2 =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPB2';
+
+const url_CreateAPBAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CreateAPBAgreement';
+
+const url_UpdateAPBAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAPBAgreement';
+
+const url_CekAPBAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBAgreement';
+
+const url_ResetApprovalAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetApprovalAgreement';

@@ -7,8 +7,8 @@ import 'package:iomweb/backend/constants.dart';
 import 'package:iomweb/screens/mstagreement/attachment_mstagreement.dart';
 import 'package:iomweb/screens/mstagreement/payment_mstagreement.dart';
 import 'package:iomweb/widgets/alertdialog/log_error.dart';
+import 'package:iomweb/widgets/alertdialog/verification/verification_mstagreement.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:status_alert/status_alert.dart';
 import 'package:xml/xml.dart' as xml;
@@ -40,6 +40,7 @@ class _DetailMstAgreementState extends State<DetailMstAgreement> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   int item = 0;
+  String status = '';
 
   Future<void> getmstagreement() async {
     try {
@@ -1084,46 +1085,217 @@ class _DetailMstAgreementState extends State<DetailMstAgreement> {
                   ),
           ],
         ),
-        persistentFooterButtons: [
-          ElevatedButton(
-            onPressed: loading
-                ? null
-                : () async {
-                    if (double.parse(widget.data.last['amountDeposit']
-                            .replaceAll(',', '.')) ==
-                        0.00) {
-                      StatusAlert.show(
-                        context,
-                        duration: const Duration(seconds: 1),
-                        configuration: const IconConfiguration(
-                            icon: Icons.error, color: Colors.red),
-                      );
-                    } else {
-                      // await showDialog(
-                      //     context: context,
-                      //     builder: (BuildContext context) {
-                      //       return Verificationagreement(
-                      //         item: (value) {
-                      //           setState(() {
-                      //             item = value;
-                      //           });
-                      //         },
-                      //         data: widget.data,
-                      //         lastItem: item,
-                      //       );
-                      //     });
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-                fixedSize: Size(size.width * 1, size.height * 0.08),
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8))),
-            child: const Text('Verification'),
-          ),
-        ]);
+        persistentFooterButtons: widget.data.last['status']=='void'
+        ?[
+                Center(
+                  child: Text(
+                    widget.data.last['status'],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ]
+            : level == 12
+                ? (widget.data.last['status'] == 'VERIFIED PAYMENT' ||
+                            widget.data.last['status'] == 'APPROVED' ||
+                            widget.data.last['status'] == 'REJECTED') &&
+                        isBalance
+                    ? (widget.data.last['status'] == 'APPROVED' ||
+                                widget.data.last['status'] == 'REJECTED') &&
+                            !isBalance
+                        ? [
+                            Center(
+                              child: Text(
+                                widget.data.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.data.last['status'] ==
+                                          'VERIFIED PAYMENT'
+                                      ? Colors.blue
+                                      : widget.data.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ]
+                        : [
+                            Center(
+                              child: Text(
+                                widget.data.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.data.last['status'] ==
+                                          'VERIFIED PAYMENT'
+                                      ? Colors.blue
+                                      : widget.data.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ]
+                    : [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                fixedSize:
+                                    Size(size.width * 0.4, size.height * 0.08),
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: loading
+                                  ? null
+                                  : () async {
+                                      if (double.parse(widget.data.last['biaya']
+                                              .replaceAll(',', '.')) ==
+                                          0.00) {
+                                        StatusAlert.show(
+                                          context,
+                                          duration: const Duration(seconds: 1),
+                                          configuration:
+                                              const IconConfiguration(
+                                            icon: Icons.error,
+                                            color: Colors.red,
+                                          ),
+                                          title: "Verified Failed",
+                                          subtitle: "0 IOM Cost",
+                                          backgroundColor: Colors.grey[300],
+                                        );
+                                      } else {
+                                        await showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (BuildContext context) {
+                                            return VerificationMstagreement(
+                                              item: (value) {
+                                                setState(() {
+                                                  item = value;
+                                                });
+                                              },
+                                              data: widget.data,
+                                              lastItem: item,
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                              child: const Text('Verification'),
+                            ),
+                          ],
+                        )
+                      ]
+                : level == 10
+                    ? widget.data.last['status'] == 'APPROVED' //||
+                        // widget.iom.last['status'] == 'REJECTED' ||
+                        // widget.iom.last['status'] == 'NONE'
+                        ? [
+                            Center(
+                              child: Text(
+                                widget.data.last['status'],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: widget.data.last['status'] == 'APPROVED'
+                                      ? Colors.green
+                                      : widget.data.last['status'] == 'REJECTED'
+                                          ? Colors.red
+                                          : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ]
+                        : [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    fixedSize: Size(
+                                        size.width * 0.9, size.height * 0.08),
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: loading
+                                      ? null
+                                      : () async {
+                                          // setState(() {
+                                          //   status = 'APPROVE';
+                                          // });
+
+                                          // await showDialog(
+                                          //   context: context,
+                                          //   builder: (BuildContext context) {
+                                          //     List flightDate = [];
+
+                                          //     for (var data in jadwal) {
+                                          //       String tanggal =
+                                          //           data['tanggal'];
+                                          //       if (!flightDate
+                                          //           .contains(tanggal)) {
+                                          //         flightDate.add(tanggal);
+                                          //       }
+                                          //     }
+
+                                          //     return ApprovalAgreementDetail(
+                                          //       text: status,
+                                          //       agreementDetail: widget.data,
+                                          //       dataItem: jadwal,
+                                          //       flightDate: flightDate,
+                                          //     );
+                                          //   },
+                                          // );
+                                        },
+                                  child: const Text('Approval'),
+                                ),
+                              ],
+                            ),
+                          ]
+                    : [
+                        Center(
+                          child: Text(
+                            widget.data.last['status'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: widget.data.last['status'] == 'NONE'
+                                  ? Colors.black
+                                  : widget.data.last['status'] ==
+                                              'VERIFIED PAYMENT' ||
+                                          widget.data.last['status'] ==
+                                              'VERIFIED PENDING PAYMENT'
+                                      ? Colors.blue
+                                      : widget.data.last['status'] == 'APPROVED'
+                                          ? Colors.green
+                                          : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+        persistentFooterAlignment: AlignmentDirectional.center,
+        );
   }
+
+
+
+
+
+  
 }
 
 class TableData extends DataTableSource {
@@ -1151,7 +1323,7 @@ class TableData extends DataTableSource {
       color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
         // Even rows will have a grey color.
         if (index.isOdd) {
-          return Colors.grey.withValues(alpha: 0.3);
+          return Colors.grey;
         }
         return null; // Use default value for other states and odd rows.
       }),

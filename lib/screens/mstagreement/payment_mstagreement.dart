@@ -9,7 +9,7 @@ import 'package:iomweb/backend/constants.dart';
 import 'package:iomweb/screens/display/img.dart';
 import 'package:iomweb/screens/display/pdf.dart';
 import 'package:iomweb/widgets/alertdialog/delete.dart';
-import 'package:iomweb/widgets/alertdialog/edit.dart';
+import 'package:iomweb/widgets/alertdialog/update/edit.dart';
 import 'package:iomweb/widgets/alertdialog/log_error.dart';
 import 'package:iomweb/widgets/loading.dart';
 
@@ -698,7 +698,8 @@ class _PaymentMstAgreementState extends State<PaymentMstAgreement> {
                                           await getPaymentMSTAgreement();
                                         }
                                       },
-                                      payment: [payment[index]],
+                                      data: [payment[index]],
+                                      menu: 2,
                                       server: widget.data.last['server']);
                                 });
                           })),

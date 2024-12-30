@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:iomweb/backend/constants.dart';
 import 'package:iomweb/screens/agreementdetail.dart/attachmentagreement.dart';
 import 'package:iomweb/screens/agreementdetail.dart/paymentagreement.dart';
-import 'package:iomweb/widgets/alertdialog/confirmation.dart';
+import 'package:iomweb/widgets/alertdialog/approval/approval_iom.dart';
 import 'package:iomweb/widgets/alertdialog/log_error.dart';
 import 'package:iomweb/widgets/alertdialog/verification/verifiction_agreement.dart';
 import 'package:shared_preferences/shared_preferences.dart';

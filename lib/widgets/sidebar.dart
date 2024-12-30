@@ -10,6 +10,7 @@ import 'package:iomweb/screens/mstagreement/view_mstagreement.dart';
 import 'package:iomweb/widgets/alertdialog/donwload/donwloadagreementdetail.dart';
 import 'package:iomweb/widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../backend/constants.dart';
 import '../screens/change_pass.dart';
 import '../screens/home.dart';
@@ -56,6 +57,62 @@ class _SidebarState extends State<Sidebar> {
     textColor: Color.fromARGB(255, 5, 98, 173),
     children: [],
   );
+
+  Future<void> openIomUrl() async {
+    await genRandom();
+    Future.delayed(const Duration(seconds: 1), () async {
+      String baseUrl = 'https://lgapvfncacc.com/IOMCharterWeb/AgreementCharter';
+      String nik = data.last['nik'];
+      String tranKey = randomID;
+      String urlWithParameters = baseUrl +
+          '?NIK=' +
+          Uri.encodeComponent(nik) +
+          '&transkey=' +
+          Uri.encodeComponent(tranKey);
+
+      final Uri url = Uri.parse(urlWithParameters);
+      if (await canLaunchUrl(url)) {
+        launchUrl(url, mode: LaunchMode.inAppWebView);
+      } else {
+        if (mounted) {
+          StatusAlert.show(context,
+              title: "Error While Opening $baseUrl",
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              backgroundColor: Colors.grey);
+        }
+      }
+    });
+  }
+
+  Future<void> openCreateIomUrl() async {
+    await genRandom();
+    Future.delayed(const Duration(seconds: 1), () async {
+      String baseUrl = 'https://lgapvfncacc.com/IOMCharterWeb/CreateIOM/';
+      String nik = data.last['nik'];
+      String tranKey = randomID;
+      String urlWithParameters = baseUrl +
+          '?NIK=' +
+          Uri.encodeComponent(nik) +
+          '&transkey=' +
+          Uri.encodeComponent(tranKey);
+
+      final Uri url = Uri.parse(urlWithParameters);
+      if (await canLaunchUrl(url)) {
+        launchUrl(url, mode: LaunchMode.inAppWebView);
+      } else {
+        if (mounted) {
+          StatusAlert.show(context,
+              title: "Error While Opening $baseUrl",
+              duration: const Duration(seconds: 1),
+              configuration:
+                  const IconConfiguration(icon: Icons.error, color: Colors.red),
+              backgroundColor: Colors.grey);
+        }
+      }
+    });
+  }
 
   Future<void> genRandom() async {
     int random = Random().nextInt(4294967296);
@@ -645,88 +702,35 @@ class _SidebarState extends State<Sidebar> {
           leading: const Icon(Icons.receipt),
           textColor: const Color.fromARGB(255, 5, 98, 173),
           children: [
-            // if (data.last['nik'] == '56000031')
-            //   ListTile(
-            //     iconColor: Colors.white70,
-            //     textColor: Colors.white70,
-            //     leading: const Icon(Icons.circle_outlined),
-            //     title: const Text("IOM Agreement"),
-            //     onTap: () async {
-            //       await genRandom();
-
-            //       Future.delayed(const Duration(seconds: 1), () async {
-            //         String baseUrl =
-            //             'https://lgapvfncacc.com/IOMCharterWeb/AgreementCharter/';
-            //         String nik = data.last['nik'];
-            //         String tranKey = randomID;
-
-            //         String urlWithParameters = baseUrl +
-            //             '?NIK=' +
-            //             Uri.encodeComponent(nik) +
-            //             '&TranKey=' +
-            //             Uri.encodeComponent(tranKey);
-
-            //         if (await canLaunch(urlWithParameters)) {
-            //           await launch(urlWithParameters,
-            //               webOnlyWindowName: '_self');
-            //         } else {
-            //           StatusAlert.show(
-            //             context,
-            //             duration: const Duration(seconds: 1),
-            //             configuration: const IconConfiguration(
-            //               icon: Icons.error,
-            //               color: Colors.red,
-            //             ),
-            //             title: "Error while opening URL",
-            //             backgroundColor: Colors.grey[300],
-            //           );
-
-            //           throw 'Error while opening $urlWithParameters';
-            //         }
-            //       });
-            //     },
-            //   ),
-            // if (data.last['nik'] == '56000031')
-            //   ListTile(
-            //     iconColor: Colors.white70,
-            //     textColor: Colors.white70,
-            //     leading: const Icon(Icons.circle_outlined),
-            //     title: const Text("Internal Memo Office IOM"),
-            //     onTap: () async {
-            //       await genRandom();
-
-            //       Future.delayed(const Duration(seconds: 1), () async {
-            //         String baseUrl =
-            //             'https://lgapvfncacc.com/IOMCharterWeb/CreateIOM/';
-            //         String nik = data.last['nik'];
-            //         String tranKey = randomID;
-
-            //         String urlWithParameters = baseUrl +
-            //             '?NIK=' +
-            //             Uri.encodeComponent(nik) +
-            //             '&TranKey=' +
-            //             Uri.encodeComponent(tranKey);
-
-            //         if (await canLaunch(urlWithParameters)) {
-            //           await launch(urlWithParameters,
-            //               webOnlyWindowName: '_self');
-            //         } else {
-            //           StatusAlert.show(
-            //             context,
-            //             duration: const Duration(seconds: 1),
-            //             configuration: const IconConfiguration(
-            //               icon: Icons.error,
-            //               color: Colors.red,
-            //             ),
-            //             title: "Error while opening URL",
-            //             backgroundColor: Colors.grey[300],
-            //           );
-
-            //           throw 'Error while opening $urlWithParameters';
-            //         }
-            //       });
-            //     },
-            //   ),
+            if (data.last['nik'] == '56000031')
+              ListTile(
+                iconColor: Colors.white70,
+                textColor: Colors.white70,
+                leading: const Icon(Icons.circle_outlined),
+                title: const Text("IOM Agreement"),
+                onTap: loading
+                    ? null
+                    : () async {
+                        if ((data.last['nik'] == '56000031')) {
+                          openIomUrl();
+                        }
+                      },
+              ),
+            if (data.last['nik'] == '56000031')
+              ListTile(
+                iconColor: Colors.white70,
+                textColor: Colors.white70,
+                leading: const Icon(Icons.circle_outlined),
+                title: const Text("Internal Memo Office IOM"),
+                onTap: () async {
+                  setState(() {
+                    loading = true;
+                  });
+                  if (data.last['nik'] == '56000031') {
+                    openCreateIomUrl();
+                  }
+                },
+              ),
             ListTile(
               iconColor: Colors.white70,
               textColor: Colors.white70,
@@ -808,14 +812,13 @@ class _SidebarState extends State<Sidebar> {
                   leading: const Icon(Icons.circle_outlined),
                   title: const Text("Verification"),
                   onTap: () async {
-                     Navigator.of(context).push(
-                  MaterialPageRoute(builder: (BuildContext context) {
-                    return const ViewMstagreement(
-                      title: 'Master Verification',
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (BuildContext context) {
+                        return const ViewMstagreement(
+                          title: 'Master Verification',
+                        );
+                      }),
                     );
-                  }),
-                );
-                    
                   },
                 ),
                 ListTile(
@@ -993,6 +996,124 @@ class _SidebarState extends State<Sidebar> {
             ),
           ],
         );
+      });
+    } else if (data.last['level'] == 19) {
+      setState(() {
+        expan = ExpansionTile(
+            collapsedIconColor: Colors.white,
+            collapsedTextColor: Colors.white,
+            title: const Text(
+              "Menu",
+            ),
+            leading: const Icon(Icons.receipt),
+            textColor: const Color.fromARGB(255, 5, 98, 173),
+            children: [
+              if (data.last['nik'] == '231464')
+                ListTile(
+                  iconColor: Colors.white70,
+                  textColor: Colors.white70,
+                  leading: const Icon(Icons.circle_outlined),
+                  title: const Text("IOM Agreement"),
+                  onTap: () async {
+                    setState(() {
+                      loading = true;
+                    });
+
+                    if (data.last['nik'] == '231464') {
+                      openIomUrl();
+                    }
+                  },
+                ),
+              ListTile(
+                iconColor: Colors.white70,
+                textColor: Colors.white70,
+                leading: const Icon(Icons.circle_outlined),
+                title: const Text("Internal Memo Office IOM"),
+                onTap: () async {
+                  setState(() {
+                    loading = true;
+                  });
+                  if (data.last['nik'] == '231464') {
+                    openCreateIomUrl();
+                  }
+                },
+              ),
+              ListTile(
+                iconColor: Colors.white70,
+                textColor: Colors.white70,
+                leading: const Icon(Icons.circle_outlined),
+                title: const Text("View IOM"),
+                onTap: () async {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (BuildContext context) {
+                      return const ViewIOM(
+                        title: 'View IOM',
+                      );
+                    }),
+                  );
+                },
+              ),
+            ]);
+        expanAgree = ExpansionTile(
+            collapsedIconColor: Colors.white,
+            collapsedTextColor: Colors.white,
+            title: const Text(
+              "Agreement",
+            ),
+            leading: const Icon(Icons.receipt),
+            textColor: const Color.fromARGB(255, 5, 98, 173),
+            children: [
+              ExpansionTile(
+                collapsedIconColor: Colors.white,
+                collapsedTextColor: Colors.white,
+                title: const Text(
+                  "Master Agreement",
+                ),
+                textColor: const Color.fromARGB(255, 5, 98, 173),
+                children: [
+                  ListTile(
+                    iconColor: Colors.white70,
+                    textColor: Colors.white70,
+                    leading: const Icon(Icons.circle_outlined),
+                    title: const Text("Approval"),
+                    onTap: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (BuildContext context) {
+                          return const ViewMstagreement(
+                            title: 'Master Approval',
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              ExpansionTile(
+                collapsedIconColor: Colors.white,
+                collapsedTextColor: Colors.white,
+                title: const Text(
+                  "Agreement Detail",
+                ),
+                textColor: const Color.fromARGB(255, 5, 98, 173),
+                children: [
+                  ListTile(
+                    iconColor: Colors.white70,
+                    textColor: Colors.white70,
+                    leading: const Icon(Icons.circle_outlined),
+                    title: const Text("Agreement Approval"),
+                    onTap: () async {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (BuildContext context) {
+                          return const ViewAgreementDetail(
+                            title: 'Agreement Approval',
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ]);
       });
     } else {
       setState(() {
