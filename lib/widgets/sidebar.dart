@@ -8,6 +8,7 @@ import 'package:iomweb/screens/agreementdetail.dart/view_agreementdetail.dart';
 import 'package:iomweb/screens/iom/view_iom.dart';
 import 'package:iomweb/screens/mstagreement/view_mstagreement.dart';
 import 'package:iomweb/widgets/alertdialog/donwload/donwloadagreementdetail.dart';
+import 'package:iomweb/widgets/alertdialog/donwload/donwloadmaster.dart';
 import 'package:iomweb/widgets/loading.dart';
 import 'package:status_alert/status_alert.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -226,7 +227,7 @@ class _SidebarState extends State<Sidebar> {
     }
   }
 
-  Future<void> getReportOverdue() async {
+  Future<void> getReportOverdueIom() async {
     try {
       setState(() {
         loading = true;
@@ -479,6 +480,260 @@ class _SidebarState extends State<Sidebar> {
       }
     }
   }
+  Future<void> getReportOverdueAgreement() async {
+    try {
+      setState(() {
+        loading = true;
+      });
+
+      const String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
+          '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
+          '<soap:Body>' +
+          '<GetReportOverdueAgreement xmlns="http://tempuri.org/" />' +
+          '</soap:Body>' +
+          '</soap:Envelope>';
+
+      final response = await http.post(Uri.parse(url_GetReportOverdue),
+          headers: <String, String>{
+            "Access-Control-Allow-Origin": "*",
+            'SOAPAction': 'http://tempuri.org/GetReportOverdueAgreement',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-type': 'text/xml; charset=utf-8'
+          },
+          body: soapEnvelope);
+
+      if (response.statusCode == 200) {
+        final document = xml.XmlDocument.parse(response.body);
+
+        final listResultAll = document.findAllElements('Table');
+
+        for (int index = 0; index < listResultAll.length; index++) {
+          final listResult = listResultAll.toList()[index];
+
+          final statusData = listResult.findElements('StatusData').isEmpty
+              ? 'No Data'
+              : listResult.findElements('StatusData').first.innerText;
+
+          if (statusData == "GAGAL") {
+            Future.delayed(const Duration(seconds: 1), () {
+              StatusAlert.show(
+                context,
+                duration: const Duration(seconds: 1),
+                configuration: const IconConfiguration(
+                    icon: Icons.error, color: Colors.red),
+                title: "No Data",
+                backgroundColor: Colors.grey[300],
+              );
+              if (mounted) {
+                setState(() {
+                  loading = false;
+                });
+              }
+            });
+          } else {
+            final noAgreementDetail = listResult.findElements('NoAgreementDetail').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NoAgreementDetail').first.innerText;
+            final tglAgreement = listResult.findElements('TglAgreement').isEmpty
+                ? 'No Data'
+                : listResult.findElements('TglAgreement').first.innerText;
+            final dari = listResult.findElements('Dari').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Dari').first.innerText;
+            final kepadaYth = listResult.findElements('KepadaYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('KepadaYth').first.innerText;
+            final ccYth = listResult.findElements('CCYth').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CCYth').first.innerText;
+            final perihal = listResult.findElements('Perihal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Perihal').first.innerText;
+            final currency = listResult.findElements('Currency').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Currency').first.innerText;
+            final biayaCharter = listResult.findElements('BiayaCharter').isEmpty
+                ? '0'
+                : listResult.findElements('BiayaCharter').first.innerText;
+            final createdDate = listResult.findElements('CreatedDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedDate').first.innerText;
+            final createdBy = listResult.findElements('CreatedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('CreatedBy').first.innerText;
+            final namaResmi = listResult.findElements('NamaResmi').isEmpty
+                ? 'No Data'
+                : listResult.findElements('NamaResmi').first.innerText;
+            final description = listResult.findElements('Description').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Description').first.innerText;
+            final item = listResult.findElements('Item').isEmpty
+                ? '0'
+                : listResult.findElements('Item').first.innerText;
+            final tanggal = listResult.findElements('Tanggal').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Tanggal').first.innerText;
+            final rute = listResult.findElements('Rute').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Rute').first.innerText;
+            final amount = listResult.findElements('Amount').isEmpty
+                ? '0'
+                : listResult.findElements('Amount').first.innerText;
+            final tglVerifikasi =
+                listResult.findElements('Tgl_Verifikasi').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('Tgl_Verifikasi').first.innerText;
+            final verifiedBy = listResult.findElements('VerifiedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('VerifiedBy').first.innerText;
+            final payNo = listResult.findElements('PayNo').isEmpty
+                ? '0'
+                : listResult.findElements('PayNo').first.innerText;
+            final currPembayaran =
+                listResult.findElements('CurrPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult.findElements('CurrPembayaran').first.innerText;
+            final amountPembayaran = listResult
+                    .findElements('AmountPembayaran')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('AmountPembayaran').first.innerText;
+            final namaBankPenerima = listResult
+                    .findElements('NamaBankPenerima')
+                    .isEmpty
+                ? 'No Data'
+                : listResult.findElements('NamaBankPenerima').first.innerText;
+            final tglTerimapembayaran =
+                listResult.findElements('Tgl_TerimaPembayaran').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_TerimaPembayaran')
+                        .first
+                        .innerText;
+            final tglKonfirmasiDireksi =
+                listResult.findElements('Tgl_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Tgl_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final confirmedBy = listResult.findElements('ConfirmedBy').isEmpty
+                ? 'No Data'
+                : listResult.findElements('ConfirmedBy').first.innerText;
+            final statusKonfirmasiDireksi =
+                listResult.findElements('Status_konfirmasi_direksi').isEmpty
+                    ? 'No Data'
+                    : listResult
+                        .findElements('Status_konfirmasi_direksi')
+                        .first
+                        .innerText;
+            final logNo = listResult.findElements('LogNo').isEmpty
+                ? '0'
+                : listResult.findElements('LogNo').first.innerText;
+            final userInsert = listResult.findElements('UserInsert').isEmpty
+                ? 'No Data'
+                : listResult.findElements('UserInsert').first.innerText;
+            final insertDate = listResult.findElements('InsertDate').isEmpty
+                ? 'No Data'
+                : listResult.findElements('InsertDate').first.innerText;
+            final status = listResult.findElements('Status').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Status').first.innerText;
+            final server = listResult.findElements('Server').isEmpty
+                ? 'No Data'
+                : listResult.findElements('Server').first.innerText;
+
+            setState(() {
+              if (!report.any((e) => e['no'] == index + 1)) {
+                report.add({
+                  'no': index,
+                  'server': server,
+                  'noAgreementDetail': noAgreementDetail,
+                  'tglAgreement': tglAgreement,
+                  'dari': dari,
+                  'kepadaYTH': kepadaYth,
+                  'ccYTH': ccYth,
+                  'perihal': perihal,
+                  'curr': currency,
+                  'biayaCharter': biayaCharter,
+                  'createdDate': createdDate,
+                  'createdBy': createdBy,
+                  'namaResmi': namaResmi,
+                  'desc': description,
+                  'item': item,
+                  'tanggal': tanggal,
+                  'rute': rute,
+                  'amount': amount,
+                  'tglVerifikasi': tglVerifikasi,
+                  'verifiedBy': verifiedBy,
+                  'payNo': payNo,
+                  'currPembayaran': currPembayaran,
+                  'amountPembayaran': amountPembayaran,
+                  'namaBankPenerima': namaBankPenerima,
+                  'tglTerimaPembayaran': tglTerimapembayaran,
+                  'tglKonfirmasiDireksi': tglKonfirmasiDireksi,
+                  'confirmedBy': confirmedBy,
+                  'statusKonfirmasiDireksi': statusKonfirmasiDireksi,
+                  'logNo': logNo,
+                  'userInsert': userInsert,
+                  'insertDate': insertDate,
+                  'status': status,
+                });
+              }
+            });
+
+            //debugprint(jsonEncode(report));
+          }
+        }
+
+        Future.delayed(const Duration(seconds: 1), () async {
+          if (report.isNotEmpty) {
+            await downReport();
+          }
+        });
+      } else {
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
+
+        if (mounted) {
+          await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return LogError(
+                  statusCode: response.statusCode.toString(),
+                  fail: 'Error Get Overdue Report',
+                  error: response.body.toString(),
+                );
+              });
+
+          setState(() {
+            loading = false;
+          });
+        }
+      }
+    } catch (e) {
+      //debugprint('$e');
+
+      if (mounted) {
+        await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return LogError(
+                statusCode: '',
+                fail: 'Error Get Overdue Report',
+                error: e.toString(),
+              );
+            });
+
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
 
   Future<void> downReport() async {
     try {
@@ -689,6 +944,216 @@ class _SidebarState extends State<Sidebar> {
       }
     }
   }
+  Future<void> downReportAgreementDetail() async {
+    try {
+      var excel = Excel.createExcel();
+      var sheet = excel['Agreement'];
+      var sheet1 = excel['DetailAgreement'];
+      sheet.appendRow([
+        'Company',
+        'NoAgreementDetail',
+        'TglAgreement',
+        'Curr',
+        'BiayaCharter',
+        'TglCreate',
+        'UserCreate',
+        'Username',
+        'NamaPencharter',
+        'TglVerifikasi',
+        'UserVerifikasi',
+        'TglApproval',
+        'UserApproval',
+        'StatusApproval',
+      ]);
+      sheet1.appendRow([
+        'Company',
+        'NoAgreementDetail',
+        'TglAgreement',
+        'Dari',
+        'KepadaYTH',
+        'CCYTH',
+        'Perihal',
+        'Curr',
+        'BiayaCharter',
+        'TglCreate',
+        'UserCreate',
+        'Username',
+        'NamaPencharter',
+        'Item',
+        'Tanggal',
+        'Rute',
+        'Currency',
+        'Nilaipersegment',
+        'TglVerifikasi',
+        'UserVerifikasi',
+        'PayNo',
+        'CurrPaymentVerifikasi',
+        'NilaiPaymentVerifikasi',
+        'BankPaymentVerifikasi',
+        'TglPaymentVerifikasi',
+        'TglApproval',
+        'UserApproval',
+        'StatusApproval',
+        'LogNo',
+        'UserInsert',
+        'InsertDate',
+        'Status',
+      ]);
+      sheet.appendRow(List.generate(13, (index) => '================'));
+      sheet1.appendRow(List.generate(31, (index) => '================'));
+      for (var data in report) {
+        sheet.appendRow([
+          data['server'],
+          data['noAgreementDetail'],
+          data['tglAgreement'] == 'No Data'
+              ? data['tglAgreement']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglAgreement']).toLocal()),
+          data['curr'],
+          data['biayaCharter'],
+          data['createdDate'] == 'No Data'
+              ? data['createdDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['createdDate']).toLocal()),
+          data['createdBy'],
+          data['namaResmi'],
+          data['desc'],
+          data['tglVerifikasi'] == 'No Data'
+              ? data['tglVerifikasi']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
+          data['verifiedBy'],
+          data['tglKonfirmasiDireksi'] == 'No Data'
+              ? data['tglKonfirmasiDireksi']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
+          data['confirmedBy'],
+          data['statusKonfirmasiDireksi'],
+        ]);
+        sheet1.appendRow([
+          data['server'],
+          data['noIOM'],
+          data['tglIom'] == 'No Data'
+              ? data['tglIom']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglIom']).toLocal()),
+          data['dari'],
+          data['kepadaYTH'],
+          data['ccYTH'],
+          data['perihal'],
+          data['curr'],
+          data['biayaCharter'],
+          data['createdDate'] == 'No Data'
+              ? data['createdDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['createdDate']).toLocal()),
+          data['createdBy'],
+          data['namaResmi'],
+          data['desc'],
+          data['item'],
+          data['tanggal'] == 'No Data'
+              ? data['tanggal']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tanggal']).toLocal()),
+          data['rute'],
+          data['curr'],
+          data['amount'],
+          data['tglVerifikasi'] == 'No Data'
+              ? data['tglVerifikasi']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['tglVerifikasi']).toLocal()),
+          data['verifiedBy'],
+          data['payNo'],
+          data['currPembayaran'],
+          data['amountPembayaran'],
+          data['namaBankPenerima'],
+          data['tglTerimaPembayaran'] == 'No Data'
+              ? data['tglTerimaPembayaran']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglTerimaPembayaran']).toLocal()),
+          data['tglKonfirmasiDireksi'] == 'No Data'
+              ? data['tglKonfirmasiDireksi']
+              : DateFormat('dd-MMM-yyyy').format(
+                  DateTime.parse(data['tglKonfirmasiDireksi']).toLocal()),
+          data['confirmedBy'],
+          data['statusKonfirmasiDireksi'],
+          data['logNo'],
+          data['userInsert'],
+          data['insertDate'] == 'No Data'
+              ? data['insertDate']
+              : DateFormat('dd-MMM-yyyy')
+                  .format(DateTime.parse(data['insertDate']).toLocal()),
+          data['status'],
+        ]);
+      }
+
+      String fileName =
+          'OVERDUEIOMTo${DateFormat('ddMMyy').format(DateTime.now().toLocal())}';
+
+      //Simpan data byte ke file excel
+      excel.save(fileName: '$fileName.xlsx');
+
+      setState(() {
+        isSave = true;
+      });
+
+      if (isSave) {
+        StatusAlert.show(
+            context,
+            dismissOnBackgroundTap: true,
+            duration: const Duration(seconds: 10),
+            configuration: const IconConfiguration(
+              icon: Icons.done,
+              color: Colors.green,
+            ),
+            title: "Success",
+            subtitle: "File has been saved at:\n$fileName",
+            subtitleOptions: StatusAlertTextConfiguration(
+              overflow: TextOverflow.visible,
+            ),
+            maxWidth: 300.0,
+            backgroundColor: Colors.white,
+          );
+      }
+
+      Future.delayed(const Duration(seconds: 1), () async {
+        if (mounted) {
+          setState(() {
+            loading = false;
+          });
+        }
+
+        Navigator.of(context).pop();
+      });
+
+      Future.delayed(const Duration(seconds: 3), () async {
+        if (mounted) {
+          setState(() {
+            isSave = false;
+          });
+        }
+      });
+    } catch (e) {
+      //debugprint('$e');
+      StatusAlert.show(
+        context,
+        duration: const Duration(seconds: 2),
+        configuration:
+            const IconConfiguration(icon: Icons.error, color: Colors.red),
+        title: "Error Download Overdue Report",
+        subtitle: "$e",
+        titleOptions: StatusAlertTextConfiguration(
+          overflow: TextOverflow.visible,
+        ),
+        backgroundColor: Colors.grey[300],
+      );
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
 
   Future<void> cekLevel() async {
     if (data.last['level'] == '12') {
@@ -784,7 +1249,7 @@ class _SidebarState extends State<Sidebar> {
                   loading = true;
                 });
 
-                await getReportOverdue();
+                await getReportOverdueIom();
               },
             ),
           ],
@@ -827,13 +1292,13 @@ class _SidebarState extends State<Sidebar> {
                   leading: const Icon(Icons.circle_outlined),
                   title: const Text("Download Report"),
                   onTap: () async {
-                    // await showDialog(
-                    //   context: context,
-                    //   barrierDismissible: false,
-                    //   builder: (BuildContext context) {
-                    //     return const DonwloadMstAgreement();
-                    //   },
-                    // );
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return DonwloadMaster();
+                      },
+                    );
                   },
                 ),
                 ListTile(

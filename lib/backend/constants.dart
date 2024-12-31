@@ -84,6 +84,9 @@ const url_CreateAPB =
 const url_GetReport =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReport';
 
+const url_GetReportMstAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportMstAgreement';
+
 const url_GetReportAll =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetReportAll';
 
@@ -206,3 +209,6 @@ const url_CekAPBAgreement =
 
 const url_ResetApprovalAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetApprovalAgreement';
+
+
+
