@@ -473,7 +473,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Failed Verification',
+                  fail: 'Failed VerificationAgreement',
                   error: response.body.toString(),
                 );
               });
@@ -493,7 +493,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Failed Verification',
+                fail: 'Failed VerificationAgreement',
                 error: e.toString(),
               );
             });
