@@ -51,7 +51,7 @@ Future<void> approvalAgreementDetail() async {
         '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
         '<soap:Body>' +
         '<ApprovalAgreement xmlns="http://tempuri.org/">' +
-        '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+        '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementdetail']}</NoAgreementDetail>' +
         '<Status_konfirmasi_direksi>$status</Status_konfirmasi_direksi>' +
         '<server>${widget.agreementDetail.last['server']}</server>' +
         '<ConfirmedBy>$userName</ConfirmedBy>' +
@@ -178,7 +178,7 @@ Future<void> sendLogAgreement() async {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<SendLogAgreement xmlns="http://tempuri.org/">' +
-          '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<UserInsert>$userName</UserInsert>' +
           '<Status>$status</Status>' +
           '<Device>Android</Device>' +
@@ -596,7 +596,7 @@ Future<void> cekAPBEmbarkAgreement() async {
             '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
             '<soap:Body>' +
             '<CreateAPBAgreement xmlns="http://tempuri.org/">' +
-            '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementDetail']}<NoAgreementDetail>' +
+            '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementdetail']}<NoAgreementDetail>' +
             '<FlightNumber>${widget.dataItem[noAPBAgreement[index]]['flightNumber']}</FlightNumber>' +
             '<FlightDate>${DateTime.parse(widget.dataItem[noAPBAgreement[index]]['tanggal']).toLocal().toIso8601String()}</FlightDate>' +
             '<Airlines>${widget.dataItem[noAPBAgreement[index]]['airlineCode']}</Airlines>' +
@@ -746,7 +746,7 @@ Future<void> updateApBAgreement() async {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<UpdateAPBAgreement xmlns="http://tempuri.org/">' +
-          '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementDetail']}</NoAgreement>' +
+          '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementdetail']}</NoAgreementDetails>' +
           // '<Amount>$amount</Amount>' +
           '<server>${widget.agreementDetail.last['server']}</server>' +
           '</UpdateAPBAgreement>' +
@@ -870,7 +870,7 @@ Future<void> sendtoIssued() async {
             '<soap:Body>' +
             '<SendToIssued xmlns="http://tempuri.org/">' +
             '<PASSEKEY>9B364012-2B8D-4522-92C6-AB1B172084EC</PASSEKEY>' +
-            '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+            '<NoAgreementDetail>${widget.agreementDetail.last['noAgreementdetail']}</NoAgreementDetail>' +
             '<AIRLINES>${widget.dataItem.last['airlineCode']}</AIRLINES>' +
             '<FLIGHTDATE>${DateTime.parse(widget.flightDate[index].toString()).toLocal().toIso8601String()}</FLIGHTDATE>' +
             '</SendToIssued>' +

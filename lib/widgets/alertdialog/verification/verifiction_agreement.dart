@@ -374,7 +374,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
           '<soap:Body>' +
           '<VerificationAgreement xmlns="http://tempuri.org/">' +
           '<isPayment>$isPayment</isPayment>' +
-          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementdetail>' +
           '<server>${widget.agreementdetail.last['server']}</server>' +
           '<VerifiedBy>$userName</VerifiedBy>' +
           '</VerificationAgreement>' +
@@ -394,9 +394,9 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('VerificationResult').isEmpty
+            document.findAllElements('VerificationAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('VerificationResult').first.text;
+                : document.findAllElements('VerificationAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -405,7 +405,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Verification",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -518,7 +518,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<VerificationPaymentAgreement xmlns="http://tempuri.org/">' +
-          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
@@ -542,10 +542,10 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData = document
-                .findAllElements('VerificationPaymentResult')
+                .findAllElements('VerificationPaymentAgreementResult')
                 .isEmpty
             ? 'GAGAL'
-            : document.findAllElements('VerificationPaymentResult').first.text;
+            : document.findAllElements('VerificationPaymentAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -554,7 +554,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Payment",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -627,7 +627,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<VerificationAttachAgreement xmlns="http://tempuri.org/">' +
-          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
@@ -652,10 +652,10 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData = document
-                .findAllElements('VerificationAttachResult')
+                .findAllElements('VerificationAttachAgreementResult')
                 .isEmpty
             ? 'GAGAL'
-            : document.findAllElements('VerificationAttachResult').first.text;
+            : document.findAllElements('VerificationAttachAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -664,7 +664,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Attachment",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -781,7 +781,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
           '<CekSaldoAgreement  xmlns="http://tempuri.org/">' +
-          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementDetail']}</NoAgreementDetail>' +
+          '<NoAgreementDetail>${widget.agreementdetail.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<server>${widget.agreementdetail.last['server']}</server>' +
           '</CekSaldoAgreement>' +
           '</soap:Body>' +
@@ -877,7 +877,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewIOM(
-                        title: 'Agreement IOM',
+                        title: 'View Agreement',
                       );
                     },
                   ));
@@ -917,7 +917,7 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Check IOM Balance',
+                fail: 'Error Check Agreement Balance',
                 error: e.toString(),
               );
             });
@@ -1409,6 +1409,20 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
                 ),
               ),
               actions: [
+                
+                TextButton(
+                  onPressed: loading
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  child: Text(
+                    "Close",
+                    style: TextStyle(
+                      color: loading ? null : Colors.red,
+                    ),
+                  ),
+                ),
                 TextButton(
                   onPressed: loading
                       ? null
@@ -1447,19 +1461,6 @@ class _VerificationAgreementState extends State<VerificationAgreement> {
                     "Verification",
                     style: TextStyle(
                       color: loading ? null : Colors.green,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: loading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  child: Text(
-                    "Close",
-                    style: TextStyle(
-                      color: loading ? null : Colors.red,
                     ),
                   ),
                 ),

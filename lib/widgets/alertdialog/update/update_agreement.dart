@@ -16,12 +16,12 @@ import '../../loading.dart';
 import '../log_error.dart';
 import '../try_again.dart';
 
-class Edit extends StatefulWidget {
+class EditAgreementDetail extends StatefulWidget {
   final Function(bool) isUpdate;
   final List editItem;
   final String server;
 
-  const Edit({
+  const EditAgreementDetail({
     super.key,
     required this.isUpdate,
     required this.editItem,
@@ -29,10 +29,10 @@ class Edit extends StatefulWidget {
   });
 
   @override
-  State<Edit> createState() => _EditState();
+  State<EditAgreementDetail> createState() => _EditAgreementDetailState();
 }
 
-class _EditState extends State<Edit> {
+class _EditAgreementDetailState extends State<EditAgreementDetail> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
@@ -345,7 +345,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> updatePayment() async {
+  Future<void> updatePaymentAgreement() async {
     try {
       setState(() {
         loading = true;
@@ -357,22 +357,22 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<UpdatePayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<UpdatePaymentAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.editItem.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.server}</server>' +
-          '</UpdatePayment>' +
+          '</UpdatePaymentAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_UpdatePayment),
+      final response = await http.post(Uri.parse(url_UpdatePaymentAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/UpdatePayment',
+            'SOAPAction': 'http://tempuri.org/UpdatePaymentAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -382,9 +382,9 @@ class _EditState extends State<Edit> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('UpdatePaymentResult').isEmpty
+            document.findAllElements('UpdatePaymentAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('UpdatePaymentResult').first.text;
+                : document.findAllElements('UpdatePaymentAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -411,7 +411,7 @@ class _EditState extends State<Edit> {
             }
 
             if (isNew) {
-              await updateAtt();
+              await updateAttAgreement();
             } else {
               StatusAlert.show(
                 context,
@@ -429,8 +429,8 @@ class _EditState extends State<Edit> {
           });
         }
       } else {
-        //debugPrint('Error: ${response.statusCode}');
-        //debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -450,7 +450,7 @@ class _EditState extends State<Edit> {
         }
       }
     } catch (e) {
-      //debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -471,7 +471,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> updateAtt() async {
+  Future<void> updateAttAgreement() async {
     try {
       setState(() {
         loading = true;
@@ -480,8 +480,8 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<UpdateAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<UpdateAttachAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.editItem.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
@@ -489,14 +489,14 @@ class _EditState extends State<Edit> {
           '<Ext>$fileExt</Ext>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<server>${widget.editItem.last['server']}</server>' +
-          '</UpdateAttach>' +
+          '</UpdateAttachAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_UpdateAttach),
+      final response = await http.post(Uri.parse(url_UpdateAttachmentAgreement),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/UpdateAttach',
+            'SOAPAction': 'http://tempuri.org/UpdateAttachAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -506,9 +506,9 @@ class _EditState extends State<Edit> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('UpdateAttachResult').isEmpty
+            document.findAllElements('UpdateAttachAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('UpdateAttachResult').first.text;
+                : document.findAllElements('UpdateAttachAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -560,7 +560,7 @@ class _EditState extends State<Edit> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await updateAtt();
+                      await updateAttAgreement();
                     }
                   },
                 );
@@ -593,7 +593,7 @@ class _EditState extends State<Edit> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await updateAtt();
+                    await updateAttAgreement();
                   }
                 },
               );
@@ -617,7 +617,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> getIOMAttachment() async {
+  Future<void> getAgreementAttachment() async {
     try {
       setState(() {
         loading = true;
@@ -626,19 +626,19 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMAttachment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<GetAgreementAttachment xmlns="http://tempuri.org/">' +
+          '<NoAgreementDetail>${widget.editItem.last['noAgreementdetail']}</NoAgreementDetail>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<attachmentType>BUKTI TERIMA PEMBAYARAN</attachmentType>' +
           '<server>${widget.server}</server>' +
-          '</GetIOMAttachment>' +
+          '</GetAgreementAttachment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMAttachment),
+      final response = await http.post(Uri.parse(url_GetAgreementAttachment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMAttachment',
+            'SOAPAction': 'http://tempuri.org/GetAgreementAttachment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -671,9 +671,9 @@ class _EditState extends State<Edit> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreementDetail = listResult.findElements('NoAgreementDetail').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+                : listResult.findElements('NoAgreementDetail').first.text;
             final filename = listResult.findElements('Filename').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Filename').first.text;
@@ -690,7 +690,7 @@ class _EditState extends State<Edit> {
 
             setState(() {
               attFile.add({
-                'noIOM': noIOM,
+                'noAgreementDetail': noAgreementDetail,
                 'filename': filename,
                 'pdf': pdfFile,
                 'ext': ext,
@@ -723,7 +723,7 @@ class _EditState extends State<Edit> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get IOM Attachment',
+                  fail: 'Error Get Agreement Attachment',
                   error: response.body.toString(),
                 );
               });
@@ -743,7 +743,7 @@ class _EditState extends State<Edit> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get IOM Attachment',
+                fail: 'Error Get Agreement Attachment',
                 error: e.toString(),
               );
             });
@@ -797,7 +797,7 @@ class _EditState extends State<Edit> {
       await getBank();
       await getCurr();
       await getUser();
-      await getIOMAttachment();
+      await getAgreementAttachment();
     });
 
     date.text = DateFormat('dd-MMM-yyyy')
@@ -1211,6 +1211,20 @@ class _EditState extends State<Edit> {
                 ),
               ),
               actions: [
+                
+                TextButton(
+                  onPressed: loading
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  child: Text(
+                    "Close",
+                    style: TextStyle(
+                      color: loading ? null : Colors.red,
+                    ),
+                  ),
+                ),
                 TextButton(
                   onPressed: loading
                       ? null
@@ -1235,7 +1249,7 @@ class _EditState extends State<Edit> {
                                 loading = false;
                               });
                             } else {
-                              await updatePayment();
+                              await updatePaymentAgreement();
                             }
                           }
                         },
@@ -1243,19 +1257,6 @@ class _EditState extends State<Edit> {
                     "Update",
                     style: TextStyle(
                       color: loading ? null : Colors.green,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: loading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  child: Text(
-                    "Close",
-                    style: TextStyle(
-                      color: loading ? null : Colors.red,
                     ),
                   ),
                 ),

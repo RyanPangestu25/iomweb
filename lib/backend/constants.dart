@@ -36,14 +36,26 @@ const url_SendLog =
 const url_Verification =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=Verification';
 
+const url_VerificationMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationMstAgreement';
+
 const url_VerificationPayment =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationPayment';
+
+const url_VerificationPayMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationPaymentMstAgreement';
 
 const url_VerificationAttach =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationAttach';
 
+const url_VerifMasterAtt =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=VerificationAttachMstAgreement';
+
 const url_CekSaldoIOM =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoIOM';
+
+const url_CekSaldoMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoMstAgreement';
 
 const url_GetAttachmentName =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=GetAttachmentName';
@@ -51,8 +63,20 @@ const url_GetAttachmentName =
 const url_UpdatePayment =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePayment';
 
+const url_UpdatePaymentAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePaymentAgreement';
+
+const url_UpdatePaymentMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdatePaymentMstAgreement';
+
 const url_UpdateAttach =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAttach';
+
+const url_UpdateAttachmentAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAttachAgreement';
+
+const url_UpdateAttMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=UpdateAttachMstAgreement';
 
 const url_DeletePayment =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=DeletePayment';
@@ -189,8 +213,14 @@ const url_CekSaldoAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekSaldoAgreement';
 const url_ApprovalAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ApprovalAgreement';
+
+const url_ApprovalMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ApprovalMstAgreement';
 const url_SendLogAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=SendLogAgreement';
+
+const url_SendlogMaster =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=SendLogMstAgreement';
 
 const url_CekAPBEmbarkAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=CekAPBEmbarkAgreement';
@@ -210,5 +240,5 @@ const url_CekAPBAgreement =
 const url_ResetApprovalAgreement =
     'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetApprovalAgreement';
 
-
-
+const url_ResetApprovalMstAgreement =
+    'https://lgapvfncacc.com/WebAPIIOM/WebServiceAPIIOM.asmx?op=ResetApprovalMstAgreement';

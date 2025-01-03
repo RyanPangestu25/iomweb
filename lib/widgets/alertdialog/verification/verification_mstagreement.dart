@@ -373,17 +373,17 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
           '<soap:Body>' +
           '<VerificationMstAgreement xmlns="http://tempuri.org/">' +
           '<isPayment>$isPayment</isPayment>' +
-          '<NoAgreement>${widget.data.last['noIOM']}</NoAgreement>' +
+          '<NoAgreement>${widget.data.last['noAgreement']}</NoAgreement>' +
           '<server>${widget.data.last['server']}</server>' +
           '<VerifiedBy>$userName</VerifiedBy>' +
           '</VerificationMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_Verification),
+      final response = await http.post(Uri.parse(url_VerificationMaster),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/Verification',
+            'SOAPAction': 'http://tempuri.org/VerificationMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -393,9 +393,9 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('VerificationResult').isEmpty
+            document.findAllElements('VerificationMstAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('VerificationResult').first.text;
+                : document.findAllElements('VerificationMstAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -404,7 +404,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Verification",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -422,7 +422,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
             }
 
             if (isPayment == 1) {
-              await verifPayment();
+              await verifPaymentMaster();
             } else {
               StatusAlert.show(
                 context,
@@ -437,7 +437,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewMstagreement(
-                      title: 'IOM Verification',
+                      title: 'Master Verification',
                     );
                   },
                 ));
@@ -445,7 +445,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewMstagreement(
-                      title: 'IOM Approval',
+                      title: 'Master Approval',
                     );
                   },
                 ));
@@ -453,7 +453,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (BuildContext context) {
                     return const ViewMstagreement(
-                      title: 'View IOM',
+                      title: 'View Master',
                     );
                   },
                 ));
@@ -504,7 +504,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
     }
   }
 
-  Future<void> verifPayment() async {
+  Future<void> verifPaymentMaster() async {
     try {
       setState(() {
         loading = true;
@@ -516,22 +516,22 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationPayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.data.last['noAgreement']}</NoIOM>' +
+          '<VerificationPaymentMstAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.data.last['noAgreement']}</NoAgreement>' +
           '<Item>${(item + 1).toString()}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.data.last['server']}</server>' +
-          '</VerificationPayment>' +
+          '</VerificationPaymentMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
       final response = await http.post(Uri.parse(url_VerificationPayment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationPayment',
+            'SOAPAction': 'http://tempuri.org/VerificationPaymentMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -541,10 +541,10 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData = document
-                .findAllElements('VerificationPaymentResult')
+                .findAllElements('VerificationPaymentMstAgreementResult')
                 .isEmpty
             ? 'GAGAL'
-            : document.findAllElements('VerificationPaymentResult').first.text;
+            : document.findAllElements('VerificationPaymentMstAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -553,7 +553,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Verification Payment",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -570,7 +570,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               });
             }
 
-            await verifAtt();
+            await verifMasterAtt();
           });
         }
       } else {
@@ -631,7 +631,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
   }
 
 
-  Future<void> verifAtt() async {
+  Future<void> verifMasterAtt() async {
     try {
       setState(() {
         loading = true;
@@ -640,8 +640,8 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<VerificationAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.data.last['noIOM']}</NoIOM>' +
+          '<VerificationAttachMstAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.data.last['noAgreement']}</NoAgreement>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
@@ -649,14 +649,14 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
           '<Ext>$fileExt</Ext>' +
           '<Item>${(item + 1).toString()}</Item>' +
           '<server>${widget.data.last['server']}</server>' +
-          '</VerificationAttach>' +
+          '</VerificationAttachMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_VerificationAttach),
+      final response = await http.post(Uri.parse(url_VerifMasterAtt),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/VerificationAttach',
+            'SOAPAction': 'http://tempuri.org/VerificationAttachMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -666,10 +666,10 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData = document
-                .findAllElements('VerificationAttachResult')
+                .findAllElements('VerificationAttachMstAgreementResult')
                 .isEmpty
             ? 'GAGAL'
-            : document.findAllElements('VerificationAttachResult').first.text;
+            : document.findAllElements('VerificationAttachMstAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -678,7 +678,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Verification Attachment",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -713,7 +713,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               });
             }
 
-            await cekSaldoIOM();
+            await cekSaldoMaster();
           });
         }
       } else {
@@ -728,7 +728,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await verifAtt();
+                      await verifMasterAtt();
                     }
                   },
                 );
@@ -761,7 +761,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await verifAtt();
+                    await verifMasterAtt();
                   }
                 },
               );
@@ -785,7 +785,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
     }
   }
 
-  Future<void> cekSaldoIOM() async {
+  Future<void> cekSaldoMaster() async {
     try {
       setState(() {
         loading = true;
@@ -794,17 +794,17 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<CekSaldoIOM xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.data.last['noAgreement']}</NoIOM>' +
+          '<CekSaldoMstAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.data.last['noAgreement']}</NoAgreement>' +
           '<server>${widget.data.last['server']}</server>' +
-          '</CekSaldoIOM>' +
+          '</CekSaldoMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_CekSaldoIOM),
+      final response = await http.post(Uri.parse(url_CekSaldoMaster),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/CekSaldoIOM',
+            'SOAPAction': 'http://tempuri.org/CekSaldoMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -848,7 +848,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               item = int.parse(lastItem);
               saldo = double.parse(total);
 
-              double.parse(total) >= double.parse(widget.data.last['biaya'])
+              double.parse(total) >= double.parse(widget.data.last['amountDeposit'])
                   ? isBalance = true
                   : isBalance = false;
 
@@ -875,7 +875,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewMstagreement(
-                        title: 'IOM Verification',
+                        title: 'Master Verification',
                       );
                     },
                   ));
@@ -883,7 +883,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewMstagreement(
-                        title: 'IOM Approval',
+                        title: 'Master Approval',
                       );
                     },
                   ));
@@ -891,7 +891,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const ViewMstagreement(
-                        title: 'View IOM',
+                        title: 'View Master',
                       );
                     },
                   ));
@@ -911,7 +911,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Check IOM Balance',
+                  fail: 'Error Check Master Balance',
                   error: response.body.toString(),
                 );
               });
@@ -931,7 +931,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Check IOM Balance',
+                fail: 'Error Check Master Balance',
                 error: e.toString(),
               );
             });
@@ -950,7 +950,7 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
       await getBank();
       await getCurr();
       await getUser();
-      await cekSaldoIOM();
+      await cekSaldoMaster();
     });
 
     date.text = DateFormat('dd-MMM-yyyy')
@@ -1411,6 +1411,19 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                 TextButton(
                   onPressed: loading
                       ? null
+                      : () {
+                          Navigator.of(context).pop();
+                        },
+                  child: Text(
+                    "Close",
+                    style: TextStyle(
+                      color: loading ? null : Colors.red,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: loading
+                      ? null
                       : () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
@@ -1446,19 +1459,6 @@ class _VerificationMstagreementState extends State<VerificationMstagreement> {
                     "Verification",
                     style: TextStyle(
                       color: loading ? null : Colors.green,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: loading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  child: Text(
-                    "Close",
-                    style: TextStyle(
-                      color: loading ? null : Colors.red,
                     ),
                   ),
                 ),

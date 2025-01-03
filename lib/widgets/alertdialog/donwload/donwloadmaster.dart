@@ -139,7 +139,7 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
         'Insert Date',
         'Status'
       ]);
-      sheet.appendRow(List.generate(13, (index) => '================'));
+      sheet.appendRow(List.generate(16, (index) => '================'));
       sheet1.appendRow(List.generate(33, (index) => '================'));
       for (var data in mstagreement) {
         if (!noMaster.contains(data['noAgreement'])) {
@@ -220,10 +220,10 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
           data['currPembayaran'],
           data['amountPembayaran'],
           data['namaBankPenerima'],
-          data['Tgl_TerimaPembayaran'] == 'No Data'
-              ? data['Tgl_TerimaPembayaran']
+          data['tgl_TerimaPembayaran'] == 'No Data'
+              ? data['tgl_TerimaPembayaran']
               : DateFormat('dd-MMM-yyyy')
-                  .format(DateTime.parse(data['Tgl_TerimaPembayaran']).toLocal()),
+                  .format(DateTime.parse(data['tgl_TerimaPembayaran']).toLocal()),
           data['logNo'],
           data['userInsert'],
           data['insertDate'],
@@ -232,7 +232,7 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
       }
 
       String fileName =
-          '${airlines}IOM${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
+          '${airlines}MasterAgreement${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateFrom.text).toLocal())}To${DateFormat('ddMMyy').format(DateFormat('dd-MMM-yyyy').parse(dateTo.text).toLocal())}';
 
       //Simpan data byte ke file excel
       excel.save(fileName: '$fileName.xlsx');
@@ -260,17 +260,17 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
       });
     } catch (e) {
       //debugPrint('$e');
-      StatusAlert.show(
-        context,
-        duration: const Duration(seconds: 2),
-        configuration:
-            const IconConfiguration(icon: Icons.error, color: Colors.red),
-        title: "Error Download Report",
-        subtitle: "$e",
-        titleOptions: StatusAlertTextConfiguration(
-          overflow: TextOverflow.visible,
-        ),
-        backgroundColor: Colors.grey[300],
+     await showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (BuildContext context){
+        return LogError(
+          statusCode: '', 
+          fail: 'Error Donwload Report', 
+          error: e.toString()
+          );
+
+      }
       );
       if (mounted) {
         setState(() {
@@ -335,7 +335,7 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
               }
             });
           } else {
-            final noAgreement = listResult.findElements('NoAgreement').isEmpty
+           final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
                 : listResult.findElements('NoAgreement').first.innerText;
             final customer = listResult.findElements('Customer').isEmpty
@@ -533,7 +533,7 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
                   'currPembayaran': currPembayaran,
                   'amountPembayaran': amountPembayaran,
                   'namaBankPenerima': namaBankPenerima,
-                  'Tgl_TerimaPembayaran': tglTerimaPembayaran,
+                  'tgl_TerimaPembayaran': tglTerimaPembayaran,
                   'logNo': logNo,
                   'userInsert': userInsert,
                   'insertDate': insertDate,
@@ -846,7 +846,7 @@ class _DonwloadMasterState extends State<DonwloadMaster> {
                   'currPembayaran': currPembayaran,
                   'amountPembayaran': amountPembayaran,
                   'namaBankPenerima': namaBankPenerima,
-                  'Tgl_TerimaPembayaran': tglTerimaPembayaran,
+                  'tgl_TerimaPembayaran': tglTerimaPembayaran,
                   'logNo': logNo,
                   'userInsert': userInsert,
                   'insertDate': insertDate,

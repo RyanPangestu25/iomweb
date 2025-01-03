@@ -16,12 +16,12 @@ import '../../loading.dart';
 import '../log_error.dart';
 import '../try_again.dart';
 
-class Edit extends StatefulWidget {
+class EditMaster extends StatefulWidget {
   final Function(bool) isUpdate;
   final List editItem;
   final String server;
 
-  const Edit({
+  const EditMaster({
     super.key,
     required this.isUpdate,
     required this.editItem,
@@ -29,10 +29,10 @@ class Edit extends StatefulWidget {
   });
 
   @override
-  State<Edit> createState() => _EditState();
+  State<EditMaster> createState() => _EditMasterState();
 }
 
-class _EditState extends State<Edit> {
+class _EditMasterState extends State<EditMaster> {
   final _formKey = GlobalKey<FormState>();
 
   bool loading = false;
@@ -345,7 +345,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> updatePayment() async {
+  Future<void> updatePaymentMaster() async {
     try {
       setState(() {
         loading = true;
@@ -357,22 +357,22 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<UpdatePayment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<UpdatePaymentMstAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.editItem.last['noAgreement']}</NoAgreement>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<Tgl_TerimaPembayaran>${DateFormat('dd-MMM-yyyy').parse(date.text).toLocal().toIso8601String()}</Tgl_TerimaPembayaran>' +
           '<NamaBankPenerima>$namaBankPenerima</NamaBankPenerima>' +
           '<AmountPembayaran>${amount.text.replaceAll(',', '')}</AmountPembayaran>' +
           '<CurrPembayaran>${curr.text.substring(0, 3)}</CurrPembayaran>' +
           '<server>${widget.server}</server>' +
-          '</UpdatePayment>' +
+          '</UpdatePaymentMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_UpdatePayment),
+      final response = await http.post(Uri.parse(url_UpdatePaymentMaster),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/UpdatePayment',
+            'SOAPAction': 'http://tempuri.org/UpdatePaymentMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -382,9 +382,9 @@ class _EditState extends State<Edit> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('UpdatePaymentResult').isEmpty
+            document.findAllElements('UpdatePaymentMstAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('UpdatePaymentResult').first.text;
+                : document.findAllElements('UpdatePaymentMstAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -393,7 +393,7 @@ class _EditState extends State<Edit> {
               duration: const Duration(seconds: 1),
               configuration:
                   const IconConfiguration(icon: Icons.error, color: Colors.red),
-              title: "Failed",
+              title: "Failed Update Payment",
               backgroundColor: Colors.grey[300],
             );
             if (mounted) {
@@ -411,7 +411,7 @@ class _EditState extends State<Edit> {
             }
 
             if (isNew) {
-              await updateAtt();
+              await updateAttMaster();
             } else {
               StatusAlert.show(
                 context,
@@ -429,8 +429,8 @@ class _EditState extends State<Edit> {
           });
         }
       } else {
-        //debugPrint('Error: ${response.statusCode}');
-        //debugPrint('Desc: ${response.body}');
+        //debugprint('Error: ${response.statusCode}');
+        //debugprint('Desc: ${response.body}');
 
         if (mounted) {
           await showDialog(
@@ -439,7 +439,7 @@ class _EditState extends State<Edit> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Failed Verification Payment',
+                  fail: 'Failed Verification Payment Master Agreement',
                   error: response.body.toString(),
                 );
               });
@@ -450,7 +450,7 @@ class _EditState extends State<Edit> {
         }
       }
     } catch (e) {
-      //debugPrint('$e');
+      //debugprint('$e');
 
       if (mounted) {
         await showDialog(
@@ -459,7 +459,7 @@ class _EditState extends State<Edit> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Failed Verification Payment',
+                fail: 'Failed Verification Payment Master Agreement',
                 error: e.toString(),
               );
             });
@@ -471,7 +471,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> updateAtt() async {
+  Future<void> updateAttMaster() async {
     try {
       setState(() {
         loading = true;
@@ -480,8 +480,8 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<UpdateAttach xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<UpdateAttachMstAgreement xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.editItem.last['noAgreement']}</NoAgreement>' +
           '<Filename>$fileName</Filename>' +
           '<PDFFile>${base64Encode(_image!)}</PDFFile>' +
           '<UploadBy>$userName</UploadBy>' +
@@ -489,14 +489,14 @@ class _EditState extends State<Edit> {
           '<Ext>$fileExt</Ext>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<server>${widget.editItem.last['server']}</server>' +
-          '</UpdateAttach>' +
+          '</UpdateAttachMstAgreement>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_UpdateAttach),
+      final response = await http.post(Uri.parse(url_UpdateAttMaster),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/UpdateAttach',
+            'SOAPAction': 'http://tempuri.org/UpdateAttachMstAgreement',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -506,9 +506,9 @@ class _EditState extends State<Edit> {
         final document = xml.XmlDocument.parse(response.body);
 
         final statusData =
-            document.findAllElements('UpdateAttachResult').isEmpty
+            document.findAllElements('UpdateAttachMstAgreementResult').isEmpty
                 ? 'GAGAL'
-                : document.findAllElements('UpdateAttachResult').first.text;
+                : document.findAllElements('UpdateAttachMstAgreementResult').first.text;
 
         if (statusData == "GAGAL") {
           Future.delayed(const Duration(seconds: 1), () {
@@ -560,7 +560,7 @@ class _EditState extends State<Edit> {
                 return TryAgain(
                   submit: (value) async {
                     if (value) {
-                      await updateAtt();
+                      await updateAttMaster();
                     }
                   },
                 );
@@ -593,7 +593,7 @@ class _EditState extends State<Edit> {
               return TryAgain(
                 submit: (value) async {
                   if (value) {
-                    await updateAtt();
+                    await updateAttMaster();
                   }
                 },
               );
@@ -617,7 +617,7 @@ class _EditState extends State<Edit> {
     }
   }
 
-  Future<void> getIOMAttachment() async {
+  Future<void> getMasterAttachment() async {
     try {
       setState(() {
         loading = true;
@@ -626,19 +626,19 @@ class _EditState extends State<Edit> {
       final String soapEnvelope = '<?xml version="1.0" encoding="utf-8"?>' +
           '<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">' +
           '<soap:Body>' +
-          '<GetIOMAttachment xmlns="http://tempuri.org/">' +
-          '<NoIOM>${widget.editItem.last['noIOM']}</NoIOM>' +
+          '<GetMstAgreementAttachment xmlns="http://tempuri.org/">' +
+          '<NoAgreement>${widget.editItem.last['noAgreement']}</NoAgreement>' +
           '<Item>${widget.editItem.last['item']}</Item>' +
           '<attachmentType>BUKTI TERIMA PEMBAYARAN</attachmentType>' +
           '<server>${widget.server}</server>' +
-          '</GetIOMAttachment>' +
+          '</GetMstAgreementAttachment>' +
           '</soap:Body>' +
           '</soap:Envelope>';
 
-      final response = await http.post(Uri.parse(url_GetIOMAttachment),
+      final response = await http.post(Uri.parse(url_GetMstAgreementAttachment),
           headers: <String, String>{
             "Access-Control-Allow-Origin": "*",
-            'SOAPAction': 'http://tempuri.org/GetIOMAttachment',
+            'SOAPAction': 'http://tempuri.org/GetMstAgreementAttachment',
             'Access-Control-Allow-Credentials': 'true',
             'Content-type': 'text/xml; charset=utf-8'
           },
@@ -671,9 +671,9 @@ class _EditState extends State<Edit> {
               }
             });
           } else {
-            final noIOM = listResult.findElements('NoIOM').isEmpty
+            final noAgreement = listResult.findElements('NoAgreement').isEmpty
                 ? 'No Data'
-                : listResult.findElements('NoIOM').first.text;
+                : listResult.findElements('NoAgreement').first.text;
             final filename = listResult.findElements('Filename').isEmpty
                 ? 'No Data'
                 : listResult.findElements('Filename').first.text;
@@ -690,7 +690,7 @@ class _EditState extends State<Edit> {
 
             setState(() {
               attFile.add({
-                'noIOM': noIOM,
+                'noAgreement': noAgreement,
                 'filename': filename,
                 'pdf': pdfFile,
                 'ext': ext,
@@ -723,7 +723,7 @@ class _EditState extends State<Edit> {
               builder: (BuildContext context) {
                 return LogError(
                   statusCode: response.statusCode.toString(),
-                  fail: 'Error Get IOM Attachment',
+                  fail: 'Error Get Master Agreement Attachment',
                   error: response.body.toString(),
                 );
               });
@@ -743,7 +743,7 @@ class _EditState extends State<Edit> {
             builder: (BuildContext context) {
               return LogError(
                 statusCode: '',
-                fail: 'Error Get IOM Attachment',
+                fail: 'Error Get Master Agreement Attachment',
                 error: e.toString(),
               );
             });
@@ -797,7 +797,7 @@ class _EditState extends State<Edit> {
       await getBank();
       await getCurr();
       await getUser();
-      await getIOMAttachment();
+      await getMasterAttachment();
     });
 
     date.text = DateFormat('dd-MMM-yyyy')
@@ -1249,7 +1249,7 @@ class _EditState extends State<Edit> {
                                 loading = false;
                               });
                             } else {
-                              await updatePayment();
+                              await updatePaymentMaster();
                             }
                           }
                         },

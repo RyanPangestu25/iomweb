@@ -1296,7 +1296,7 @@ class _SidebarState extends State<Sidebar> {
                       context: context,
                       barrierDismissible: false,
                       builder: (BuildContext context) {
-                        return DonwloadMaster();
+                        return const DonwloadMaster();
                       },
                     );
                   },
